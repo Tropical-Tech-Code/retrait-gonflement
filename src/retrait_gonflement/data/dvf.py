@@ -3,13 +3,18 @@
 import argparse
 import gzip
 import io
-import tomllib
 from pathlib import Path
 
 import httpx
 
-RACINE = Path(__file__).resolve().parents[3]
-CONFIG_PAR_DEFAUT = RACINE / "config" / "perimetre.toml"
+from retrait_gonflement.data.commun import (
+    RACINE,
+    ErreurDonnees,
+    charger_config,
+    ecrire_atomique,
+    url_configuree,
+)
+
 DOSSIER_RAW = RACINE / "data" / "raw" / "dvf"
 
 # Colonnes dont dépend le nettoyage décrit dans docs/method.md
@@ -22,20 +27,8 @@ COLONNES_REQUISES = {
 }
 
 
-class ErreurDonnees(Exception):
-    """Données reçues inattendues (colonnes manquantes, fichier illisible)."""
-
-
-def charger_config(chemin: Path = CONFIG_PAR_DEFAUT) -> dict:
-    with open(chemin, "rb") as f:
-        return tomllib.load(f)
-
-
 def construire_url(config: dict, annee: int, departement: str) -> str:
-    modele = config["sources"]["dvf"]["url"]
-    if not modele:
-        raise ErreurDonnees("URL DVF vide dans la config")
-    return modele.format(annee=annee, departement=departement)
+    return url_configuree(config, "dvf").format(annee=annee, departement=departement)
 
 
 def valider_colonnes(contenu_gz: bytes) -> None:
@@ -75,10 +68,7 @@ def telecharger_dvf(
                 reponse = client.get(construire_url(config, annee, dep))
                 reponse.raise_for_status()
                 valider_colonnes(reponse.content)
-                # écriture atomique : pas de fichier à moitié écrit
-                temporaire = cible.with_suffix(".tmp")
-                temporaire.write_bytes(reponse.content)
-                temporaire.replace(cible)
+                ecrire_atomique(cible, reponse.content)
                 ecrits.append(cible)
     finally:
         if propre:
