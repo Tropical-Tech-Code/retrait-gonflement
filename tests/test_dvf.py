@@ -31,7 +31,7 @@ def test_charger_config_reelle():
     config = dvf.charger_config()
     assert config["perimetre"]["departements"] == ["31", "47", "77", "82"]
     assert config["estimation"]["seuil_pas_de_decote"] == -0.03
-    assert config["sources"]["rga_2020"]["url"] == ""
+    assert config["sources"]["gaspar"]["url"] == ""
 
 
 def test_construire_url():

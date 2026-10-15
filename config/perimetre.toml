@@ -10,11 +10,17 @@ annee_fin = 2025   # années civiles complètes
 # {annee} et {departement} sont remplacés par le connecteur
 url = "https://files.data.gouv.fr/geo-dvf/latest/csv/{annee}/departements/{departement}.csv.gz"
 
+# Cartes RGA : dépôt manuel (pas d'URL stable, formulaire Géorisques). Le connecteur ne
+# télécharge rien : il vérifie la présence et la validité des fichiers.
+# Procédure : télécharger à la main le Shapefile Lambert 93 de chaque département du
+# périmètre sur Géorisques, puis le déposer SANS le renommer ni le décompresser dans
+# data/raw/rga/<millésime>/. `fichier` donne le nom attendu ({departement} est remplacé).
+# Un `fichier` vide = source pas encore trouvée.
 [sources.rga_2020]
-url = ""   # à confirmer à la main
+fichier = ""   # source encore à trouver ; dépôt dans data/raw/rga/2020/
 
 [sources.rga_2026]
-url = ""   # à confirmer à la main (Shapefile Géorisques ou fichiers alearg_2025_<dep>_l93)
+fichier = "AleaRG_2025_{departement}_L93.zip"   # dépôt dans data/raw/rga/2026/
 
 [sources.gaspar]
 url = ""   # à confirmer à la main
