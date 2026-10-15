@@ -1,0 +1,21 @@
+id_mutation,date_mutation,numero_disposition,nature_mutation,valeur_fonciere,adresse_numero,adresse_suffixe,adresse_nom_voie,adresse_code_voie,code_postal,code_commune,nom_commune,code_departement,ancien_code_commune,ancien_nom_commune,id_parcelle,ancien_id_parcelle,numero_volume,lot1_numero,lot1_surface_carrez,lot2_numero,lot2_surface_carrez,lot3_numero,lot3_surface_carrez,lot4_numero,lot4_surface_carrez,lot5_numero,lot5_surface_carrez,nombre_lots,code_type_local,type_local,surface_reelle_bati,nombre_pieces_principales,code_nature_culture,nature_culture,code_nature_culture_speciale,nature_culture_speciale,surface_terrain,longitude,latitude
+2023-1,2023-03-14,000001,Vente,210000,,,,,31000,31001,Exemplville,31,,,31001000AB0012,,,,,,,,,,,,,0,1,Maison,95,4,S,sols,,,300,1.4501,43.6001
+2023-1,2023-03-14,000001,Vente,210000,,,,,31000,31001,Exemplville,31,,,31001000AB0012,,,,,,,,,,,,,0,1,Maison,95,4,J,jardins,,,450,1.4501,43.6001
+2023-1,2023-03-14,000001,Vente,210000,,,,,31000,31001,Exemplville,31,,,31001000AB0013,,,,,,,,,,,,,0,,,,,T,terres,,,1200,1.4503,43.6003
+2023-2,2023-05-02,000001,Vente,185000,,,,,31000,31001,Exemplville,31,,,31001000AC0100,,,,,,,,,,,,,0,1,Maison,80,3,S,sols,,,500,1.4600,43.6100
+2023-3,2023-06-20,000001,Vente,320000,,,,,31000,31001,Exemplville,31,,,31001000AD0007,,,1,,,,,,,,,,1,1,Maison,110,5,S,sols,,,400,1.4700,43.6200
+2023-3,2023-06-20,000001,Vente,320000,,,,,31000,31001,Exemplville,31,,,31001000AD0007,,,2,45,,,,,,,,,1,2,Appartement,45,2,S,sols,,,400,1.4700,43.6200
+2023-4,2023-07-11,000001,Vente,400000,,,,,31000,31002,Demoville,31,,,31002000AA0001,,,,,,,,,,,,,0,1,Maison,90,4,S,sols,,,250,1.5001,43.5501
+2023-4,2023-07-11,000001,Vente,400000,,,,,31000,31002,Demoville,31,,,31002000AA0002,,,,,,,,,,,,,0,1,Maison,85,4,S,sols,,,260,1.5003,43.5503
+2023-5,2023-08-01,000001,Vente,150000,,,,,31000,31002,Demoville,31,,,31002000AB0050,,,,,,,,,,,,,0,2,Appartement,60,3,,,,,,1.5100,43.5600
+2023-6,2023-09-05,000001,Vente,1,,,,,31000,31002,Demoville,31,,,31002000AC0010,,,,,,,,,,,,,0,1,Maison,100,4,S,sols,,,300,1.5200,43.5700
+2023-7,2023-09-12,000001,Vente,9500000,,,,,31000,31002,Demoville,31,,,31002000AC0011,,,,,,,,,,,,,0,1,Maison,100,4,S,sols,,,300,1.5210,43.5710
+2023-8,2023-10-03,000001,Vente,175000,,,,,31000,31001,Exemplville,31,,,31001000AE0004,,,,,,,,,,,,,0,1,Maison,75,3,S,sols,,,350,,
+2023-9,2023-10-18,000001,Vente,230000,,,,,31000,31002,Demoville,31,,,31002000AD0020,,,,,,,,,,,,,0,1,Maison,105,5,S,sols,,,600,,43.5800
+2023-10,2023-11-02,000001,Vente,60000,,,,,31000,31001,Exemplville,31,,,31001000AF0001,,,,,,,,,,,,,0,,,,,T,terres,,,2000,1.4800,43.6300
+2023-11,2023-11-15,000001,Echange,100000,,,,,31000,31001,Exemplville,31,,,31001000AG0001,,,,,,,,,,,,,0,1,Maison,90,4,S,sols,,,300,1.4900,43.6400
+2023-12,2023-12-01,000001,Vente,500000,,,,,31000,31002,Demoville,31,,,31002000AE0001,,,,,,,,,,,,,0,3,Local industriel. commercial ou assimilé,300,0,S,sols,,,800,1.5300,43.5900
+2023-13,2023-12-12,000001,Vente,250000,,,,,31000,31001,Exemplville,31,,,31001000AH0003,,,,,,,,,,,,,0,1,Maison,120,5,S,sols,,,700,1.4950,43.6450
+2023-13,2023-12-12,000001,Vente,250000,,,,,31000,31001,Exemplville,31,,,31001000AH0003,,,,,,,,,,,,,0,4,Dépendance,,0,S,sols,,,700,1.4950,43.6450
+2023-14,2023-12-20,000001,Vente,90000,,,,,31000,31002,Demoville,31,,,31002000AF0002,,,,,,,,,,,,,0,1,Maison,12,1,S,sols,,,100,1.5400,43.6000
+2023-15,2023-12-28,000001,Vente,140000,,,,,31000,31001,Exemplville,31,,,31001000AI0001,,,,,,,,,,,,,0,1,Maison,70,3,,,,,,1.5000,43.6500

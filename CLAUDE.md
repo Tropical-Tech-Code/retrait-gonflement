@@ -18,6 +18,7 @@ Projet court : 3 jours.
 - `data/processed/` est suivi par Git (l'app déployée le lit) ; `data/raw/` et `data/interim/` sont ignorés.
 - Aucune vente individuelle dans `data/processed/` : uniquement des agrégats par commune.
 - Le README s'adresse aux lecteurs : ne jamais y renvoyer vers `CLAUDE.md`.
+- Modifier un fichier uniquement avec l'outil d'édition (Edit/Write), jamais avec `cat >>`, `sed` ou une redirection : chaque modification doit apparaître sous forme de différences. Lancer les commandes une par une.
 
 ## Sources de données
 | Source | Usage | Accès |
