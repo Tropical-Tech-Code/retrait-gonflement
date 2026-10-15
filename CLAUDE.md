@@ -85,22 +85,27 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 15/10/2026 : fond de carte Carto conservé (chargé par le navigateur du visiteur, pas par le serveur) ; mention de la source sous la carte ; carte lisible sans fond (communes colorées + limites des départements, fichier `departements.geojson`).
 - 15/10/2026 : seuil de sinistralité = médiane de `catnat_depuis_2015` parmi les communes estimables, calculée par le pipeline ; « supérieure » = strictement au-dessus. Libellé dans l'app : « sinistralité supérieure à la médiane du périmètre », jamais « risque élevé ».
 - 15/10/2026 : trois statuts de décote calculés par le pipeline : « décote » (IC entièrement sous 0), « pas de décote » (borne basse de l'IC au-dessus de `seuil_pas_de_decote`, −3 % par défaut, dans `config/perimetre.toml`), « indéterminé » (le reste). Quadrants limités à « décote » et « pas de décote » ; indéterminées affichées à part (points creux) et comptées. « Angle mort » = sinistralité supérieure à la médiane ET « pas de décote ».
+- 15/10/2026 : cartes RGA en dépôt manuel (pas d'URL stable, formulaire Géorisques) : le connecteur `data/rga.py` ne télécharge rien, il vérifie la présence et la validité des archives (5 fichiers du Shapefile) dans `data/raw/rga/<millésime>/`. Noms attendus dans `config/perimetre.toml` (clé `fichier`).
+- 15/10/2026 : éléments communs des connecteurs (config, `ErreurDonnees`, écriture atomique) dans `data/commun.py` ; chaque connecteur a un client httpx injectable, une validation avant écriture, une ligne de commande qui n'affiche jamais le contenu.
 
 ## Avancement
 
-- Jour 1 en cours, en pause depuis le 14/10/2026.
+- Jour 1 terminé en grande partie, session du 15/10/2026 close.
 - Fait :
-  - `CLAUDE.md` du projet et `pyproject.toml` (groupes `pipeline`, `agents`, `dev`) ; `uv.lock` créé (105 paquets) ;
-  - copie nettoyée : paquet renommé en `retrait_gonflement` (sous-paquets `data/`, `spatial/`, `model/`, `agents/`), fichiers phyto-freight supprimés ;
-  - `data/raw/`, `data/interim/`, `data/processed/` créés ; `.gitignore`, `.env.example`, README minimal adaptés ;
-  - `uv sync` OK, `uv run pytest` : 1 test vert (import) ;
-  - `docs/method.md` écrit.
+  - cadrage, `pyproject.toml`, `docs/method.md`, `docs/app.md` (commits `93002ec`, `b40eb9d`) ;
+  - `config/perimetre.toml` et connecteur DVF avec ligne de commande (`de26142`) ;
+  - connecteur communes (API Géo) et `data/commun.py` (`ea53c98`) ;
+  - connecteur RGA en dépôt manuel, procédure dans le README (`b7b2fab`) ;
+  - `uv run pytest` : 36 tests verts, aucun appel réseau ; fixtures écrites à la main dans `tests/fixtures/` ;
+  - téléchargement réel DVF 82/2024 OK (18 071 lignes) ; cartes RGA 2026 déposées et vérifiées pour 31, 47, 77, 82.
 - En attente :
-  - commit de `docs/app.md` (validé le 15/10/2026), `docs/method.md` (statuts de décote) et `CLAUDE.md`.
-- Commit de cadrage fait le 15/10/2026 (`93002ec`), pas de push.
-- Reprise : `config/perimetre.toml` (avec `seuil_pas_de_decote`, tolérance de simplification, classes de couleur, seuil du prix médian) et les connecteurs DVF, RGA, GASPAR, communes avec leurs tests sur `tests/fixtures/`.
+  - test réel du connecteur communes ;
+  - connecteur GASPAR : URL officielle trouvée (`https://www.data.gouv.fr/api/1/datasets/r/d6fb9e18-b66b-499c-8284-46a3595579cc`), colonnes du CSV à vérifier avant d'écrire la validation ;
+  - téléchargement DVF du périmètre complet (4 départements × 2021-2025) ;
+  - commit de cette mise à jour de `CLAUDE.md`.
+- Bloquant : source de la carte RGA 2020 introuvable pour l'instant (Géorisques ne propose que la version 2026). Les modèles de `docs/method.md` utilisent la carte 2020 comme exposition connue du marché : à trancher avant le jour 2 (autre source, ou révision de la méthode).
+- Reprise : test communes, connecteur GASPAR, recherche de la carte 2020.
 - Points ouverts :
-  - URL des cartes RGA 2020 et 2026 et du CSV GASPAR à confirmer à la main ;
   - vérifier sur Légifrance le décret n° 2024-405 du 29 avril 2024 (RGA dans l'état des risques au 1er janvier 2025) ;
   - installer une fois l'extension DuckDB `spatial` à la main ;
   - créer le dépôt GitHub et faire le premier push (après confirmation) ;
