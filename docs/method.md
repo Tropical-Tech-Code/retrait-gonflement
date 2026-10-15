@@ -89,6 +89,23 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
   **15 ventes « faible + moyen »** et **50 ventes au total**, avec un IC à 95 %.
 - Sinon : commune « non estimable », avec son motif (pas de ventes dans les deux
   zones, ou effectifs insuffisants).
+- **Statut de décote** (communes estimables), à partir de l'IC à 95 % de la prime :
+  - **décote** : IC entièrement sous 0 ;
+  - **pas de décote** : borne basse de l'IC au-dessus du seuil `seuil_pas_de_decote`
+    (−3 % par défaut, dans la config) : une décote éventuelle serait au plus faible ;
+  - **indéterminé** : tout le reste (IC trop large pour conclure).
+
+  « Pas de décote » n'est pas « IC contient 0 » : une commune peu informative (IC de
+  −20 % à +10 %) est indéterminée, pas classée sans décote.
+- **Sinistralité** : comparée à la médiane de `catnat_depuis_2015` parmi les communes
+  estimables. « Supérieure à la médiane » = strictement au-dessus.
+- **Quadrants** (communes « décote » ou « pas de décote » seulement ; les indéterminées
+  sont comptées à part) :
+
+| | Décote | Pas de décote |
+|---|---|---|
+| **Sinistralité supérieure à la médiane** | Risque intégré | Angle mort |
+| **Sinistralité inférieure ou égale à la médiane** | Décote à expliquer | Cohérent |
 
 **Définitions à reprendre à l'identique partout (app, simulateur, README) :**
 
@@ -118,7 +135,10 @@ millésime du code officiel géographique que DVF et les contours.
 - `n_communes_estimables` ;
 - `n_significatives_decote` et `n_significatives_prime` (IC qui ne contient pas 0) ;
 - `n_attendu_hasard` = 0,05 × `n_communes_estimables` (environ la moitié dans
-  chaque sens), pour comparer avec le nombre observé.
+  chaque sens), pour comparer avec le nombre observé ;
+- `n_decote`, `n_pas_de_decote`, `n_indetermine` (statut de décote) et le nombre de
+  communes par quadrant ;
+- `mediane_sinistralite` et `seuil_pas_de_decote`.
 
 ## 9. Limites
 

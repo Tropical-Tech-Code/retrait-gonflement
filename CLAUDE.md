@@ -81,6 +81,9 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 14/10/2026 : ventes DVF de 2021 à 2025 : la carte 2020 était disponible pour le marché sur toute la période.
 - 15/10/2026 : nuances de `docs/method.md` validées (tests multiples sur les communes estimables ; « carte disponible pour le marché », sans obligation pour chaque vente).
 - 15/10/2026 : variante « réforme 2025 » du modèle global : terme fort × (vente en 2025), car le décret n° 2024-405 (à vérifier sur Légifrance) ajoute le RGA à l'état des risques remis à l'acheteur au 1er janvier 2025. Variante à part pour garder β_fort identique partout ; résultat dans `resume_global.json` uniquement, présenté comme un indice (une seule année après la réforme).
+- 15/10/2026 : fond de carte Carto conservé (chargé par le navigateur du visiteur, pas par le serveur) ; mention de la source sous la carte ; carte lisible sans fond (communes colorées + limites des départements, fichier `departements.geojson`).
+- 15/10/2026 : seuil de sinistralité = médiane de `catnat_depuis_2015` parmi les communes estimables, calculée par le pipeline ; « supérieure » = strictement au-dessus. Libellé dans l'app : « sinistralité supérieure à la médiane du périmètre », jamais « risque élevé ».
+- 15/10/2026 : trois statuts de décote calculés par le pipeline : « décote » (IC entièrement sous 0), « pas de décote » (borne basse de l'IC au-dessus de `seuil_pas_de_decote`, −3 % par défaut, dans `config/perimetre.toml`), « indéterminé » (le reste). Quadrants limités à « décote » et « pas de décote » ; indéterminées affichées à part (points creux) et comptées. « Angle mort » = sinistralité supérieure à la médiane ET « pas de décote ».
 
 ## Avancement
 
@@ -92,9 +95,9 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - `uv sync` OK, `uv run pytest` : 1 test vert (import) ;
   - `docs/method.md` écrit.
 - En attente :
-  - commit de cadrage (rien n'est encore commité ; tout le dossier est non suivi) ;
-  - `docs/app.md` (vues 1 à 3, page Méthodologie, fichiers de `data/processed/`, simplification des contours).
-- Reprise : `docs/app.md`, puis `config/perimetre.toml` et les connecteurs DVF, RGA, GASPAR, communes avec leurs tests sur `tests/fixtures/`.
+  - commit de `docs/app.md` (validé le 15/10/2026), `docs/method.md` (statuts de décote) et `CLAUDE.md`.
+- Commit de cadrage fait le 15/10/2026 (`93002ec`), pas de push.
+- Reprise : `config/perimetre.toml` (avec `seuil_pas_de_decote`, tolérance de simplification, classes de couleur, seuil du prix médian) et les connecteurs DVF, RGA, GASPAR, communes avec leurs tests sur `tests/fixtures/`.
 - Points ouverts :
   - URL des cartes RGA 2020 et 2026 et du CSV GASPAR à confirmer à la main ;
   - vérifier sur Légifrance le décret n° 2024-405 du 29 avril 2024 (RGA dans l'état des risques au 1er janvier 2025) ;
