@@ -1,0 +1,29 @@
+# Secrets
+.env
+
+# Fichiers de clés (motifs ciblés : les autres .json restent suivis)
+*.pem
+*.key
+*service-account*.json
+*credentials*.json
+client_secret*.json
+*-key.json
+
+# Environnement Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Bases DuckDB de travail
+*.duckdb
+*.wal
+
+# Données brutes et intermédiaires (jamais versionnées) ; data/processed/ reste suivi
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+
+# Système
+.DS_Store
