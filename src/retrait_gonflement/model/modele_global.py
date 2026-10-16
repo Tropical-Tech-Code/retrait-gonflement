@@ -68,15 +68,22 @@ def _arrondi(x: float) -> float:
     return round(float(x), 6)
 
 
-def estimer(df: pd.DataFrame, termes: list[str]) -> dict:
-    """Une régression ; renvoie coefficients des `termes`, effectifs et nombre de communes."""
-    df = retirer_singletons(df)
-    # Indicatrices de pièces : on écarte celles qui sont constantes, et la plus fréquente
-    # sert de référence (l'effet fixe absorbe le niveau commun).
+def colonnes_controles(df: pd.DataFrame) -> list[str]:
+    """Contrôles communs à tous les modèles (taille de la maison, terrain, nombre de pièces).
+
+    Indicatrices de pièces : on écarte celles qui sont constantes, et la plus fréquente
+    sert de référence (l'effet fixe absorbe le niveau commun).
+    """
     pieces = [c for c in (f"pieces_{k}" for k in range(7)) if 0 < df[c].sum() < len(df)]
     if pieces:
         pieces.remove(max(pieces, key=lambda c: df[c].sum()))
-    controles = ["log_surface", "log_terrain", "terrain_nul", *pieces]
+    return ["log_surface", "log_terrain", "terrain_nul", *pieces]
+
+
+def estimer(df: pd.DataFrame, termes: list[str]) -> dict:
+    """Une régression ; renvoie coefficients des `termes`, effectifs et nombre de communes."""
+    df = retirer_singletons(df)
+    controles = colonnes_controles(df)
     for terme in termes:
         if df[terme].sum() == 0:
             raise ErreurDonnees(f"aucune vente pour le terme « {terme} »")

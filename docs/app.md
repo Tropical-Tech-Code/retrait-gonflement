@@ -5,6 +5,17 @@ Application Streamlit en français, déployée en ligne. Elle ne lit que
 DuckDB, aucun calcul statistique. Tout est calculé par le pipeline (voir
 `docs/method.md`) ; l'app filtre, affiche et rédige le texte automatique.
 
+## Vocabulaire imposé (décision du 16/10)
+
+- Les primes communales (colonne `prime`) sont des **« écarts de prix observés entre
+  zone forte et reste de la commune »**. Jamais un « effet de l'argile », ni une « prime
+  de risque » : la colonne garde son nom de fichier, pas ses libellés à l'écran (info-bulle,
+  fiche, texte automatique, axes, tableau, simulateur, légende).
+- L'expression **« prime de risque implicite »** est réservée au résultat global
+  (bandeau, page Méthodologie, README) : le contraste « fort − moyen » et les modèles
+  globaux.
+- Les écarts communaux ne sont ni causaux ni une estimation de la valeur d'une maison.
+
 ## 1. Fichiers de `data/processed/`
 
 Uniquement des agrégats par commune ; aucune vente individuelle.
@@ -28,13 +39,20 @@ Uniquement des agrégats par commune ; aucune vente individuelle.
 | `prix_m2_median` | réel ou vide | vide si moins de 5 ventes (seuil dans la config) |
 | `statut` | texte | `estimable` ou `non_estimable` |
 | `motif` | texte ou vide | `une_seule_zone`, `effectifs_insuffisants` (vide si estimable) |
-| `prime`, `ic_bas`, `ic_haut` | réel ou vide | prime « fort » contre tout le reste (faible, moyen, hors zone), en % (exp(β) − 1) ; négatif = décote |
+| `prime`, `ic_bas`, `ic_haut` | réel ou vide | prime « fort » contre tout le reste (faible, moyen, hors zone), exp(β) − 1 en fraction (−0,05 = −5 %) ; négatif = décote |
 | `significatif` | texte ou vide | `decote` (IC < 0), `prime` (IC > 0), `non` (IC contient 0) ; sert aux tests multiples et à l'opacité de la carte |
 | `statut_decote` | texte ou vide | `decote`, `pas_de_decote`, `indetermine` (définitions dans `docs/method.md`, section 6) |
 | `catnat_total`, `catnat_depuis_2015` | entier | arrêtés CatNat sécheresse |
 | `catnat_dernier` | date ou vide | date du dernier arrêté |
 | `sinistralite_sup_mediane` | booléen ou vide | `catnat_depuis_2015` strictement supérieur à la médiane (communes estimables) |
 | `quadrant` | texte ou vide | vide si non estimable ou `indetermine` (section 3) |
+
+L'étape B (primes) écrit d'abord `primes_communes.parquet` : les colonnes ci-dessus qui en
+dépendent (effectifs, prix médian, statut, motif, prime, IC, `significatif`,
+`statut_decote`), pour les communes qui ont des ventes, plus `erreurs` (`sections` ou
+`hc1`) et `n_sections`. Une étape suivante le fusionne avec les noms, les communes sans
+vente, CatNat et les quadrants pour produire `communes.parquet` ; `primes_communes.parquet`
+est alors retiré de `data/processed/`.
 
 ### `contours.geojson`
 
@@ -97,7 +115,7 @@ texte automatique.
 ### Texte automatique
 
 Gabarit déterministe, une phrase par élément, à partir de la ligne de la commune :
-statut et motif, prime et IC, effectifs des deux zones, statut de décote, arrêtés
+statut et motif, écart de prix observé et IC, effectifs des deux zones, statut de décote, arrêtés
 CatNat (« sinistralité supérieure à la médiane du périmètre », jamais « risque
 élevé »), quadrant. Il se termine toujours par un rappel : un écart moyen observé
 n'est ni une estimation de la valeur d'une maison, ni une preuve de causalité.
@@ -105,8 +123,8 @@ n'est ni une estimation de la valeur d'une maison, ni une preuve de causalité.
 ## 3. Vue 2 : sinistralité × décote
 
 - Nuage de points (Altair, fourni avec Streamlit), communes estimables uniquement :
-  en abscisse, `catnat_depuis_2015` ; en ordonnée, `prime` avec son IC en barre
-  d'erreur. Une ligne à 0, une ligne pointillée au seuil `seuil_pas_de_decote`
+  en abscisse, `catnat_depuis_2015` ; en ordonnée, l'écart de prix observé (`prime`) avec
+  son IC en barre d'erreur. Une ligne à 0, une ligne pointillée au seuil `seuil_pas_de_decote`
   (−3 %) et une ligne verticale à la médiane de sinistralité.
 - **Statut de décote** (décision du 15/10), calculé par le pipeline : « décote »,
   « pas de décote », « indéterminé » (définitions dans `docs/method.md`, section 6).

@@ -264,5 +264,99 @@
       "statut": "indice : une seule année après la réforme"
     }
   },
-  "date_generation": "2026-10-16"
+  "date_generation": "2026-10-16",
+  "n_communes_estimables": 193,
+  "n_significatives_decote": 16,
+  "n_significatives_prime": 15,
+  "n_attendu_hasard": 9.65,
+  "n_attendu_par_sens": 4.825,
+  "n_decote": 16,
+  "n_pas_de_decote": 27,
+  "n_indetermine": 150,
+  "seuil_pas_de_decote": -0.03,
+  "seuil_prix_median": 5,
+  "primes_communes": {
+    "definition": "fort contre tout le reste (niveaux 0+1+2), carte 2020",
+    "seuils": {
+      "min_ventes_fort": 15,
+      "min_ventes_reference": 15,
+      "min_ventes_total": 50
+    },
+    "n_non_estimables": {
+      "une_seule_zone": 773,
+      "effectifs_insuffisants": 615
+    },
+    "erreurs": {
+      "min_sections_groupement": 10,
+      "n_groupees_par_section": 112,
+      "n_hc1": 81
+    },
+    "diagnostic_erreurs": {
+      "sections": {
+        "n_estimables": 112,
+        "n_decote": 9,
+        "n_pas_de_decote": 19,
+        "n_indetermine": 84,
+        "n_significatives_decote": 9,
+        "n_significatives_prime": 10,
+        "part_significatives": 0.1696,
+        "largeur_ic_mediane": 0.2135,
+        "ventes_mediane": 205.5
+      },
+      "hc1": {
+        "n_estimables": 81,
+        "n_decote": 7,
+        "n_pas_de_decote": 8,
+        "n_indetermine": 66,
+        "n_significatives_decote": 7,
+        "n_significatives_prime": 5,
+        "part_significatives": 0.1481,
+        "largeur_ic_mediane": 0.2567,
+        "ventes_mediane": 87.0
+      }
+    },
+    "distribution_primes": {
+      "q1": -0.06476,
+      "mediane": -0.009856,
+      "q3": 0.041946
+    },
+    "par_departement": {
+      "31": {
+        "n_communes_avec_ventes": 571,
+        "n_estimables": 48,
+        "n_une_seule_zone": 375,
+        "n_effectifs_insuffisants": 148,
+        "n_decote": 3,
+        "n_pas_de_decote": 6,
+        "n_indetermine": 39
+      },
+      "47": {
+        "n_communes_avec_ventes": 314,
+        "n_estimables": 25,
+        "n_une_seule_zone": 137,
+        "n_effectifs_insuffisants": 152,
+        "n_decote": 2,
+        "n_pas_de_decote": 7,
+        "n_indetermine": 16
+      },
+      "77": {
+        "n_communes_avec_ventes": 507,
+        "n_estimables": 108,
+        "n_une_seule_zone": 198,
+        "n_effectifs_insuffisants": 201,
+        "n_decote": 10,
+        "n_pas_de_decote": 12,
+        "n_indetermine": 86
+      },
+      "82": {
+        "n_communes_avec_ventes": 189,
+        "n_estimables": 12,
+        "n_une_seule_zone": 63,
+        "n_effectifs_insuffisants": 114,
+        "n_decote": 1,
+        "n_pas_de_decote": 2,
+        "n_indetermine": 9
+      }
+    }
+  }
 }

@@ -47,6 +47,7 @@ min_ventes_reference = 15
 min_ventes_total = 50
 seuil_prix_median = 5          # ventes minimales pour publier un prix médian
 niveau_ic = 0.95
+min_sections_groupement = 10   # sections cadastrales minimales pour grouper les erreurs ; sinon HC1
 seuil_pas_de_decote = -0.03    # borne basse de l'IC au-dessus de −3 % => « pas de décote »
 
 [carte]

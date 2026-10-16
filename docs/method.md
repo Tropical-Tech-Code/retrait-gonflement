@@ -123,6 +123,22 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
   chaque commune. Ce reste est très majoritairement « moyen » (voir les limites).
 - Même modèle avec un terme `fort × commune` : les contrôles sont estimés sur
   l'ensemble des ventes, chaque commune a son propre coefficient.
+- **Spécification** : celle du modèle « fort contre tout le reste » (section 5), en une
+  seule régression : un terme « fort » propre à chaque commune estimable, un terme commun
+  pour les ventes « fort » des autres communes, mêmes contrôles et mêmes effets fixes
+  commune × trimestre. La prime de la commune = exp(β) − 1 de son terme.
+- **Erreurs groupées par section cadastrale** (10 premiers caractères de `id_parcelle` :
+  commune, préfixe, section) et non par commune : une prime communale ne repose que sur
+  les ventes d'une commune, un groupement par commune n'aurait qu'un seul groupe. Chaque
+  prime est un coefficient propre à sa commune ; son erreur ne dépend donc que des
+  sections de cette commune. IC par la loi de Student à (sections de la commune − 1)
+  degrés de liberté.
+- **Repli HC1** : une commune qui compte moins de `min_sections_groupement` sections
+  (10, dans la config) reçoit des erreurs robustes à l'hétéroscédasticité HC1 (sans
+  groupement), avec (ventes de la commune − 1) degrés de liberté. Ces erreurs ignorent la
+  corrélation entre ventes voisines et sont donc plus optimistes : le nombre de communes
+  concernées est consigné dans `resume_global.json` (`erreurs`) et la colonne `erreurs`
+  du fichier des primes indique `sections` ou `hc1`.
 - Prime publiée seulement si la commune compte au moins **15 ventes « fort »**,
   **15 ventes de référence** (niveaux 0, 1 et 2) et **50 ventes au total**, avec un IC à 95 %.
 - Sinon : commune « non estimable », avec son motif (pas de ventes dans les deux
@@ -193,6 +209,16 @@ millésime du code officiel géographique que DVF et les contours.
   soit jusqu'à 80 communes si les 1 600 étaient estimables. Une commune isolée
   significative n'est donc pas une preuve ; le nombre observé est comparé au nombre
   attendu par hasard dans `resume_global.json`.
+- **Excès de communes significatives** : sur 193 communes estimables, 31 primes sont
+  significatives (16 en décote, 15 en prime), contre environ 10 attendues par hasard
+  (4,8 par sens). L'excès est symétrique : il ne signale pas une décote générale. Le
+  diagnostic par type d'erreurs (`diagnostic_erreurs` dans `resume_global.json`) écarte
+  le repli HC1 : la part de significatives est proche dans les communes à erreurs
+  groupées par section (17,0 %) et en HC1 (14,8 %), et les IC sont plus larges en HC1
+  (25,7 contre 21,3 points). Interprétation retenue : une hétérogénéité de quartiers au
+  sein des communes (au-delà du niveau commune × trimestre), cohérente avec le placebo.
+  Les primes communales sont donc des **écarts de prix observés entre la zone forte et le
+  reste de la commune**, jamais l'effet de l'argile.
 - Le point de la vente est le centroïde de la parcelle, et la carte est établie au
   1/50 000 : des ventes proches d'une limite de zone peuvent être mal classées.
 - **Deux maisons identiques sur une même parcelle** (mêmes surface bâtie et nombre de

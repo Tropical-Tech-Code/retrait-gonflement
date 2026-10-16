@@ -3,8 +3,9 @@
 **Statut : en construction**
 
 Le marché immobilier applique-t-il une décote aux maisons situées en zone
-d'exposition forte au retrait-gonflement des argiles ? Carte de la
-« prime de risque implicite » par commune.
+d'exposition forte au retrait-gonflement des argiles ? Résultat global : la
+« prime de risque implicite ». Carte par commune : l'écart de prix observé entre la zone
+forte et le reste de la commune.
 
 ## Le signal étudié
 
