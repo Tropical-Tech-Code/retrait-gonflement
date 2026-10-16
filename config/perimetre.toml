@@ -37,6 +37,7 @@ url = "https://geo.api.gouv.fr/departements/{departement}/communes?format=geojso
 surface_bati_min = 20          # m²
 surface_bati_max = 400         # m²
 valeur_fonciere_min = 15000    # €
+terrain_max_m2 = 10000         # plafond de surface de terrain (hors maisons « ordinaires »)
 percentile_exclu = 0.01        # 1 % bas et 1 % haut du prix/m², par département et par année
 distance_limite_zone_m = 50    # robustesse : ventes proches d'une limite de zone
 

@@ -89,6 +89,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 15/10/2026 : éléments communs des connecteurs (config, `ErreurDonnees`, écriture atomique) dans `data/commun.py` ; chaque connecteur a un client httpx injectable, une validation avant écriture, une ligne de commande qui n'affiche jamais le contenu.
 - 16/10/2026 : jointure RGA : colonne `niveau` pour les deux millésimes, convertie en entier ; catégories 0 = hors zone argileuse (aucun polygone de niveau 0 : un point hors de tout polygone), 1 = faible, 2 = moyen, 3 = fort ; référence du modèle = 0 ou 1. Les deux cartes sont traitées comme EPSG:2154 (même projection Lambert 93, codes d'autorité différents : IGNF:LAMB93 en 2020). DVF est en WGS84 : ordre des axes à surveiller à la reprojection ; test avec un point connu (centre de Toulouse).
 - 16/10/2026 : pas de polygone « faible » dans 77 et 82 (2020 et 2026) ni dans 47 (2026) : dans ces départements la référence est composée uniquement de maisons hors zone argileuse (limite ajoutée à `docs/method.md`).
+- 16/10/2026 : nettoyage DVF (`data/nettoyage_dvf.py`) : une mutation = (fichier, `id_mutation`), exclue pour son premier motif (nature, plusieurs dispositions, valeur absente, aucune maison, autre local, plusieurs maisons, sans coordonnées, surface bâtie hors bornes, valeur sous le minimum, terrain au-dessus du plafond, quantiles de prix) ; maisons distinctes comptées par (parcelle, surface, pièces) ; `valeur_fonciere` = une valeur par mutation, jamais sommée ; terrain = somme des couples (parcelle, nature de culture, nature de culture spéciale) distincts ; plafond `terrain_max_m2 = 10000` dans la config ; tables `mutations_dvf` (motif de chaque mutation) et `ventes_maisons` dans `data/interim/travail.duckdb`.
 
 ## Avancement
 
@@ -103,8 +104,12 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - 16/10/2026 : téléchargements réels OK : DVF complet (20 fichiers, 2021-2025) ; communes (586, 319, 507 et 195 communes pour 31, 47, 77, 82) ;
   - cartes RGA 2026 déposées et vérifiées (31, 47, 77, 82) ; carte RGA 2020 trouvée sur la page dédiée de Géorisques (même format), déposée dans `data/raw/rga/2020/` (modèle `AleaRG{departement}_L93.zip`), vérifiée avec le connecteur : 4 archives valides ; le 6e fichier est un `.qix` (index spatial), sans incidence ;
   - extension DuckDB `spatial` installée.
+- Jour 2 en cours (16/10/2026) :
+  - script d'inspection des cartes RGA lancé par moi sur les vraies cartes, commité (`db7a974`) ; décisions de jointure et limite sur la référence commitées (`f646247`) ;
+  - nettoyage DVF écrit (`data/nettoyage_dvf.py`, `tests/test_nettoyage_dvf.py`, `tests/fixtures/dvf_nettoyage.csv`, `terrain_max_m2` dans la config) ; `uv run pytest` : 60 tests verts ;
+  - résumé du nettoyage lancé par moi et validé : 82 525 ventes retenues sur 366 760 mutations, totaux cohérents (vérifiés sur 31/2021), plafond de terrain ≈ 2 % d'exclusions en 31/77 et ≈ 8 % en 47/82, quantiles ≈ 2 %, 2025 complète ; nettoyage commité ; `docs/method.md` mis à jour.
 - Pas de bloquant.
-- Reprise : jour 2 (nettoyage DVF avec DuckDB, jointures spatiales 2020 et 2026, comptage des communes mixtes avant d'écrire le modèle).
+- Reprise : jointure spatiale des ventes avec les cartes 2020 et 2026 (résultat dans `data/interim/`), résumé de comptages, puis comptage des communes mixtes avant d'écrire le modèle.
 - Points ouverts :
   - vérifier sur Légifrance le décret n° 2024-405 du 29 avril 2024 (RGA dans l'état des risques au 1er janvier 2025) ;
   - créer le dépôt GitHub et faire le premier push (après confirmation) ;

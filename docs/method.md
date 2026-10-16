@@ -27,7 +27,20 @@ Tous les seuils et les URL sont dans `config/perimetre.toml`.
   (appartement, local industriel ou commercial) ; les dépendances sont tolérées.
 - **Dédoublonnage** : DVF répète une mutation en autant de lignes que de combinaisons
   local × parcelle × nature de culture. La surface de terrain est la somme des couples
-  (parcelle, nature de culture) distincts, jamais la somme brute des lignes.
+  (parcelle, nature de culture, nature de culture spéciale) distincts, jamais la somme
+  brute des lignes. La nature de culture spéciale fait partie de la clé car deux
+  subdivisions de la même parcelle et de la même culture ont des surfaces distinctes.
+- **Une maison ou plusieurs** : les maisons d'une mutation sont comptées par
+  (parcelle, surface bâtie, nombre de pièces) distincts. Une mutation à plusieurs
+  dispositions (`numero_disposition` > 1) est exclue.
+- **Valeur foncière** : répétée sur chaque ligne d'une mutation, elle est prise une seule
+  fois par mutation, jamais sommée.
+- **Terrain** : les ventes dont la surface de terrain dépasse `terrain_max_m2`
+  (10 000 m²) sont exclues, avant le calcul des quantiles de prix.
+- **Motifs d'exclusion** : chaque mutation est comptée pour le premier motif rencontré
+  (ordre : nature, dispositions, valeur absente, aucune maison, autre local, plusieurs
+  maisons, sans coordonnées, bornes de surface, valeur minimale, plafond de terrain,
+  quantiles de prix).
 - **Prix au m²** = valeur foncière / surface réelle bâtie.
 - **Valeurs aberrantes** : bornes absolues (surface bâtie entre 20 et 400 m²,
   valeur foncière ≥ 15 000 €), puis exclusion des 1 % les plus bas et les plus hauts
@@ -154,6 +167,9 @@ millésime du code officiel géographique que DVF et les contours.
   attendu par hasard dans `resume_global.json`.
 - Le point de la vente est le centroïde de la parcelle, et la carte est établie au
   1/50 000 : des ventes proches d'une limite de zone peuvent être mal classées.
+- **Deux maisons identiques sur une même parcelle** (mêmes surface bâtie et nombre de
+  pièces) sont comptées comme une seule maison, la mutation est donc conservée à tort.
+  Cas rare, non mesuré.
 - **Référence hétérogène selon les départements** : les cartes ne comptent aucun polygone
   « faible » dans le 77 et le 82 (2020 et 2026) ni dans le 47 (2026). Dans ces départements,
   la référence « faible ou hors zone argileuse » est composée uniquement de maisons hors
