@@ -59,13 +59,18 @@ Tous les seuils et les URL sont dans `config/perimetre.toml`.
 - Les deux cartes codent l'exposition dans la colonne `niveau` : 1 = faible, 2 = moyen,
   3 = fort. Aucun polygone de niveau 0 : une vente hors de tout polygone est « hors zone
   argileuse » (0). Les deux cartes sont lues comme EPSG:2154.
+- Le niveau d'une vente est le plus haut niveau parmi les polygones de son département
+  qui contiennent le point (cas d'un point exactement sur une limite).
 - Robustesse : réestimation en excluant les ventes à moins de 50 m d'une limite de
-  zone (la carte est établie au 1/50 000).
+  zone (la carte est établie au 1/50 000). Limite de zone = limite du polygone qui
+  contient la vente ; pour une vente hors zone argileuse, présence d'un polygone du
+  département à moins de 50 m. Définition approchée : la limite entre deux polygones de
+  même niveau compte aussi.
 
 ## 4. Comptage préalable, avant d'écrire le modèle
 
 Dès les données disponibles : nombre de ventes par commune et par classe, nombre de
-**communes mixtes** (ventes en zone « fort » et en zone « faible + moyen ») et nombre
+**communes mixtes** (ventes en zone « fort » et dans les autres zones : faible, moyen ou hors zone argileuse) et nombre
 de communes qui passeraient les seuils de la section 6. Si ce nombre est trop faible,
 les seuils ou le périmètre sont revus avant d'aller plus loin.
 
@@ -85,7 +90,11 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
 - Lecture : décote en % = exp(β) − 1.
 - **Test placebo** : même modèle avec en plus l'indicatrice « bascule » (section 3).
   Une décote sur ces ventes signifierait que le marché perçoit le risque sans la
-  carte officielle, ou que la zone est corrélée à autre chose.
+  carte officielle, ou que la zone est corrélée à autre chose. Résultat dans
+  `resume_global.json` uniquement, marqué « indicatif, faible puissance (861 ventes,
+  8 communes) » : la carte 2026 fait basculer vers « fort » environ 1 % des ventes, dans
+  8 communes (3 en 31, 5 en 77, aucune en 47 et 82) ; elle reclasse aussi des ventes vers le
+  bas (3 → 2 : 378 en 31, 187 en 77).
 - **Variante « réforme 2025 »** : même modèle avec en plus le terme
   `β_fort_2025 · fort × (vente en 2025)`. β_fort y mesure la décote de 2021 à 2024 et
   β_fort_2025 l'écart en 2025 : un β_fort_2025 négatif signifierait que la décote se
@@ -97,12 +106,13 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
 
 ## 6. Prime par commune
 
-- **Comparaison : « fort » contre « faible + moyen »**, pour garder assez de ventes
-  dans la zone de référence de chaque commune.
+- **Comparaison : « fort » contre tout le reste** (niveaux 0, 1 et 2 : hors zone
+  argileuse, faible, moyen), pour garder assez de ventes dans la zone de référence de
+  chaque commune. Ce reste est très majoritairement « moyen » (voir les limites).
 - Même modèle avec un terme `fort × commune` : les contrôles sont estimés sur
   l'ensemble des ventes, chaque commune a son propre coefficient.
 - Prime publiée seulement si la commune compte au moins **15 ventes « fort »**,
-  **15 ventes « faible + moyen »** et **50 ventes au total**, avec un IC à 95 %.
+  **15 ventes de référence** (niveaux 0, 1 et 2) et **50 ventes au total**, avec un IC à 95 %.
 - Sinon : commune « non estimable », avec son motif (pas de ventes dans les deux
   zones, ou effectifs insuffisants).
 - **Statut de décote** (communes estimables), à partir de l'IC à 95 % de la prime :
@@ -129,9 +139,9 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
 |---|---|---|
 | Décote globale « moyen » | moyen | faible ou hors zone argileuse |
 | Décote globale « fort » | fort | faible ou hors zone argileuse |
-| Prime par commune | fort | faible + moyen |
+| Prime par commune | fort | tout le reste : faible, moyen ou hors zone argileuse |
 
-Le simulateur n'utilise que la prime par commune (référence « faible + moyen ») :
+Le simulateur n'utilise que la prime par commune (référence « tout le reste ») :
 il ne s'applique donc qu'aux communes estimables.
 
 ## 7. CatNat sécheresse (GASPAR)
@@ -170,6 +180,11 @@ millésime du code officiel géographique que DVF et les contours.
 - **Deux maisons identiques sur une même parcelle** (mêmes surface bâtie et nombre de
   pièces) sont comptées comme une seule maison, la mutation est donc conservée à tort.
   Cas rare, non mesuré.
+- **La décote mesurée est un écart entre deux zones exposées** : la référence de la prime
+  par commune (hors zone argileuse, faible, moyen) est très majoritairement « moyen »
+  (hors zone et faible représentent moins de 8 % des ventes). La décote est donc l'écart
+  entre « fort » et « moyen », deux zones déjà exposées, et non l'écart entre une zone
+  exposée et une zone sans exposition.
 - **Référence hétérogène selon les départements** : les cartes ne comptent aucun polygone
   « faible » dans le 77 et le 82 (2020 et 2026) ni dans le 47 (2026). Dans ces départements,
   la référence « faible ou hors zone argileuse » est composée uniquement de maisons hors

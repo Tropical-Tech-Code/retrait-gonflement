@@ -25,11 +25,10 @@ Uniquement des agrégats par commune ; aucune vente individuelle.
 | `nom`, `departement` | texte | |
 | `n_ventes` | entier | ventes retenues après nettoyage, 2021-2025 |
 | `n_fort`, `n_moyen`, `n_faible`, `n_hors_zone` | entier | ventes par classe d'exposition 2020 |
-| `n_bascule` | entier | ventes non « fort » en 2020 et « fort » en 2026 (0 si carte 2026 absente) |
 | `prix_m2_median` | réel ou vide | vide si moins de 5 ventes (seuil dans la config) |
 | `statut` | texte | `estimable` ou `non_estimable` |
 | `motif` | texte ou vide | `une_seule_zone`, `effectifs_insuffisants` (vide si estimable) |
-| `prime`, `ic_bas`, `ic_haut` | réel ou vide | prime « fort » contre « faible + moyen », en % (exp(β) − 1) ; négatif = décote |
+| `prime`, `ic_bas`, `ic_haut` | réel ou vide | prime « fort » contre tout le reste (faible, moyen, hors zone), en % (exp(β) − 1) ; négatif = décote |
 | `significatif` | texte ou vide | `decote` (IC < 0), `prime` (IC > 0), `non` (IC contient 0) ; sert aux tests multiples et à l'opacité de la carte |
 | `statut_decote` | texte ou vide | `decote`, `pas_de_decote`, `indetermine` (définitions dans `docs/method.md`, section 6) |
 | `catnat_total`, `catnat_depuis_2015` | entier | arrêtés CatNat sécheresse |
@@ -83,16 +82,17 @@ texte automatique.
 - **Significativité** : une commune dont l'IC contient 0 est affichée avec une opacité
   réduite ; le texte de la légende le dit.
 - **Légende** dans la barre latérale (pydeck n'en fournit pas).
-- **Filtres** : départements ; « communes significatives seulement » ; option
-  « surligner les communes avec des ventes en bascule 2026 » (contour épais).
+- **Filtres** : départements ; « communes significatives seulement ». Pas de couche
+  « bascule 2020 → 2026 » (décision du 16/10, voir la phrase du bandeau).
 - **Info-bulle** : nom, prime et IC (ou motif si non estimable), ventes « fort » et
-  « faible + moyen », arrêtés CatNat.
+  de référence (tout le reste), arrêtés CatNat.
 - **Fiche commune** sous la carte : choix par liste déroulante (avec recherche),
   et par clic sur la carte si la version de Streamlit le permet. Elle affiche les
   chiffres de la ligne, puis la note de l'agent ou le texte automatique.
 - **Bandeau des résultats globaux** au-dessus de la carte : décote globale « moyen »
   et « fort » avec IC ; communes estimables ; significatives observées contre attendues
-  par hasard.
+  par hasard. Phrase fixe : « Dans ces quatre départements déjà très exposés, la carte
+  2026 change le niveau d'environ 1 % des ventes, dans les deux sens. »
 
 ### Texte automatique
 
@@ -134,7 +134,7 @@ n'est ni une estimation de la valeur d'une maison, ni une preuve de causalité.
 ## 4. Vue 3 : simulateur (bonus)
 
 - Liste limitée aux communes estimables (la prime par commune a pour référence
-  « faible + moyen »).
+  « tout le reste » : faible, moyen, hors zone).
 - Saisie d'un prix de maison ; affichage de l'écart moyen observé en euros et de son
   IC : prix × prime, prix × ic_bas, prix × ic_haut.
 - Formulation imposée : « écart moyen observé entre zones dans cette commune », jamais
@@ -146,8 +146,11 @@ n'est ni une estimation de la valeur d'une maison, ni une preuve de causalité.
   ventes à chaque étape lu dans `resume_global.json`), exposition, modèle, prime par
   commune.
 - Tableau des définitions, identique au README.
-- Résultats complémentaires : test placebo (bascule) et variante « réforme 2025 »,
-  présentée comme un indice.
+- Phrase sur la carte 2026 : « Dans ces quatre départements déjà très exposés, la carte
+  2026 change le niveau d'environ 1 % des ventes, dans les deux sens. » (la même que
+  dans le bandeau des résultats globaux).
+- Résultats complémentaires : test placebo (bascule), « indicatif, faible puissance
+  (861 ventes, 8 communes) », et variante « réforme 2025 », présentée comme un indice.
 - Limites : reprises de la section 9 de `docs/method.md`.
 - Sources avec dates de téléchargement et millésimes.
 

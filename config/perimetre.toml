@@ -43,7 +43,7 @@ distance_limite_zone_m = 50    # robustesse : ventes proches d'une limite de zon
 
 [estimation]
 min_ventes_fort = 15
-min_ventes_faible_moyen = 15
+min_ventes_reference = 15
 min_ventes_total = 50
 seuil_prix_median = 5          # ventes minimales pour publier un prix médian
 niveau_ic = 0.95
