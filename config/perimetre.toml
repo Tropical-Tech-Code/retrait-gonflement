@@ -16,8 +16,9 @@ url = "https://files.data.gouv.fr/geo-dvf/latest/csv/{annee}/departements/{depar
 # périmètre sur Géorisques, puis le déposer SANS le renommer ni le décompresser dans
 # data/raw/rga/<millésime>/. `fichier` donne le nom attendu ({departement} est remplacé).
 # Un `fichier` vide = source pas encore trouvée.
+# Carte 2020 : page « retrait-gonflement des argiles, version 2020 » de Géorisques.
 [sources.rga_2020]
-fichier = ""   # source encore à trouver ; dépôt dans data/raw/rga/2020/
+fichier = "AleaRG{departement}_L93.zip"   # dépôt dans data/raw/rga/2020/
 
 [sources.rga_2026]
 fichier = "AleaRG_2025_{departement}_L93.zip"   # dépôt dans data/raw/rga/2026/

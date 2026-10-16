@@ -96,15 +96,13 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - `config/perimetre.toml` et connecteur DVF avec ligne de commande (`de26142`) ;
   - connecteur communes (API Géo) et `data/commun.py` (`ea53c98`) ;
   - connecteur RGA en dépôt manuel, procédure dans le README (`b7b2fab`) ;
-  - `uv run pytest` : 36 tests verts, aucun appel réseau ; fixtures écrites à la main dans `tests/fixtures/` ;
-  - téléchargement réel DVF 82/2024 OK (18 071 lignes) ; cartes RGA 2026 déposées et vérifiées pour 31, 47, 77, 82.
+  - `uv run pytest` : 37 tests verts, aucun appel réseau ; fixtures écrites à la main dans `tests/fixtures/` ;
+  - 16/10/2026 : téléchargements réels OK : DVF complet (20 fichiers, 2021-2025) ; communes (586, 319, 507 et 195 communes pour 31, 47, 77, 82) ;
+  - cartes RGA 2026 déposées et vérifiées (31, 47, 77, 82) ; carte RGA 2020 trouvée sur la page dédiée de Géorisques (même format), déposée dans `data/raw/rga/2020/` (modèle `AleaRG{departement}_L93.zip`), à vérifier avec le connecteur.
 - En attente :
-  - test réel du connecteur communes ;
-  - connecteur GASPAR : URL officielle trouvée (`https://www.data.gouv.fr/api/1/datasets/r/d6fb9e18-b66b-499c-8284-46a3595579cc`), colonnes du CSV à vérifier avant d'écrire la validation ;
-  - téléchargement DVF du périmètre complet (4 départements × 2021-2025) ;
-  - commit de cette mise à jour de `CLAUDE.md`.
-- Bloquant : source de la carte RGA 2020 introuvable pour l'instant (Géorisques ne propose que la version 2026). Les modèles de `docs/method.md` utilisent la carte 2020 comme exposition connue du marché : à trancher avant le jour 2 (autre source, ou révision de la méthode).
-- Reprise : test communes, connecteur GASPAR, recherche de la carte 2020.
+  - connecteur GASPAR : URL officielle trouvée (`https://www.data.gouv.fr/api/1/datasets/r/d6fb9e18-b66b-499c-8284-46a3595579cc`), colonnes du CSV à vérifier avant d'écrire la validation.
+- Plus de bloquant : la carte 2020 existe, la méthode ne change pas.
+- Reprise : connecteur GASPAR, puis jour 2 (nettoyage DVF avec DuckDB, comptage des communes mixtes).
 - Points ouverts :
   - vérifier sur Légifrance le décret n° 2024-405 du 29 avril 2024 (RGA dans l'état des risques au 1er janvier 2025) ;
   - installer une fois l'extension DuckDB `spatial` à la main ;

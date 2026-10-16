@@ -37,9 +37,16 @@ def test_config_reelle():
     assert set(noms) == {"31", "47", "77", "82"}
 
 
-def test_millesime_2020_sans_source():
+def test_config_reelle_2020():
+    noms = rga.noms_attendus(rga.charger_config(), "2020")
+    assert noms["31"] == "AleaRG31_L93.zip"
+    assert set(noms) == {"31", "47", "77", "82"}
+
+
+def test_source_non_definie_refusee():
+    config = {**CONFIG, "sources": {**CONFIG["sources"], "rga_2020": {"fichier": ""}}}
     with pytest.raises(ErreurDonnees, match="pas encore trouvée"):
-        rga.noms_attendus(rga.charger_config(), "2020")
+        rga.noms_attendus(config, "2020")
 
 
 def test_millesime_inconnu():
