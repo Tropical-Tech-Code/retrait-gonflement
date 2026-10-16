@@ -25,7 +25,7 @@ Projet court : 3 jours.
 |---|---|---|
 | DVF géolocalisées (Etalab) | Ventes de maisons, prix, surfaces, coordonnées | Libre, sans clé |
 | Carte d'exposition RGA 2020 (Géorisques / BRGM) | Exposition connue du marché | Libre, sans clé |
-| Carte d'exposition RGA 2026 (Géorisques / BRGM) | Communes qui basculent (source à confirmer) | Libre, sans clé |
+| Carte d'exposition RGA 2026 (Géorisques / BRGM) | Communes qui basculent | Libre, sans clé (dépôt manuel) |
 | GASPAR (Géorisques) | Arrêtés CatNat sécheresse par commune | Libre, sans clé |
 | Contours des communes (API Géo, issus d'ADMIN EXPRESS IGN) | Carte de l'app | Libre, sans clé |
 | Anthropic | Agents (Claude Agent SDK), hors ligne, bonus | `ANTHROPIC_API_KEY` |
@@ -99,13 +99,11 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - connecteur GASPAR : archive ZIP (8 tables) téléchargée dans `data/raw/gaspar/gaspar.zip`, table `catnat_gaspar_*.csv` trouvée par modèle, séparateur « ; », colonnes requises validées ; aucun filtrage (sécheresse, depuis 2015) avant le jour 2 ;
   - `uv run pytest` : 52 tests verts, aucun appel réseau ; fixtures écrites à la main dans `tests/fixtures/` ;
   - 16/10/2026 : téléchargements réels OK : DVF complet (20 fichiers, 2021-2025) ; communes (586, 319, 507 et 195 communes pour 31, 47, 77, 82) ;
-  - cartes RGA 2026 déposées et vérifiées (31, 47, 77, 82) ; carte RGA 2020 trouvée sur la page dédiée de Géorisques (même format), déposée dans `data/raw/rga/2020/` (modèle `AleaRG{departement}_L93.zip`), à vérifier avec le connecteur.
-- En attente :
-  - le 6e fichier des archives RGA 2020 (5 pour la 2026) : liste des noms à regarder avec `unzip -l`, sans incidence sur le connecteur.
+  - cartes RGA 2026 déposées et vérifiées (31, 47, 77, 82) ; carte RGA 2020 trouvée sur la page dédiée de Géorisques (même format), déposée dans `data/raw/rga/2020/` (modèle `AleaRG{departement}_L93.zip`), vérifiée avec le connecteur : 4 archives valides ; le 6e fichier est un `.qix` (index spatial), sans incidence ;
+  - extension DuckDB `spatial` installée.
 - Pas de bloquant.
-- Reprise : jour 2 (nettoyage DVF avec DuckDB, installation de l'extension `spatial`, jointures spatiales 2020 et 2026, comptage des communes mixtes avant d'écrire le modèle).
+- Reprise : jour 2 (nettoyage DVF avec DuckDB, jointures spatiales 2020 et 2026, comptage des communes mixtes avant d'écrire le modèle).
 - Points ouverts :
   - vérifier sur Légifrance le décret n° 2024-405 du 29 avril 2024 (RGA dans l'état des risques au 1er janvier 2025) ;
-  - installer une fois l'extension DuckDB `spatial` à la main ;
   - créer le dépôt GitHub et faire le premier push (après confirmation) ;
   - clé API Anthropic avant les agents (bonus).
