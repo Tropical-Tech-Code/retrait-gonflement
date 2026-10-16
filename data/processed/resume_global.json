@@ -358,5 +358,22 @@
         "n_indetermine": 9
       }
     }
+  },
+  "mediane_sinistralite": 2.0,
+  "n_par_quadrant": {
+    "Risque intégré": 2,
+    "Angle mort": 9,
+    "Décote à expliquer": 14,
+    "Cohérent": 18
+  },
+  "catnat": {
+    "libelle": "Sécheresse",
+    "periode": "2015-2023",
+    "annee_debut_max": 2023,
+    "codes_perimetre": {
+      "n_codes_perimetre": 1240,
+      "n_codes_non_rapproches": 0,
+      "n_evenements_non_rapproches": 0
+    }
   }
 }

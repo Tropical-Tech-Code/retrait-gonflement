@@ -42,7 +42,7 @@ Uniquement des agrégats par commune ; aucune vente individuelle.
 | `prime`, `ic_bas`, `ic_haut` | réel ou vide | prime « fort » contre tout le reste (faible, moyen, hors zone), exp(β) − 1 en fraction (−0,05 = −5 %) ; négatif = décote |
 | `significatif` | texte ou vide | `decote` (IC < 0), `prime` (IC > 0), `non` (IC contient 0) ; sert aux tests multiples et à l'opacité de la carte |
 | `statut_decote` | texte ou vide | `decote`, `pas_de_decote`, `indetermine` (définitions dans `docs/method.md`, section 6) |
-| `catnat_total`, `catnat_depuis_2015` | entier | arrêtés CatNat sécheresse |
+| `catnat_total`, `catnat_depuis_2015` | entier | événements CatNat sécheresse distincts (libellé « Sécheresse » seul), au total et depuis le 1er janvier 2015 ; 0 si aucun. Libellé à l'écran : « arrêtés sécheresse 2015-2023 » (GASPAR ne contient rien après 2023) |
 | `catnat_dernier` | date ou vide | date du dernier arrêté |
 | `sinistralite_sup_mediane` | booléen ou vide | `catnat_depuis_2015` strictement supérieur à la médiane (communes estimables) |
 | `quadrant` | texte ou vide | vide si non estimable ou `indetermine` (section 3) |
@@ -50,9 +50,10 @@ Uniquement des agrégats par commune ; aucune vente individuelle.
 L'étape B (primes) écrit d'abord `primes_communes.parquet` : les colonnes ci-dessus qui en
 dépendent (effectifs, prix médian, statut, motif, prime, IC, `significatif`,
 `statut_decote`), pour les communes qui ont des ventes, plus `erreurs` (`sections` ou
-`hc1`) et `n_sections`. Une étape suivante le fusionne avec les noms, les communes sans
-vente, CatNat et les quadrants pour produire `communes.parquet` ; `primes_communes.parquet`
-est alors retiré de `data/processed/`.
+`hc1`) et `n_sections`. L'étape C le fusionne avec les noms, les communes sans vente,
+CatNat et les quadrants pour produire `communes.parquet`. Il reste dans `data/processed/`
+(décision du 16/10) : c'est l'entrée de l'étape C, il ne contient que des agrégats par
+commune, et l'app ne le lit pas.
 
 ### `contours.geojson`
 
@@ -140,7 +141,10 @@ n'est ni une estimation de la valeur d'une maison, ni une preuve de causalité.
 
 - **Médiane** de `catnat_depuis_2015` parmi les communes estimables, calculée par le
   pipeline et lue dans `resume_global.json`. Libellé imposé : « sinistralité
-  supérieure à la médiane du périmètre », jamais « risque élevé ».
+  supérieure à la médiane du périmètre », jamais « risque élevé ». Avec la médiane de 2
+  arrêtés et « strictement au-dessus » sur des nombres entiers, **« supérieure à la
+  médiane » signifie 3 arrêtés ou plus depuis 2015** (arrêtés sécheresse 2015-2023) ;
+  l'app l'écrit ainsi à côté du libellé.
 - Le statut repose sur l'IC, pas sur l'estimation ponctuelle, pour ne pas classer du
   bruit : une commune peu informative reste « indéterminée ».
 - Au-dessus du graphique, rappel des tests multiples : nombre de communes

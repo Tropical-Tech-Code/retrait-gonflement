@@ -181,6 +181,26 @@ terrain différentiels consécutifs à la sécheresse et à la réhydratation de
 nombre depuis 2015, date du dernier arrêté. Codes INSEE harmonisés sur le même
 millésime du code officiel géographique que DVF et les contours.
 
+- **Libellé retenu : « Sécheresse » uniquement.** « Mouvement de Terrain » est écarté : il
+  reste stable (35 à 165 arrêtés par an) et ne suit pas les épisodes de sécheresse (35 en
+  2022, contre 7 279 pour « Sécheresse »).
+- **Événement** = triplet distinct (code commune, `date_debut`, `date_fin`) : plusieurs
+  arrêtés (reconnaissance, modificatif) pour le même événement comptent une fois.
+  `catnat_depuis_2015` compte les événements dont `date_debut` est le 1er janvier 2015 ou
+  après ; `catnat_total` tous les événements ; `catnat_dernier` est la date de fin du
+  dernier événement.
+- **Rapprochement des codes** : les codes GASPAR sont comparés à ceux des contours. Un
+  fichier optionnel `config/fusions_communes.csv` (`ancien_code`, `nouveau_code`)
+  rapproche les communes fusionnées avant le comptage. Le nombre de codes du périmètre
+  non rapprochés est consigné dans `resume_global.json` (`catnat.codes_perimetre`).
+- **Seuil de sinistralité** = médiane de `catnat_depuis_2015` parmi les communes
+  estimables ; « supérieure » = strictement au-dessus. Une commune sans arrêté compte 0.
+  Observé : médiane = 2 arrêtés ; les arrêtés étant des nombres entiers, « sinistralité
+  supérieure à la médiane » signifie **3 arrêtés ou plus depuis 2015**, et c'est le
+  libellé affiché dans l'app.
+- **Quadrants** : calculés par le pipeline pour les communes « décote » et « pas de
+  décote ». Une commune non estimable ou « indéterminée » n'a pas de quadrant.
+
 ## 8. Sorties
 
 `data/processed/resume_global.json` contient notamment :
@@ -219,6 +239,17 @@ millésime du code officiel géographique que DVF et les contours.
   sein des communes (au-delà du niveau commune × trimestre), cohérente avec le placebo.
   Les primes communales sont donc des **écarts de prix observés entre la zone forte et le
   reste de la commune**, jamais l'effet de l'argile.
+- **Les décotes se trouvent surtout dans les communes peu sinistrées** : parmi les
+  communes classées en quadrant, 14 sont en « décote à expliquer » (décote, sinistralité
+  inférieure ou égale à la médiane) contre 2 en « risque intégré » (décote, sinistralité
+  supérieure) ; côté « pas de décote », 18 « cohérent » et 9 « angle mort ». Les écarts de
+  prix ne suivent donc pas la sinistralité : cela va dans le sens de l'interprétation
+  « écarts entre quartiers » plutôt que d'un prix du risque lié à l'historique de
+  sécheresse.
+- **Sinistralité sécheresse 2015-2023** : GASPAR ne contient aucune sécheresse reconnue
+  après 2023 (délai de reconnaissance). L'indicateur couvre donc 2015-2023 et non
+  jusqu'en 2025 ; dans l'app : « arrêtés sécheresse 2015-2023 ». Les épisodes récents
+  (2024-2025) ne sont pas encore reconnus et n'apparaissent pas.
 - Le point de la vente est le centroïde de la parcelle, et la carte est établie au
   1/50 000 : des ventes proches d'une limite de zone peuvent être mal classées.
 - **Deux maisons identiques sur une même parcelle** (mêmes surface bâtie et nombre de

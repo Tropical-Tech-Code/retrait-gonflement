@@ -27,7 +27,8 @@ fichier = "AleaRG_2025_{departement}_L93.zip"   # dépôt dans data/raw/rga/2026
 # Archive ZIP de 8 tables (data.gouv.fr, URL stable)
 url = "https://www.data.gouv.fr/api/1/datasets/r/d6fb9e18-b66b-499c-8284-46a3595579cc"
 table = "catnat_gaspar_*.csv"        # le nom change à chaque publication (date)
-libelle_risque = "Sécheresse"        # valeur de lib_risque_jo à retenir (filtrage au jour 2)
+libelle_risque = "Sécheresse"        # valeur de lib_risque_jo à retenir (« Mouvement de Terrain » écarté)
+depuis_annee = 2015                  # catnat_depuis_2015 : événements dont date_debut >= 1er janvier 2015
 
 [sources.communes]
 # API Géo, un GeoJSON par département
