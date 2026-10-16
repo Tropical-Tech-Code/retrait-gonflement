@@ -89,8 +89,8 @@ texte automatique.
 - **Fiche commune** sous la carte : choix par liste déroulante (avec recherche),
   et par clic sur la carte si la version de Streamlit le permet. Elle affiche les
   chiffres de la ligne, puis la note de l'agent ou le texte automatique.
-- **Bandeau des résultats globaux** au-dessus de la carte : décote globale « moyen »
-  et « fort » avec IC ; communes estimables ; significatives observées contre attendues
+- **Bandeau des résultats globaux** au-dessus de la carte : chiffre phare = contraste
+  « fort − moyen » avec IC, puis décote globale « moyen » et « fort » avec IC ; communes estimables ; significatives observées contre attendues
   par hasard. Phrase fixe : « Dans ces quatre départements déjà très exposés, la carte
   2026 change le niveau d'environ 1 % des ventes, dans les deux sens. »
 

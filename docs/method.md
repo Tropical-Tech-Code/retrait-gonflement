@@ -88,13 +88,25 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
   le même trimestre.
 - Erreurs standard groupées par commune ; estimation avec `pyfixest`.
 - Lecture : décote en % = exp(β) − 1.
+- **Contraste « fort − moyen »** : écart de log-prix β_fort − β_moyen, et son effet
+  exp(β_fort − β_moyen) − 1. Variance = V(β_fort) + V(β_moyen) − 2 Cov(β_fort, β_moyen),
+  lue dans la matrice de variance groupée par commune ; IC à 95 % et p-valeur par la loi
+  de Student (nombre de communes − 1). C'est la décote annoncée, le chiffre phare de
+  l'app : l'écart entre deux zones exposées (voir les limites). Calculé pour le modèle
+  principal et chaque variante qui contient « moyen » et « fort ».
+- **Modèle « fort contre tout le reste »** : une seule indicatrice « fort », référence =
+  niveaux 0, 1 et 2, même spécification. C'est la définition de la prime par commune
+  (section 6) : le résultat global est ainsi comparable aux primes communales.
 - **Test placebo** : même modèle avec en plus l'indicatrice « bascule » (section 3).
   Une décote sur ces ventes signifierait que le marché perçoit le risque sans la
   carte officielle, ou que la zone est corrélée à autre chose. Résultat dans
   `resume_global.json` uniquement, marqué « indicatif, faible puissance (861 ventes,
   8 communes) » : la carte 2026 fait basculer vers « fort » environ 1 % des ventes, dans
   8 communes (3 en 31, 5 en 77, aucune en 47 et 82) ; elle reclasse aussi des ventes vers le
-  bas (3 → 2 : 378 en 31, 187 en 77).
+  bas (3 → 2 : 378 en 31, 187 en 77). **L'IC repose sur 8 communes** : les erreurs
+  groupées par commune sont peu fiables avec si peu de groupes. Le signe du coefficient
+  est positif, ce qui suggère une hétérogénéité de quartiers au sein des communes ; les
+  écarts ne sont pas causaux. Ces deux avertissements figurent dans le JSON.
 - **Variante « réforme 2025 »** : même modèle avec en plus le terme
   `β_fort_2025 · fort × (vente en 2025)`. β_fort y mesure la décote de 2021 à 2024 et
   β_fort_2025 l'écart en 2025 : un β_fort_2025 négatif signifierait que la décote se
@@ -139,6 +151,8 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
 |---|---|---|
 | Décote globale « moyen » | moyen | faible ou hors zone argileuse |
 | Décote globale « fort » | fort | faible ou hors zone argileuse |
+| Décote globale « fort − moyen » (chiffre phare) | fort | moyen |
+| Global « fort contre tout le reste » (comparable aux primes) | fort | hors zone, faible ou moyen |
 | Prime par commune | fort | tout le reste : faible, moyen ou hors zone argileuse |
 
 Le simulateur n'utilise que la prime par commune (référence « tout le reste ») :
@@ -154,6 +168,10 @@ millésime du code officiel géographique que DVF et les contours.
 ## 8. Sorties
 
 `data/processed/resume_global.json` contient notamment :
+- sous `modeles_globaux` : `principal`, `fort_contre_reste`, `sans_limite`,
+  `placebo_bascule` et `reforme_2025` ; pour chacun, les coefficients (β, erreur
+  standard, IC à 95 %, effet exp(β) − 1 en fraction, p-valeur), le nombre de ventes et de
+  communes utilisées, et le contraste `contraste_fort_moins_moyen` quand il existe ;
 - β_moyen, β_fort et β_bascule, avec IC à 95 % et effectifs ;
 - β_fort_2025 (variante « réforme 2025 »), avec IC à 95 % et nombre de ventes « fort »
   en 2025, marqué comme indice ;
@@ -185,6 +203,11 @@ millésime du code officiel géographique que DVF et les contours.
   (hors zone et faible représentent moins de 8 % des ventes). La décote est donc l'écart
   entre « fort » et « moyen », deux zones déjà exposées, et non l'écart entre une zone
   exposée et une zone sans exposition.
+- **La référence « hors zone + faible » est un petit groupe aux caractéristiques
+  propres** (moins de 8 % des ventes, souvent des communes ou des quartiers à part). Les
+  écarts « moyen » et « fort » contre cette référence peuvent donc refléter autre chose
+  que l'argile ; c'est pourquoi le chiffre phare est le contraste « fort − moyen », entre
+  deux groupes plus nombreux et plus proches.
 - **Référence hétérogène selon les départements** : les cartes ne comptent aucun polygone
   « faible » dans le 77 et le 82 (2020 et 2026) ni dans le 47 (2026). Dans ces départements,
   la référence « faible ou hors zone argileuse » est composée uniquement de maisons hors

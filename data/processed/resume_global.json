@@ -1,0 +1,268 @@
+{
+  "periode": [
+    2021,
+    2025
+  ],
+  "modeles_globaux": {
+    "principal": {
+      "n_ventes": 75753,
+      "n_communes": 1276,
+      "coefficients": {
+        "moyen": {
+          "beta": -0.034367,
+          "erreur_std": 0.017903,
+          "ic95_beta": [
+            -0.06949,
+            0.000756
+          ],
+          "effet": -0.033783,
+          "ic95_effet": [
+            -0.067131,
+            0.000756
+          ],
+          "p_valeur": 0.055133,
+          "n_ventes_terme": 40462
+        },
+        "fort": {
+          "beta": -0.025294,
+          "erreur_std": 0.013723,
+          "ic95_beta": [
+            -0.052217,
+            0.001628
+          ],
+          "effet": -0.024977,
+          "ic95_effet": [
+            -0.050877,
+            0.00163
+          ],
+          "p_valeur": 0.065535,
+          "n_ventes_terme": 32477
+        }
+      },
+      "contraste_fort_moins_moyen": {
+        "beta": 0.009073,
+        "erreur_std": 0.019577,
+        "ic95_beta": [
+          -0.029334,
+          0.04748
+        ],
+        "effet": 0.009114,
+        "ic95_effet": [
+          -0.028908,
+          0.048625
+        ],
+        "p_valeur": 0.643132
+      }
+    },
+    "fort_contre_reste": {
+      "n_ventes": 75753,
+      "n_communes": 1276,
+      "coefficients": {
+        "fort": {
+          "beta": 0.006982,
+          "erreur_std": 0.018927,
+          "ic95_beta": [
+            -0.03015,
+            0.044114
+          ],
+          "effet": 0.007006,
+          "ic95_effet": [
+            -0.0297,
+            0.045101
+          ],
+          "p_valeur": 0.712287,
+          "n_ventes_terme": 32477
+        }
+      },
+      "note": "fort contre tout le reste (niveaux 0+1+2), comme les primes par commune"
+    },
+    "sans_limite": {
+      "n_ventes": 66545,
+      "n_communes": 1213,
+      "coefficients": {
+        "moyen": {
+          "beta": -0.041626,
+          "erreur_std": 0.023787,
+          "ic95_beta": [
+            -0.088295,
+            0.005043
+          ],
+          "effet": -0.040772,
+          "ic95_effet": [
+            -0.084509,
+            0.005055
+          ],
+          "p_valeur": 0.080383,
+          "n_ventes_terme": 36458
+        },
+        "fort": {
+          "beta": -0.028058,
+          "erreur_std": 0.020116,
+          "ic95_beta": [
+            -0.067525,
+            0.011409
+          ],
+          "effet": -0.027668,
+          "ic95_effet": [
+            -0.065295,
+            0.011474
+          ],
+          "p_valeur": 0.163338,
+          "n_ventes_terme": 28130
+        }
+      },
+      "contraste_fort_moins_moyen": {
+        "beta": 0.013568,
+        "erreur_std": 0.024613,
+        "ic95_beta": [
+          -0.034721,
+          0.061858
+        ],
+        "effet": 0.013661,
+        "ic95_effet": [
+          -0.034125,
+          0.063811
+        ],
+        "p_valeur": 0.581558
+      },
+      "note": "sans les ventes à moins de 50 m d'une limite de zone"
+    },
+    "placebo_bascule": {
+      "n_ventes": 75753,
+      "n_communes": 1276,
+      "coefficients": {
+        "moyen": {
+          "beta": -0.034468,
+          "erreur_std": 0.018009,
+          "ic95_beta": [
+            -0.069798,
+            0.000862
+          ],
+          "effet": -0.033881,
+          "ic95_effet": [
+            -0.067418,
+            0.000862
+          ],
+          "p_valeur": 0.055849,
+          "n_ventes_terme": 40462
+        },
+        "fort": {
+          "beta": -0.024268,
+          "erreur_std": 0.014263,
+          "ic95_beta": [
+            -0.052249,
+            0.003713
+          ],
+          "effet": -0.023976,
+          "ic95_effet": [
+            -0.050907,
+            0.003719
+          ],
+          "p_valeur": 0.089087,
+          "n_ventes_terme": 32477
+        },
+        "bascule": {
+          "beta": 0.034944,
+          "erreur_std": 0.009617,
+          "ic95_beta": [
+            0.016076,
+            0.053811
+          ],
+          "effet": 0.035561,
+          "ic95_effet": [
+            0.016206,
+            0.055285
+          ],
+          "p_valeur": 0.000291,
+          "n_ventes_terme": 853
+        }
+      },
+      "contraste_fort_moins_moyen": {
+        "beta": 0.0102,
+        "erreur_std": 0.020868,
+        "ic95_beta": [
+          -0.030739,
+          0.051138
+        ],
+        "effet": 0.010252,
+        "ic95_effet": [
+          -0.030271,
+          0.052468
+        ],
+        "p_valeur": 0.625081
+      },
+      "statut": "indicatif, faible puissance (853 ventes, 8 communes)",
+      "avertissements": [
+        "l'IC repose sur 8 communes : les erreurs groupées par commune sont peu fiables avec si peu de groupes",
+        "le signe positif suggère une hétérogénéité de quartiers au sein des communes (écarts non causaux)"
+      ]
+    },
+    "reforme_2025": {
+      "n_ventes": 75753,
+      "n_communes": 1276,
+      "coefficients": {
+        "moyen": {
+          "beta": -0.034415,
+          "erreur_std": 0.017924,
+          "ic95_beta": [
+            -0.069579,
+            0.000748
+          ],
+          "effet": -0.03383,
+          "ic95_effet": [
+            -0.067213,
+            0.000748
+          ],
+          "p_valeur": 0.05507,
+          "n_ventes_terme": 40462
+        },
+        "fort": {
+          "beta": -0.023139,
+          "erreur_std": 0.013691,
+          "ic95_beta": [
+            -0.049998,
+            0.003719
+          ],
+          "effet": -0.022874,
+          "ic95_effet": [
+            -0.048769,
+            0.003726
+          ],
+          "p_valeur": 0.091244,
+          "n_ventes_terme": 32477
+        },
+        "fort_2025": {
+          "beta": -0.012217,
+          "erreur_std": 0.007809,
+          "ic95_beta": [
+            -0.027537,
+            0.003103
+          ],
+          "effet": -0.012143,
+          "ic95_effet": [
+            -0.027162,
+            0.003108
+          ],
+          "p_valeur": 0.117959,
+          "n_ventes_terme": 5817
+        }
+      },
+      "contraste_fort_moins_moyen": {
+        "beta": 0.011276,
+        "erreur_std": 0.019594,
+        "ic95_beta": [
+          -0.027165,
+          0.049717
+        ],
+        "effet": 0.01134,
+        "ic95_effet": [
+          -0.026799,
+          0.050973
+        ],
+        "p_valeur": 0.565072
+      },
+      "statut": "indice : une seule année après la réforme"
+    }
+  },
+  "date_generation": "2026-10-16"
+}
