@@ -42,7 +42,10 @@ Tous les seuils et les URL sont dans `config/perimetre.toml`.
   classée **hors zone argileuse**.
 - **Carte 2020** : exposition connue du marché, utilisée dans les modèles.
 - **Carte 2026** : sert à repérer les **bascules** (vente non classée « fort » en 2020
-  et « fort » en 2026). Source à confirmer ; URL vides dans la config tant qu'elle ne l'est pas.
+  et « fort » en 2026). Source : Géorisques, dépôt manuel.
+- Les deux cartes codent l'exposition dans la colonne `niveau` : 1 = faible, 2 = moyen,
+  3 = fort. Aucun polygone de niveau 0 : une vente hors de tout polygone est « hors zone
+  argileuse » (0). Les deux cartes sont lues comme EPSG:2154.
 - Robustesse : réestimation en excluant les ventes à moins de 50 m d'une limite de
   zone (la carte est établie au 1/50 000).
 
@@ -151,6 +154,10 @@ millésime du code officiel géographique que DVF et les contours.
   attendu par hasard dans `resume_global.json`.
 - Le point de la vente est le centroïde de la parcelle, et la carte est établie au
   1/50 000 : des ventes proches d'une limite de zone peuvent être mal classées.
+- **Référence hétérogène selon les départements** : les cartes ne comptent aucun polygone
+  « faible » dans le 77 et le 82 (2020 et 2026) ni dans le 47 (2026). Dans ces départements,
+  la référence « faible ou hors zone argileuse » est composée uniquement de maisons hors
+  zone argileuse ; elle n'a pas la même composition qu'en Haute-Garonne (31).
 - Seuils minimaux de ventes : ils limitent les estimations fragiles mais ne les
   suppriment pas.
 - **Réforme 2025** : une seule année après la réforme, et d'autres changements de 2025
