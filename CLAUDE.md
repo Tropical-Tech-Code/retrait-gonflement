@@ -134,4 +134,5 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - Points ouverts :
   - vérifier sur Légifrance le décret n° 2024-405 du 29 avril 2024 (RGA dans l'état des risques au 1er janvier 2025) ;
   - créer le dépôt GitHub et faire le premier push (après confirmation) ;
-  - clé API Anthropic avant les agents (bonus).
+  - clé API Anthropic avant les agents (bonus) ;
+  - « environ 1 % des ventes » : phrase fixe dans `app/textes.py` (`PHRASE_CARTE_2026`) ; à calculer dans le pipeline et écrire dans `resume_global.json` à l'étape 4 de l'app (la phrase parle des deux sens, 861 ventes vers « fort » ne couvrent qu'un sens).

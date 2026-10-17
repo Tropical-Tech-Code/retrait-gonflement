@@ -36,3 +36,4 @@ packages = ["src/retrait_gonflement"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["app"]   # les tests importent donnees, textes (modules de app/)
