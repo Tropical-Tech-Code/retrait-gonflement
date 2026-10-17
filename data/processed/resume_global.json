@@ -375,5 +375,130 @@
       "n_codes_non_rapproches": 0,
       "n_evenements_non_rapproches": 0
     }
+  },
+  "nettoyage": {
+    "n_lignes_dvf": 1037981,
+    "n_mutations": 366760,
+    "etapes": [
+      {
+        "code": "nature",
+        "libelle": "nature de mutation autre que « Vente »",
+        "exclues": 39405,
+        "restantes": 327355
+      },
+      {
+        "code": "dispositions",
+        "libelle": "plusieurs dispositions",
+        "exclues": 303,
+        "restantes": 327052
+      },
+      {
+        "code": "valeur_absente",
+        "libelle": "valeur foncière absente",
+        "exclues": 541,
+        "restantes": 326511
+      },
+      {
+        "code": "sans_maison",
+        "libelle": "aucune maison",
+        "exclues": 185771,
+        "restantes": 140740
+      },
+      {
+        "code": "autre_local",
+        "libelle": "autre local (appartement, local pro.)",
+        "exclues": 50432,
+        "restantes": 90308
+      },
+      {
+        "code": "plusieurs_maisons",
+        "libelle": "plusieurs maisons",
+        "exclues": 1724,
+        "restantes": 88584
+      },
+      {
+        "code": "sans_coordonnees",
+        "libelle": "sans coordonnées",
+        "exclues": 1154,
+        "restantes": 87430
+      },
+      {
+        "code": "surface_bati",
+        "libelle": "surface bâtie hors bornes",
+        "exclues": 174,
+        "restantes": 87256
+      },
+      {
+        "code": "valeur_basse",
+        "libelle": "valeur foncière sous le minimum",
+        "exclues": 468,
+        "restantes": 86788
+      },
+      {
+        "code": "terrain_max",
+        "libelle": "terrain au-dessus du plafond",
+        "exclues": 2558,
+        "restantes": 84230
+      },
+      {
+        "code": "prix_m2",
+        "libelle": "prix au m² hors quantiles (par département et année)",
+        "exclues": 1705,
+        "restantes": 82525
+      }
+    ],
+    "n_ventes_retenues": 82525,
+    "ventes_retenues_par_annee": {
+      "2021": 22028,
+      "2022": 18718,
+      "2023": 14159,
+      "2024": 12770,
+      "2025": 14850
+    }
+  },
+  "sources": {
+    "note_date": "Date de téléchargement (ou de dépôt pour les cartes RGA), lue sur la date du fichier local.",
+    "liste": [
+      {
+        "cle": "dvf",
+        "nom": "DVF géolocalisées (Etalab)",
+        "usage": "Ventes de maisons : prix, surfaces, coordonnées",
+        "acces": "https://files.data.gouv.fr/geo-dvf/latest/csv/{annee}/departements/{departement}.csv.gz",
+        "millesime": "ventes 2021-2025",
+        "date_telechargement": "2026-10-15"
+      },
+      {
+        "cle": "rga_2020",
+        "nom": "Carte d'exposition RGA 2020 (Géorisques / BRGM)",
+        "usage": "Exposition connue du marché",
+        "acces": "dépôt manuel (formulaire Géorisques)",
+        "millesime": "2020",
+        "date_telechargement": "2026-10-16"
+      },
+      {
+        "cle": "rga_2026",
+        "nom": "Carte d'exposition RGA 2026 (Géorisques / BRGM)",
+        "usage": "Communes qui basculent",
+        "acces": "dépôt manuel (formulaire Géorisques)",
+        "millesime": "2026",
+        "date_telechargement": "2026-10-15"
+      },
+      {
+        "cle": "gaspar",
+        "nom": "GASPAR (Géorisques)",
+        "usage": "Arrêtés CatNat sécheresse par commune",
+        "acces": "https://www.data.gouv.fr/api/1/datasets/r/d6fb9e18-b66b-499c-8284-46a3595579cc",
+        "millesime": "catnat_gaspar_2026-10-05.csv",
+        "date_telechargement": "2026-10-16"
+      },
+      {
+        "cle": "communes",
+        "nom": "Contours des communes (API Géo, issus d'ADMIN EXPRESS IGN)",
+        "usage": "Carte de l'app",
+        "acces": "https://geo.api.gouv.fr/departements/{departement}/communes?format=geojson&geometry=contour&fields=code,nom",
+        "millesime": "version de l'API Géo à la date de consultation",
+        "date_telechargement": "2026-10-16"
+      }
+    ]
   }
 }
