@@ -164,7 +164,40 @@ def phrase_estimables(n_estimables: int, n_communes: int) -> str:
     )
 
 
+def phrase_indeterminees(resume: dict) -> str:
+    """Résultat assumé : la plupart des communes estimables sont indéterminées."""
+    return (
+        f"Sur {entier(resume['n_communes_estimables'])} communes estimables, "
+        f"{entier(resume['n_indetermine'])} sont indéterminées : leur intervalle de confiance est trop "
+        "large pour conclure à une décote comme à son absence. "
+        f"Au total : {entier(resume['n_decote'])} en décote, {entier(resume['n_pas_de_decote'])} en pas de décote, "
+        f"{entier(resume['n_indetermine'])} indéterminées. "
+        "À l'échelle d'une commune, les ventes ne permettent le plus souvent pas de trancher."
+    )
+
+
 # ---------------------------------------------------------------- carte
+
+LEGENDE_TITRE = "Écart de prix observé entre zone forte et reste de la commune"
+LEGENDE_NON_ESTIMABLE = "Non estimable"
+LEGENDE_PALE = "Couleur pâle : estimation incertaine (l'intervalle de confiance contient 0)."
+LEGENDE_FILTRE = "Gris très pâle : commune écartée par un filtre."
+LIBELLE_FOND = "Afficher le fond de carte"
+LIBELLE_SIGNIFICATIVES = "Communes significatives seulement"
+LIBELLE_DEPARTEMENTS = "Départements"
+INVITE_COMMUNE = "Choisissez une commune (liste, ou clic sur la carte) pour voir sa fiche."
+
+
+def lignes_info_bulle(ligne) -> list[str]:
+    """Lignes de l'info-bulle d'une commune (texte brut, mis en forme par cartographie.py)."""
+    titre = f"{ligne['nom']} ({ligne['departement']})"
+    effectifs = f"Ventes : {entier(ligne['n_fort'])} en zone forte, {entier(int(ligne['n_ventes']) - int(ligne['n_fort']))} dans le reste"
+    arretes = f"{pluriel(int(ligne['catnat_depuis_2015']), 'arrêté')} sécheresse 2015-2023"
+    if ligne["statut"] != "estimable":
+        motif = MOTIFS.get(ligne["motif"], "données insuffisantes")
+        return [titre, f"Non estimable : {motif}", effectifs, arretes]
+    ecart = f"Écart de prix observé : {pct(ligne['prime'], 1, True)} {intervalle_pct(ligne['ic_bas'], ligne['ic_haut'])}"
+    return [titre, ecart, effectifs, arretes]
 
 def classe_prime(prime: float | None, bornes: tuple[float, ...] = BORNES_CLASSES) -> int | None:
     """Classe 0 à 4 de la colonne `prime` (borne inférieure incluse) ; None si non estimable."""
