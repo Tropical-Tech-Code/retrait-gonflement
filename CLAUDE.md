@@ -3,12 +3,14 @@
 Les règles communes sont dans `../CLAUDE.md`.
 
 ## Objectif
-Mesurer si le marché immobilier applique une décote aux maisons situées en zone
-d'exposition forte au retrait-gonflement des argiles (RGA), et cartographier
-cette « prime de risque implicite » (résultat global), puis, par commune,
-l'écart de prix observé entre la zone forte et le reste de la commune.
-Livrable : application Streamlit (carte par commune, sinistralité × décote).
-Projet court : 3 jours.
+Question réellement testée : le marché fait-il une différence de prix entre zone
+d'exposition forte et zone moyenne au retrait-gonflement des argiles (RGA) ? Résultat
+global (« prime de risque implicite ») : pas de différence détectable ; si une décote
+existe, elle ne dépasse probablement pas environ 3 %. Par commune : l'écart de prix
+observé entre la zone forte et le reste de la commune, croisé avec la sinistralité.
+Livrable : application Streamlit en français en quatre onglets (Résultat, Sinistralité
+× écart, Carte, Méthodologie et limites), pour un recruteur ou un analyste en données
+alternatives. Spécification dans `docs/app.md`. Projet court : 3 jours.
 
 ## Règles du projet
 - **Ne jamais lire `data/raw/` ni `data/interim/`.**
@@ -29,7 +31,6 @@ Projet court : 3 jours.
 | Carte d'exposition RGA 2026 (Géorisques / BRGM) | Communes qui basculent | Libre, sans clé (dépôt manuel) |
 | GASPAR (Géorisques) | Arrêtés CatNat sécheresse par commune | Libre, sans clé |
 | Contours des communes (API Géo, issus d'ADMIN EXPRESS IGN) | Carte de l'app | Libre, sans clé |
-| Anthropic | Agents (Claude Agent SDK), hors ligne, bonus | `ANTHROPIC_API_KEY` |
 
 ## Arborescence
 ```
@@ -37,7 +38,6 @@ src/retrait_gonflement/  paquet Python (déclaré dans pyproject.toml)
   data/                  connecteurs de collecte (DVF, RGA, GASPAR, communes)
   spatial/               jointures spatiales, contours simplifiés
   model/                 régression hédonique, primes par commune
-  agents/                agents Claude Agent SDK (local uniquement, bonus)
 app/                     application Streamlit (lit data/processed/)
 tests/                   tests pytest ; réponses simulées dans tests/fixtures/
 docs/                    method.md (méthode), app.md (spécification de l'app)
@@ -49,13 +49,6 @@ data/processed/          agrégats prêts pour l'app, suivis par Git
 Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflement`,
 `from retrait_gonflement.data import ...`.
 
-## Agents (bonus)
-- Claude Agent SDK seul, groupe de dépendances `agents`, local uniquement.
-- Analyste : note de 3 à 4 phrases par commune à partir de sa ligne chiffrée.
-- Critique : vérifie la note contre les chiffres (IC, effectifs) ; une révision au maximum.
-- 30 communes au maximum (angles morts et plus fortes décotes) ; sinon, texte automatique dans l'app.
-- Les calculs restent du code déterministe ; les agents interprètent et rédigent.
-
 ## Feuille de route
 1. **Jour 1 : cadrage et données.** Nettoyage de la copie, `pyproject.toml`, `docs/method.md`,
    `docs/app.md`, `config/perimetre.toml`, connecteurs DVF, RGA, GASPAR et communes testés
@@ -65,7 +58,6 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
    CatNat, contours simplifiés, fichiers de `data/processed/`, vue 1 (carte).
 3. **Jour 3 : livraison.** Vue 2 (sinistralité × décote), page Méthodologie et limites,
    README, déploiement, relecture.
-4. **Bonus si le temps le permet** : vue 3 (simulateur) et agents.
 
 ## Décisions
 
@@ -108,6 +100,18 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 18/10/2026 : carte : les communes écartées par un filtre restent affichées, grisées ; le fond de carte est coché par défaut (réglage dans la barre latérale) avec la mention Carto visible tant qu'il est coché.
 - 18/10/2026 : pydeck interprète toute chaîne comme une expression JavaScript (`"pixels"` devient `@@=pixels`) : les constantes textuelles transmises à une couche s'écrivent avec des guillemets internes, `"'pixels'"` (`UNITE_LIGNES` dans `app/cartographie.py`). Contours en pixels : communes fins et clairs, départements plus marqués.
 - 18/10/2026 : limites des départements réduites à l'anneau extérieur à l'affichage (`limites_exterieures` dans `app/cartographie.py`) : `departements.geojson` compte 760 à 1 767 anneaux par département (interstices entre communes), tracés en sombre ils redessinaient les frontières communales. Le fichier n'est pas modifié.
+- 19/10/2026 : objectif reformulé : la question testée est « le marché fait-il une différence de prix entre zone forte et zone moyenne ? » ; pas de différence détectable ; si une décote existe, elle ne dépasse probablement pas environ 3 % ; absence de décote détectable ≠ absence de décote ; moyen et fort ≈ −3 % contre hors zone (p ≈ 0,06, référence petite et particulière).
+- 19/10/2026 : public : recruteur ou analyste en données alternatives (2-3 minutes, ordinateur, depuis le README) ; le particulier n'est pas visé ; app en français.
+- 19/10/2026 : parcours en quatre onglets (Résultat, Sinistralité × écart, Carte, Méthodologie et limites), chacun sans défilement à 1 280 × 800 ; pas de barre latérale ; spécification complète dans `docs/app.md`, maquettes du Projet claude.ai historiques.
+- 19/10/2026 : simulateur abandonné (convertir en euros un écart non attribuable à l'argile induirait en erreur).
+- 19/10/2026 : onglet Résultat en cinq niveaux (phrase-réponse, chiffre phare, lecture, encadré « ce qui a vraiment été testé », signal faible) ; titre « Le marché distingue-t-il les zones d'argile forte et moyenne ? » ; la phrase « environ 1 % des ventes » va dans la Méthodologie seule (remplace la décision du 16/10 qui la plaçait aussi dans le bandeau).
+- 19/10/2026 : prix médian au m² retiré de la fiche commune ; colonne retirée du pipeline (souhaitable).
+- 19/10/2026 : carte : couleur pâle = statut « indéterminé » (remplace « opacité réduite si l'IC contient 0 ») ; non estimables en gris #C4C8C3 ; limites des départements marquées ; info-bulle simple au survol (nom et statut, en texte).
+- 19/10/2026 : carte en deux zones (Sud-Ouest 31, 47, 82 ; Seine-et-Marne 77), zoom minimal par zone pour empêcher le dézoom jusqu'à l'Europe ; recherche de commune (souhaitable) = même effet qu'un clic.
+- 19/10/2026 : onglet 2 en tableau à quatre cases (statut × sinistralité) à la place du nuage de points ; indéterminées comptées sous le tableau.
+- 19/10/2026 : Méthodologie en six cartes courtes, renvoi vers `docs/method.md` ; `app/methodologie.md` abandonné (remplace la décision du 17/10).
+- 19/10/2026 : agents abandonnés dans ce projet (apport faible sur des écarts surtout indéterminés) ; réservés au projet suivant, conçu autour d'eux ; nettoyage de `pyproject.toml` (groupe `agents`) et `.env.example` (`ANTHROPIC_API_KEY`) dans un commit séparé.
+- 19/10/2026 : charte : thème sans rouge dans `.streamlit/config.toml`, encadrés beige et gris (jamais `st.info`), chiffres tabulaires, notation unique des IC « [a % ; b %] » ; IBM Plex Mono et Google Fonts abandonnés ; Public Sans servie depuis le dépôt si le temps le permet.
 
 ## Avancement
 
@@ -139,13 +143,24 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - métadonnées de l'app (`model/metadonnees.py`, `tests/test_metadonnees.py`) : effectifs du nettoyage (82 525 ventes retenues) et 5 sources (millésimes, dates) ajoutés à `resume_global.json`, lancé par moi, commité (`a832d8a`) ; date de téléchargement = date du fichier local ;
   - étape 1 de l'app : `app/donnees.py` (lecture et contrôle de `data/processed/`, cache, dossier réglable par `RG_DONNEES`), `app/textes.py` (formats français, bandeau, classes de couleur, légende, texte automatique, vocabulaire imposé), `tests/conftest.py` (petites données construites dans les tests), `pythonpath = ["app"]` dans `pyproject.toml` ; `uv run pytest` : 176 tests verts ; commitée (`cb3ed5a`) ;
   - étape 2 de l'app (18/10/2026) : `app/cartographie.py` (couleurs, info-bulle, filtres, cadrage, contours), `app/vues/carte.py` (bandeau, carte pydeck, fiche commune, phrases sous la carte), `app/streamlit_app.py` (navigation), `tests/test_app_cartographie.py`, `tests/test_app_carte.py` (`streamlit.testing`) ; écrite et vérifiée au navigateur par moi (`uv run streamlit run app/streamlit_app.py`) ; `uv run pytest` : 215 tests verts.
+- 19/10/2026 : cahier des charges de l'app tranché et écrit dans `docs/app.md` (aucun code) ; agents et simulateur abandonnés.
 - Pas de bloquant.
-- Reprise : échange sur le cahier des charges et le parcours de l'app, à écrire dans `docs/app.md` ; les corrections relevées au navigateur (Points ouverts) viennent ensuite. Puis : étape 3 (vue 2, option pour masquer les indéterminées), étape 4 (Méthodologie en Markdown, « environ 1 % » calculé par le pipeline), README, déploiement, relecture.
+- Reprise :
+  1. commit de cette spécification ;
+  2. nettoyage des agents (commit séparé) ;
+  3. corrections relevées au navigateur et indispensables de la charte ;
+  4. onglet Résultat ;
+  5. onglet Sinistralité × écart ;
+  6. onglet Méthodologie ;
+  7. README et déploiement ;
+  8. relecture (Opus) ;
+  9. souhaitables.
 - Points ouverts :
   - vérifier sur Légifrance le décret n° 2024-405 du 29 avril 2024 (RGA dans l'état des risques au 1er janvier 2025) ;
   - créer le dépôt GitHub et faire le premier push (après confirmation) ;
-  - clé API Anthropic avant les agents (bonus) ;
-  - « environ 1 % des ventes » : phrase fixe dans `app/textes.py` (`PHRASE_CARTE_2026`) ; à calculer dans le pipeline et écrire dans `resume_global.json` à l'étape 4 de l'app (la phrase parle des deux sens, 861 ventes vers « fort » ne couvrent qu'un sens) ;
+  - « environ 1 % des ventes » : phrase fixe dans `app/textes.py` (`PHRASE_CARTE_2026`) ; à calculer dans le pipeline et écrire dans `resume_global.json`, pour l'onglet Méthodologie seul (la phrase parle des deux sens, 861 ventes vers « fort » ne couvrent qu'un sens) ;
+  - retouches de fin : couleur noire du bandeau, bouton de zone sélectionné, ajustements de textes, limites des départements à distinguer du contour de sélection ;
+  - vérifications de la sous-section « À vérifier avant le code » de `docs/app.md` ;
   - remplir les trous de `departements.geojson` dans `spatial/contours.py` (pipeline, plus tard : fichier plus léger, plus besoin de `limites_exterieures`) ;
-  - corrections relevées au navigateur (étape 2), à reprendre après le cahier des charges : le fond de carte ne se retire pas ; info-bulle en HTML brut ; cadrage (initial, et sur les départements filtrés) ; étiquettes du fond en anglais (style Carto sans étiquettes à envisager) ; fiche commune (arrêtés dans leur case, « — » si non estimable, prix médian à trancher) ; couleur pâle ; charte de la maquette non appliquée ;
+  - corrections relevées au navigateur (étape 2), à reprendre à l'étape 3 de la Reprise : le fond de carte ne se retire pas ; info-bulle en HTML brut ; cadrage (initial et par zone) ; étiquettes du fond en anglais (style Carto sans étiquettes à envisager) ; fiche commune (arrêtés dans leur case, « — » si non estimable). Tranchés le 19/10, voir `docs/app.md` : prix médian, couleur pâle, charte, contenu de la fiche ;
   - vérifier si pyfixest retire `terrain_nul` (multicolinéarité) sur les vraies données des primes par commune, comme dans `test_statut_et_motif_des_communes`, et le documenter dans `docs/method.md` le cas échéant.

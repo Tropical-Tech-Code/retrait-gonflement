@@ -10,11 +10,78 @@ DuckDB, aucun calcul statistique. Tout est calculé par le pipeline (voir
 - Les primes communales (colonne `prime`) sont des **« écarts de prix observés entre
   zone forte et reste de la commune »**. Jamais un « effet de l'argile », ni une « prime
   de risque » : la colonne garde son nom de fichier, pas ses libellés à l'écran (info-bulle,
-  fiche, texte automatique, axes, tableau, simulateur, légende).
+  fiche, texte automatique, axes, tableau, légende).
 - L'expression **« prime de risque implicite »** est réservée au résultat global
-  (bandeau, page Méthodologie, README) : le contraste « fort − moyen » et les modèles
-  globaux.
+  (onglet Résultat, onglet Méthodologie et limites, README) : le contraste « fort − moyen »
+  et les modèles globaux.
 - Les écarts communaux ne sont ni causaux ni une estimation de la valeur d'une maison.
+
+## Cahier des charges et parcours (19/10/2026)
+
+Cette section fait foi. La maquette v2 (quatre écrans, Projet claude.ai, 19/10/2026) l'illustre ; les maquettes précédentes sont historiques.
+
+### Objectif
+Question réellement testée : le marché fait-il une différence de prix entre zone d'exposition forte et zone moyenne ? Résultat : pas de différence détectable ; si une décote existe, elle ne dépasse probablement pas environ 3 % ; ne pas détecter de décote ne prouve pas qu'il n'y en a pas. Les deux zones exposées se vendent environ 3 % moins cher que les maisons hors zone argileuse (p ≈ 0,06 ; groupe de référence petit et particulier) : l'étude ne dit pas si le marché fait payer le risque argileux.
+
+### Public
+Recruteur ou analyste en données alternatives, arrivé depuis le README, sur ordinateur, pour 2 à 3 minutes. La page Résultat doit se comprendre seule. Le particulier qui cherche sa commune n'est pas un public visé : l'app ne donne ni prix en euros ni estimation de valeur, et ses textes rappellent que les écarts communaux ne sont ni une valeur de maison ni un effet causal. Langue : français.
+
+### Contraintes générales
+- Navigation par onglets : Résultat (accueil), Sinistralité × écart, Carte, Méthodologie et limites.
+- Chaque onglet tient sans défilement dans un écran de 1 280 × 800.
+- Pas de barre latérale : les réglages de la carte sont au-dessus d'elle.
+- En-tête commun : sur-titre « Retrait-gonflement des argiles × ventes DVF », titre « Le marché distingue-t-il les zones d'argile forte et moyenne ? ».
+- Aucun chiffre ni aucune date en dur : tout est lu dans data/processed/ (les chiffres de ce document sont des exemples).
+- Notation unique des intervalles : « [−2,9 % ; +4,9 %] », jamais « +0,0 % ».
+- Aucun euro, aucun prix au m², aucune estimation de valeur.
+
+### Onglet 1 : Résultat
+- Phrase-réponse : « Pas de différence de prix détectable entre zone d'argile forte et zone moyenne. »
+- Chiffre phare : contraste fort − moyen et son IC 95 %, avec les effectifs (ventes, départements, années).
+- Barre de fourchette : l'IC sur un axe, avec 0 et le seuil « pas de décote » (−3 %, lu dans le JSON).
+- Lecture : « Si une décote existe, elle ne dépasse probablement pas environ X %. Ne pas détecter de décote ne prouve pas qu'il n'y en a pas. » (X : règle du bandeau décidée le 17/10).
+- Encadré gris « Ce qui a vraiment été testé » : écart des deux zones exposées par rapport aux maisons hors zone, sa fragilité (p), et la conclusion « l'étude ne dit pas si le marché fait payer le risque argileux ; elle dit qu'il ne distingue pas nettement exposition moyenne et forte ».
+- Encadré sombre « Signal faible » : nombre de communes en angle mort, formulé comme une hypothèse à surveiller, lien vers l'onglet 2.
+- Pied : sources, « Calculs faits hors ligne », « Corrélation, pas causalité ».
+- Hors de cet onglet : variante réforme 2025, placebo et phrase « environ 1 % des ventes » (Méthodologie), tests multiples (Carte).
+
+### Onglet 2 : Sinistralité × écart
+- Tableau à quatre cases : colonnes « sinistralité ≤ médiane (0 à 2 arrêtés) » et « > médiane (3 arrêtés ou plus) » ; lignes « pas de décote » et « décote ». Cases : Cohérent, Angle mort (mis en avant), Décote à expliquer, Risque intégré, chacune avec son effectif et une phrase.
+- Sous le tableau : nombre de communes indéterminées, non classées.
+- À droite : encadré sombre (nombre d'angles morts, hypothèse sans prédiction) et tableau des communes en angle mort (commune, département, arrêtés, écart [IC 95 %], ventes en zone forte), trié par arrêtés décroissants.
+- Le nuage de points est abandonné : les cases sont définies par le statut, pas par la valeur de l'écart.
+
+### Onglet 3 : Carte
+- Tuiles : communes estimables (sur le total), décote, pas de décote, indéterminées.
+- Deux zones au choix : Sud-Ouest (31, 47, 82) et Seine-et-Marne (77). Chaque zone a son cadrage et un zoom minimal (min_zoom de pydeck.ViewState) : impossible de dézoomer au-delà de la zone. Bouton « Recentrer » si faisable.
+- Couleurs : 5 classes (bornes −10 / −3 / +3 / +10 %, orange = décote, bleu = écart positif) ; couleur franche = décote ou pas de décote ; pâle = indéterminé ; gris #C4C8C3 = non estimable ; contour noir = commune sélectionnée ; limites des départements marquées.
+- Info-bulle au survol : nom de la commune et statut, en texte simple (pas de HTML brut).
+- Fond Carto coché par défaut, mention visible tant qu'il est coché.
+- Légende sous la carte (classes, pâle, gris), puis la phrase des tests multiples (communes significatives observées contre attendues par hasard : différences entre quartiers).
+- Fiche à droite : département, nom, « Écart de prix observé entre zone forte et reste de la commune », chiffre coloré selon sa classe et IC, statut, trois cases (ventes de maisons, dont en zone forte, arrêtés sécheresse 2015-2023), note beige (texte automatique terminé par « ni valeur de la maison, ni causalité »). Non estimable : encadré gris avec le motif, « — » pour l'écart. Pas de prix médian.
+- Recherche de commune (souhaitable) : même effet qu'un clic (changement de zone si nécessaire, zoom sur la commune, sélection).
+
+### Onglet 4 : Méthodologie et limites
+- Six cartes courtes, sans défilement : Question testée, Données, Modèle, Robustesse, Écarts par commune, Limites (dont « la carte 2026 change le niveau d'environ 1 % des ventes, dans les deux sens »).
+- Renvoi vers docs/method.md sur GitHub pour le détail. Pas de texte long dans l'app ; le test de vocabulaire s'applique aux textes des cartes.
+
+### Charte
+- .streamlit/config.toml, [theme] : backgroundColor #F4F5F2, textColor #1B1F1D, primaryColor #C2410C, secondaryBackgroundColor #FFFFFF (aucun rouge Streamlit).
+- Encadrés beige (#FBF3EC, note et prudence) et gris (#EEF0EC, neutre) ; jamais st.info (le bleu signifie « écart positif »).
+- Chiffres alignés par les chiffres tabulaires (font-variant-numeric: tabular-nums).
+- Police : Public Sans servie depuis le dépôt (souhaitable), sinon polices système ; jamais Google Fonts.
+
+### Priorités
+- Indispensable : quatre onglets sans défilement à 1 280 × 800 ; en-tête ; onglet Résultat ; tableau à quatre cases ; carte en deux zones avec zoom minimal ; couleur par statut et gris des non estimables ; légende ; fiche sans prix médian ; notation unique des IC ; thème sans rouge ; encadrés sans bleu ; Méthodologie en six cartes ; vocabulaire imposé ; pluriels corrects dans les textes automatiques.
+- Souhaitable, dans cet ordre : barre de fourchette ; tuiles par statut ; recherche de commune ; chiffre de la fiche coloré ; Public Sans ; affichage mobile non cassé ; retrait de la colonne de prix médian du pipeline ; résumé en anglais dans le README.
+- Abandonné : simulateur ; agents ; euros et prix au m² ; recherche par adresse ; nuage de points ; couches CatNat et bascule ; IBM Plex Mono ; Google Fonts ; onglets dessinés à la main ; texte long de Méthodologie.
+
+### À vérifier avant le code
+- resume_global.json contient-il, pour le modèle à trois catégories, les écarts « moyen » et « fort » par rapport à la référence avec IC et p (encadré « Ce qui a vraiment été testé ») ? Sinon, ajout au pipeline.
+- Comptes par statut et par case lus dans data/processed/.
+- communes.parquet contient-il une colonne de prix médian ?
+- Correspondance département → zone : constante dans app/textes.py, avec un test qui la compare à config/perimetre.toml (comme les bornes des classes).
+- Le clic sur une commune de la carte fonctionne-t-il dans la version actuelle ?
 
 ## 1. Fichiers de `data/processed/`
 
@@ -26,7 +93,6 @@ Uniquement des agrégats par commune ; aucune vente individuelle.
 | `contours.geojson` | contours simplifiés des communes, propriété `code_insee` seule | oui |
 | `departements.geojson` | limites des 4 départements (union des contours des communes) | oui |
 | `resume_global.json` | résultats du modèle global, nettoyage, tests multiples, seuils, sources | oui |
-| `notes_communes.parquet` | notes des agents (30 communes au maximum) | non (bonus) |
 
 ### `communes.parquet`
 
@@ -36,12 +102,12 @@ Uniquement des agrégats par commune ; aucune vente individuelle.
 | `nom`, `departement` | texte | |
 | `n_ventes` | entier | ventes retenues après nettoyage, 2021-2025 |
 | `n_fort`, `n_moyen`, `n_faible`, `n_hors_zone` | entier | ventes par classe d'exposition 2020 |
-| `prix_m2_median` | réel ou vide | vide si moins de 5 ventes (seuil dans la config) |
+| `prix_m2_median` | réel ou vide | vide si moins de 5 ventes (seuil dans la config) ; **non affichée** (décision du 19/10), colonne à retirer du pipeline (souhaitable) |
 | `statut` | texte | `estimable` ou `non_estimable` |
 | `motif` | texte ou vide | `une_seule_zone`, `effectifs_insuffisants` (vide si estimable) |
 | `prime`, `ic_bas`, `ic_haut` | réel ou vide | prime « fort » contre tout le reste (faible, moyen, hors zone), exp(β) − 1 en fraction (−0,05 = −5 %) ; négatif = décote |
-| `significatif` | texte ou vide | `decote` (IC < 0), `prime` (IC > 0), `non` (IC contient 0) ; sert aux tests multiples et à l'opacité de la carte |
-| `statut_decote` | texte ou vide | `decote`, `pas_de_decote`, `indetermine` (définitions dans `docs/method.md`, section 6) |
+| `significatif` | texte ou vide | `decote` (IC < 0), `prime` (IC > 0), `non` (IC contient 0) ; sert aux tests multiples |
+| `statut_decote` | texte ou vide | `decote`, `pas_de_decote`, `indetermine` (définitions dans `docs/method.md`, section 6) ; détermine la couleur de la carte (pâle si indéterminé) |
 | `catnat_total`, `catnat_depuis_2015` | entier | événements CatNat sécheresse distincts (libellé « Sécheresse » seul), au total et depuis le 1er janvier 2015 ; 0 si aucun. Libellé à l'écran : « arrêtés sécheresse 2015-2023 » (GASPAR ne contient rien après 2023) |
 | `catnat_dernier` | date ou vide | date du dernier arrêté |
 | `sinistralite_sup_mediane` | booléen ou vide | `catnat_depuis_2015` strictement supérieur à la médiane (communes estimables) |
@@ -72,46 +138,32 @@ commune, et l'app ne le lit pas.
 ### `resume_global.json`
 
 Contenu défini dans `docs/method.md` (section 8), plus :
-- `mediane_sinistralite` et `seuil_pas_de_decote` : seuils de la vue 2 (section 3) ;
+- `mediane_sinistralite` et `seuil_pas_de_decote` : seuils de l'onglet Sinistralité × écart (section 3) ;
 - `n_decote`, `n_pas_de_decote`, `n_indetermine` et effectifs par quadrant ;
-- `seuil_prix_median` : effectif minimal pour publier un prix médian ;
 - `sources` : pour chaque source, URL, date de téléchargement et millésime ;
 - `date_generation` : date de production des fichiers.
 
-### `notes_communes.parquet` (bonus)
+## 2. Onglet Carte : détails de réalisation
 
-`code_insee`, `note`, `revisee` (booléen : le Critique a demandé une révision),
-`date`. Si le fichier est absent ou qu'une commune n'y figure pas, l'app affiche le
-texte automatique.
+Le contenu et la disposition de l'onglet sont dans le cahier des charges ci-dessus.
 
-## 2. Vue 1 : carte
-
-- Carte pydeck (`GeoJsonLayer`) des communes, centrée sur le périmètre, avec une
-  seconde couche pour les limites des départements (trait sombre, sans remplissage).
+- Carte pydeck (`GeoJsonLayer`) des communes, avec une seconde couche pour les limites
+  des départements (trait sombre, sans remplissage).
 - **Fond de carte** (décision du 15/10) : tuiles Carto, chargées par le navigateur du
   visiteur et non par le serveur. Mention de la source sous la carte :
   « Fond de carte © CARTO, données © contributeurs OpenStreetMap ».
 - **Lisible sans fond** : communes colorées et limites des départements suffisent à
   lire la carte si les tuiles ne se chargent pas. Vérifié pendant le développement en
   affichant la carte sans fond (`map_style=None`).
-- **Couleur** (décision du 14/10) : orange pour une décote, bleu pour une prime, gris
-  si non estimable. Cinq classes fixes de `prime` : décote < −10 %, −10 à −3 %,
-  −3 à +3 %, +3 à +10 %, > +10 % (bornes dans la config). La classe centrale est
-  très claire.
-- **Significativité** : une commune dont l'IC contient 0 est affichée avec une opacité
-  réduite ; le texte de la légende le dit.
-- **Légende** dans la barre latérale (pydeck n'en fournit pas).
-- **Filtres** : départements ; « communes significatives seulement ». Pas de couche
-  « bascule 2020 → 2026 » (décision du 16/10, voir la phrase du bandeau).
-- **Info-bulle** : nom, prime et IC (ou motif si non estimable), ventes « fort » et
-  de référence (tout le reste), arrêtés CatNat.
-- **Fiche commune** sous la carte : choix par liste déroulante (avec recherche),
-  et par clic sur la carte si la version de Streamlit le permet. Elle affiche les
-  chiffres de la ligne, puis la note de l'agent ou le texte automatique.
-- **Bandeau des résultats globaux** au-dessus de la carte : chiffre phare = contraste
-  « fort − moyen » avec IC, puis décote globale « moyen » et « fort » avec IC ; communes estimables ; significatives observées contre attendues
-  par hasard. Phrase fixe : « Dans ces quatre départements déjà très exposés, la carte
-  2026 change le niveau d'environ 1 % des ventes, dans les deux sens. »
+- **Couleur** (décisions du 14/10 et du 19/10) : orange pour une décote, bleu pour un
+  écart positif, gris si non estimable. Cinq classes fixes de `prime` : décote < −10 %,
+  −10 à −3 %, −3 à +3 %, +3 à +10 %, > +10 % (bornes dans la config). Couleur franche
+  pour les statuts « décote » et « pas de décote », pâle pour « indéterminé ».
+- **Réglages** au-dessus de la carte (pas de barre latérale) : zone, fond de carte.
+  Pas de couche « bascule 2020 → 2026 » (décision du 16/10).
+- **Info-bulle** au survol : nom de la commune et statut, en texte.
+- **Fiche commune** à droite : contenu défini dans le cahier. Choix par clic sur la
+  carte si la version de Streamlit le permet, et par recherche de commune (souhaitable).
 
 ### Texte automatique
 
@@ -121,16 +173,13 @@ CatNat (« sinistralité supérieure à la médiane du périmètre », jamais «
 élevé »), quadrant. Il se termine toujours par un rappel : un écart moyen observé
 n'est ni une estimation de la valeur d'une maison, ni une preuve de causalité.
 
-## 3. Vue 2 : sinistralité × décote
+## 3. Onglet Sinistralité × écart : définitions
 
-- Nuage de points (Altair, fourni avec Streamlit), communes estimables uniquement :
-  en abscisse, `catnat_depuis_2015` ; en ordonnée, l'écart de prix observé (`prime`) avec
-  son IC en barre d'erreur. Une ligne à 0, une ligne pointillée au seuil `seuil_pas_de_decote`
-  (−3 %) et une ligne verticale à la médiane de sinistralité.
+L'affichage (tableau à quatre cases, communes en angle mort) est dans le cahier des
+charges. Le nuage de points est abandonné.
+
 - **Statut de décote** (décision du 15/10), calculé par le pipeline : « décote »,
   « pas de décote », « indéterminé » (définitions dans `docs/method.md`, section 6).
-  Points pleins pour « décote » et « pas de décote », **points creux** pour
-  « indéterminé ».
 - **Quadrants** (décision du 14/10), calculés par le pipeline, communes « décote » et
   « pas de décote » seulement :
 
@@ -147,46 +196,28 @@ n'est ni une estimation de la valeur d'une maison, ni une preuve de causalité.
   l'app l'écrit ainsi à côté du libellé.
 - Le statut repose sur l'IC, pas sur l'estimation ponctuelle, pour ne pas classer du
   bruit : une commune peu informative reste « indéterminée ».
-- Au-dessus du graphique, rappel des tests multiples : nombre de communes
-  significatives observé contre nombre attendu par hasard.
-- Sous le graphique : effectif par quadrant **et nombre de communes indéterminées**,
-  puis tableau filtrable des communes (nom, prime, IC, arrêtés, statut de décote,
-  quadrant), téléchargeable en CSV.
 
-## 4. Vue 3 : simulateur (bonus)
+## 4. Onglet Méthodologie et limites
 
-- Liste limitée aux communes estimables (la prime par commune a pour référence
-  « tout le reste » : faible, moyen, hors zone).
-- Saisie d'un prix de maison ; affichage de l'écart moyen observé en euros et de son
-  IC : prix × prime, prix × ic_bas, prix × ic_haut.
-- Formulation imposée : « écart moyen observé entre zones dans cette commune », jamais
-  « valeur de votre maison ».
+Six cartes courtes et un renvoi vers `docs/method.md` (voir le cahier des charges). Les
+effectifs du nettoyage et les sources sont lus dans `resume_global.json` (clés
+`nettoyage` et `sources`). La phrase « environ 1 % des ventes » est calculée par le
+pipeline et écrite dans `resume_global.json` (point ouvert du `CLAUDE.md`).
 
-## 5. Page Méthodologie et limites
-
-- Résumé lisible de `docs/method.md` : sources, période, nettoyage (avec le nombre de
-  ventes à chaque étape lu dans `resume_global.json`), exposition, modèle, prime par
-  commune.
-- Tableau des définitions, identique au README.
-- Phrase sur la carte 2026 : « Dans ces quatre départements déjà très exposés, la carte
-  2026 change le niveau d'environ 1 % des ventes, dans les deux sens. » (la même que
-  dans le bandeau des résultats globaux).
-- Résultats complémentaires : test placebo (bascule), « indicatif, faible puissance
-  (861 ventes, 8 communes) », et variante « réforme 2025 », présentée comme un indice.
-- Limites : reprises de la section 9 de `docs/method.md`.
-- Sources avec dates de téléchargement et millésimes.
-
-## 6. Organisation du code
+## 5. Organisation du code
 
 ```
+.streamlit/
+  config.toml        thème (charte)
 app/
-  streamlit_app.py   navigation (st.navigation) et configuration de la page
+  streamlit_app.py   en-tête commun, onglets et configuration de la page
   donnees.py         lecture de data/processed/ (st.cache_data), contrôle des colonnes
-  textes.py          définitions, libellés, légende, texte automatique
+  textes.py          définitions, libellés, légende, texte automatique, zones
+  cartographie.py    couleurs, info-bulle, cadrage, contours
   vues/
-    carte.py
+    resultat.py
     sinistralite.py
-    simulateur.py
+    carte.py
     methodologie.py
 ```
 
@@ -195,19 +226,22 @@ app/
 - Si un fichier obligatoire manque ou qu'une colonne attendue est absente, l'app
   affiche un message clair au lieu d'une erreur Python.
 
-## 7. Tests
+## 6. Tests
 
 - `donnees.py` : lecture de petits fichiers de test dans `tests/fixtures/processed/`,
   détection d'une colonne manquante.
 - `textes.py` : texte automatique pour une commune estimable, une non estimable, une
-  sans arrêté CatNat ; formatage des nombres.
+  sans arrêté CatNat ; formatage des nombres ; pluriels ; vocabulaire imposé sur les
+  cartes de Méthodologie.
+- `textes.py` : correspondance département → zone identique à `config/perimetre.toml`,
+  comme les bornes des classes de couleur.
 - Pipeline : contrôle que `data/processed/` ne contient que des agrégats (aucune
-  colonne de vente individuelle, prix médian vide sous le seuil).
+  colonne de vente individuelle).
 - Pipeline : statut de décote aux bornes (IC haut juste sous 0, IC bas égal au seuil
   de −3 %), sinistralité égale à la médiane (classée « inférieure ou égale »),
   aucune commune indéterminée dans un quadrant.
 
-## 8. Déploiement
+## 7. Déploiement
 
 - Streamlit Community Cloud, depuis le dépôt GitHub ; dépendances principales
   seulement (streamlit, pydeck, pandas, pyarrow). La prise en charge de `uv.lock`
