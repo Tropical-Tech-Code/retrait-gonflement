@@ -13,6 +13,11 @@ import pandas as pd
 NBSP = " "
 MOINS = "−"
 
+SURTITRE = "Retrait-gonflement des argiles × ventes DVF"
+TITRE_APP = "Le marché distingue-t-il les zones d'argile forte et moyenne ?"
+ONGLETS = ("Résultat", "Sinistralité × écart", "Carte", "Méthodologie et limites")
+EN_CONSTRUCTION = "En construction."
+
 # Vocabulaire : « prime de risque implicite » est réservé au résultat global (bandeau et page
 # Méthodologie). Les écarts communaux ne portent jamais ce nom ni « effet de l'argile ».
 EXPRESSION_RESERVEE = "prime de risque implicite"
@@ -80,7 +85,7 @@ def pct(fraction: float, decimales: int = 1, signe: bool = False) -> str:
 
 
 def intervalle_pct(bas: float, haut: float, decimales: int = 1) -> str:
-    """[−2,9 % ; +4,9 %]"""
+    """[−2,9 % ; +4,9 %] : notation unique des intervalles (signe + affiché, « 0,0 % » sans signe)."""
     return f"[{pct(bas, decimales, True)} ; {pct(haut, decimales, True)}]"
 
 

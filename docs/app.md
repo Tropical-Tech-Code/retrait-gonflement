@@ -18,6 +18,8 @@ DuckDB, aucun calcul statistique. Tout est calculé par le pipeline (voir
 
 ## Cahier des charges et parcours (19/10/2026)
 
+Les quatre écrans de la maquette v2 sont dans `docs/maquette/` (source HTML à 1 280 × 800, chiffres d'exemple) : ils illustrent cette section, qui fait foi en cas de conflit.
+
 Cette section fait foi. La maquette v2 (quatre écrans, Projet claude.ai, 19/10/2026) l'illustre ; les maquettes précédentes sont historiques.
 
 ### Objectif
@@ -213,6 +215,7 @@ app/
   streamlit_app.py   en-tête commun, onglets et configuration de la page
   donnees.py         lecture de data/processed/ (st.cache_data), contrôle des colonnes
   textes.py          définitions, libellés, légende, texte automatique, zones
+  charte.py          CSS injecté une fois, en-tête commun, encadrés beige et gris (texte échappé)
   cartographie.py    couleurs, info-bulle, cadrage, contours
   vues/
     resultat.py

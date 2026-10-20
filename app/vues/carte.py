@@ -5,6 +5,7 @@ import pydeck as pdk
 import streamlit as st
 
 import cartographie
+import charte
 import donnees
 import textes
 
@@ -30,13 +31,12 @@ def bandeau(resume: dict) -> None:
 
 
 def legende() -> None:
-    st.sidebar.markdown(f"**{textes.LEGENDE_TITRE}**")
+    st.markdown(f"**{textes.LEGENDE_TITRE}**")
     case = '<span style="display:inline-block;width:14px;height:14px;background:{};border:1px solid #888;margin-right:6px"></span>{}'
     lignes = [case.format(cartographie.hex_classe(classe), libelle) for classe, libelle in textes.legende()]
     lignes.append(case.format(cartographie.hex_classe(None), textes.LEGENDE_NON_ESTIMABLE))
-    st.sidebar.markdown("<br/>".join(lignes), unsafe_allow_html=True)
-    st.sidebar.caption(textes.LEGENDE_PALE)
-    st.sidebar.caption(textes.LEGENDE_FILTRE)
+    st.markdown(" &nbsp; ".join(lignes), unsafe_allow_html=True)
+    st.caption(f"{textes.LEGENDE_PALE} {textes.LEGENDE_FILTRE}")
 
 
 def carte(entites: list[dict], departements: dict, fond: bool) -> object:
@@ -75,33 +75,25 @@ def fiche(ligne: pd.Series, resume: dict) -> None:
     prix = ligne["prix_m2_median"]
     colonnes[3].metric("Prix médian au m²", "—" if pd.isna(prix) else f"{textes.entier(prix)} €")
     colonnes[3].caption(f"{textes.pluriel(int(ligne['catnat_depuis_2015']), 'arrêté')} sécheresse 2015-2023")
-    st.info(textes.texte_commune(ligne, resume))
+    charte.encadre_beige(textes.texte_commune(ligne, resume))
 
 
-def afficher() -> None:
-    try:
-        dossier = str(donnees.dossier())
-        tout = donnees.charger_tout()
-        entites = entites_carte(dossier)
-    except donnees.ErreurDonneesApp as erreur:
-        st.error(str(erreur))
-        st.stop()
-
+def afficher(tout: donnees.Donnees) -> None:
+    """Onglet Carte : réglages, carte, légende, phrases et fiche. `tout` vient de donnees.charger_tout()."""
     communes, resume = tout.communes, tout.resume
-    st.title("Retrait-gonflement des argiles et prix des maisons")
-    bandeau(resume)
+    entites = entites_carte(str(donnees.dossier()))
 
-    st.sidebar.header("Filtres")
     options = sorted(communes["departement"].unique())
-    choisis = st.sidebar.multiselect(textes.LIBELLE_DEPARTEMENTS, options, default=options)
-    significatives = st.sidebar.checkbox(textes.LIBELLE_SIGNIFICATIVES)
-    fond = st.sidebar.checkbox(textes.LIBELLE_FOND, value=True)
-    legende()
+    colonnes = st.columns([3, 2, 2])
+    choisis = colonnes[0].multiselect(textes.LIBELLE_DEPARTEMENTS, options, default=options)
+    significatives = colonnes[1].checkbox(textes.LIBELLE_SIGNIFICATIVES)
+    fond = colonnes[2].checkbox(textes.LIBELLE_FOND, value=True)
 
     visibles = cartographie.filtrer(entites, choisis, significatives)
     evenement = carte(visibles, cartographie.limites_exterieures(tout.departements), fond)
     if fond:
         st.caption(textes.FOND_DE_CARTE)
+    legende()
     st.markdown(textes.phrase_estimables(resume["n_communes_estimables"], len(communes)))
     st.markdown(textes.phrase_indeterminees(resume))
 
@@ -121,6 +113,3 @@ def afficher() -> None:
         fiche(lignes.loc[choix], resume)
     else:
         st.caption(textes.INVITE_COMMUNE)
-
-
-afficher()

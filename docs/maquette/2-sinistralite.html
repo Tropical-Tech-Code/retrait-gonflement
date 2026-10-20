@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Sinistralité × écart</title>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#7A3410}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F4F5F2; color: #1B1F1D; font-family: 'Public Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.45">
+  <header style="background: #1B1F1D; padding: 18px 48px 0; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #E99A68; font-weight: 600">Retrait-gonflement des argiles × ventes DVF</div>
+    <h1 style="margin: 0 0 12px; font-size: 26px; line-height: 1.2; color: #FFFFFF; font-weight: 700">Le marché distingue-t-il les zones d'argile forte et moyenne ?</h1>
+    <nav style="display: flex; gap: 4px" aria-label="Onglets">
+      <a href="Main.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Résultat</a>
+      <a href="Sinistralite.dc.html" style="padding: 11px 20px; border-radius: 8px 8px 0 0; background: #F4F5F2; color: #1B1F1D; font-weight: 600; text-decoration: none">Sinistralité × écart</a>
+      <a href="Carte.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Carte</a>
+      <a href="Methodologie.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Méthodologie et limites</a>
+    </nav>
+  </header>
+
+  <main style="flex: 1; min-height: 0; padding: 24px 48px 20px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px">
+    <section style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 22px; font-weight: 700">Sinistralité constatée et écart de prix</h2>
+      <p style="margin: 0; font-size: 14px; color: #4A514D">Chaque commune estimable est classée par son statut (décote ou pas de décote) et par sa sinistralité : arrêtés sécheresse 2015-2023, au-dessus ou non de la médiane du périmètre (3 arrêtés ou plus).</p>
+
+      <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 160px 160px; gap: 8px">
+        <div></div>
+        <div style="font-size: 13px; font-weight: 600; color: #4A514D; text-align: center">Sinistralité ≤ médiane<br>(0 à 2 arrêtés)</div>
+        <div style="font-size: 13px; font-weight: 600; color: #4A514D; text-align: center">Sinistralité &gt; médiane<br>(3 arrêtés ou plus)</div>
+
+        <div style="font-size: 13px; font-weight: 600; color: #4A514D; align-self: center">Pas de décote</div>
+        <div style="border: 1px solid #DCDFDA; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: #4A514D">Cohérent</span>
+          <span class="num" style="font-size: 44px; font-weight: 700; line-height: 1.05">18</span>
+          <span style="font-size: 13px; color: #4A514D">Peu de sinistres, pas d'écart de prix.</span>
+        </div>
+        <div style="background: #FBE3D3; border: 2px solid #C2410C; border-radius: 8px; padding: 15px 17px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: #8A2E0B">Angle mort</span>
+          <span class="num" style="font-size: 44px; font-weight: 700; line-height: 1.05; color: #8A2E0B">9</span>
+          <span style="font-size: 13px; color: #7A3410">Des sinistres reconnus, aucun écart de prix.</span>
+        </div>
+
+        <div style="font-size: 13px; font-weight: 600; color: #4A514D; align-self: center">Décote</div>
+        <div style="background: #F7F2EA; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: #6B5A40">Décote à expliquer</span>
+          <span class="num" style="font-size: 44px; font-weight: 700; line-height: 1.05; color: #6B5A40">14</span>
+          <span style="font-size: 13px; color: #6B5A40">Un écart sans sinistralité marquée : plutôt des quartiers.</span>
+        </div>
+        <div style="background: #EEF3F0; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: #2E5A48">Risque intégré</span>
+          <span class="num" style="font-size: 44px; font-weight: 700; line-height: 1.05; color: #2E5A48">2</span>
+          <span style="font-size: 13px; color: #2E5A48">Des sinistres et un écart de prix.</span>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; background: #EEF0EC; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2F3532">
+        <strong class="num">150</strong> communes indéterminées ne sont pas classées : leur intervalle est trop large pour conclure.
+      </div>
+    </section>
+
+    <aside style="display: flex; flex-direction: column; gap: 16px; min-height: 0">
+      <section style="background: #1B1F1D; color: #F4F5F2; border-radius: 10px; padding: 20px 24px; display: flex; align-items: center; gap: 20px">
+        <span class="num" style="font-size: 60px; font-weight: 700; line-height: 1; color: #E99A68">9</span>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 16px; font-weight: 600">communes en angle mort</span>
+          <span style="font-size: 13px; color: #C9CDC7">Hypothèse à surveiller : des sinistres sont reconnus, mais le prix ne diffère pas entre zone forte et reste de la commune. Ce n'est pas une prédiction.</span>
+        </div>
+      </section>
+
+      <section style="flex: 1; min-height: 0; background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600; padding-bottom: 4px">Communes en angle mort, par sinistralité</div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 12px; color: #4A514D; font-weight: 600; border-bottom: 1px solid #DCDFDA; padding-bottom: 6px">
+          <span>Commune</span><span>Dép.</span><span style="text-align: right">Arrêtés</span><span style="text-align: right">Écart [IC 95 %]</span><span style="text-align: right">Ventes fort</span>
+        </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 1]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 2]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 3]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 4]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 5]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 6]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 7]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 8]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+          <div class="num" style="display: grid; grid-template-columns: minmax(0, 1.6fr) 44px 64px minmax(0, 1.7fr) 72px; gap: 8px; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #EEF0EC">
+            <span>[Commune 9]</span><span>[dép.]</span><span style="text-align: right">[n]</span><span style="text-align: right">[x %] [a ; b]</span><span style="text-align: right">[n]</span>
+          </div>
+        
+      </section>
+    </aside>
+  </main>
+
+  <footer style="padding: 0 48px 16px; font-size: 12px; color: #4A514D">Statuts calculés hors ligne : décote = IC entièrement sous 0 ; pas de décote = borne basse de l'IC au-dessus de −3 % · Corrélation, pas causalité</footer>
+</div>
+</x-dc>
+</body>
+</html>

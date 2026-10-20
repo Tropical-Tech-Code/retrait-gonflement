@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carte</title>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#7A3410}
+.num{font-variant-numeric:tabular-nums}
+.cell{position:absolute;width:20px;height:20px;border-radius:4px}
+.ne{background:#C4C8C3}
+.v1,.p1{background:#A8431A}
+.v2,.p2{background:#E99A68}
+.v3,.p3{background:#BDB6A4}
+.v4,.p4{background:#9DBEDD}
+.v5,.p5{background:#4F7FB0}
+.p1,.p2,.p3,.p4,.p5{opacity:.38}
+.sel{background:#EFD1BA;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #1B1F1D;z-index:1}
+.dep{position:absolute;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:#4A514D;white-space:nowrap}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F4F5F2; color: #1B1F1D; font-family: 'Public Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.45">
+  <header style="background: #1B1F1D; padding: 18px 48px 0; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #E99A68; font-weight: 600">Retrait-gonflement des argiles × ventes DVF</div>
+    <h1 style="margin: 0 0 12px; font-size: 26px; line-height: 1.2; color: #FFFFFF; font-weight: 700">Le marché distingue-t-il les zones d'argile forte et moyenne ?</h1>
+    <nav style="display: flex; gap: 4px" aria-label="Onglets">
+      <a href="Main.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Résultat</a>
+      <a href="Sinistralite.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Sinistralité × écart</a>
+      <a href="Carte.dc.html" style="padding: 11px 20px; border-radius: 8px 8px 0 0; background: #F4F5F2; color: #1B1F1D; font-weight: 600; text-decoration: none">Carte</a>
+      <a href="Methodologie.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Méthodologie et limites</a>
+    </nav>
+  </header>
+
+  <main style="flex: 1; min-height: 0; padding: 18px 48px 16px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+      <div style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 16px">
+        <div style="font-size: 13px; color: #4A514D">Communes estimables</div>
+        <div class="num" style="font-size: 26px; font-weight: 700; line-height: 1.2">193 <span style="font-size: 15px; font-weight: 500; color: #4A514D">sur 1 607</span></div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 16px">
+        <div style="font-size: 13px; color: #4A514D"><span class="sw" style="background: #E99A68"></span>Décote</div>
+        <div class="num" style="font-size: 26px; font-weight: 700; line-height: 1.2">16</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 16px">
+        <div style="font-size: 13px; color: #4A514D"><span class="sw" style="background: #BDB6A4"></span>Pas de décote</div>
+        <div class="num" style="font-size: 26px; font-weight: 700; line-height: 1.2">27</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 16px">
+        <div style="font-size: 13px; color: #4A514D"><span class="sw" style="background: #E99A68; opacity: .38"></span>Indéterminées</div>
+        <div class="num" style="font-size: 26px; font-weight: 700; line-height: 1.2">150</div>
+      </div>
+    </div>
+
+    <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px">
+      <section style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+          <div style="display: flex; border: 1px solid #B9BEB8; border-radius: 8px; overflow: hidden" role="group" aria-label="Zone affichée">
+            <button type="button" style="height: 40px; padding: 0 14px; border: 0; background: #1B1F1D; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600">Sud-Ouest · 31, 47, 82</button>
+            <button type="button" style="height: 40px; padding: 0 14px; border: 0; background: #FFFFFF; color: #1B1F1D; font: inherit; font-size: 14px">Seine-et-Marne · 77</button>
+          </div>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+            <span style="color: #4A514D">Commune</span>
+            <input type="text" placeholder="Chercher une commune" style="height: 38px; width: 200px; padding: 0 10px; border: 1px solid #B9BEB8; border-radius: 8px; font: inherit; font-size: 14px; box-sizing: border-box">
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 14px; margin-left: auto">
+            <input type="checkbox" checked="checked">
+            <span>Fond de carte</span>
+          </label>
+        </div>
+
+        <div style="position: relative; width: 758px; height: 373px; background: #F3F2EC; border-radius: 6px">
+          <div style="position: absolute; left: 0; top: 4px; width: 756px; height: 365px" role="img" aria-label="Communes du Sud-Ouest en carrés colorés selon l'écart de prix observé ; les trois départements sont séparés par un couloir vide">
+<div class="cell ne" style="left: 69px; top: 23px"></div>
+<div class="cell ne" style="left: 92px; top: 23px"></div>
+<div class="cell ne" style="left: 115px; top: 23px"></div>
+<div class="cell p3" style="left: 138px; top: 23px"></div>
+<div class="cell p2" style="left: 161px; top: 23px"></div>
+<div class="cell ne" style="left: 184px; top: 23px"></div>
+<div class="cell v3" style="left: 207px; top: 23px"></div>
+<div class="cell ne" style="left: 230px; top: 23px"></div>
+<div class="cell ne" style="left: 69px; top: 46px"></div>
+<div class="cell ne" style="left: 92px; top: 46px"></div>
+<div class="cell ne" style="left: 115px; top: 46px"></div>
+<div class="cell ne" style="left: 138px; top: 46px"></div>
+<div class="cell ne" style="left: 161px; top: 46px"></div>
+<div class="cell ne" style="left: 184px; top: 46px"></div>
+<div class="cell ne" style="left: 207px; top: 46px"></div>
+<div class="cell p2" style="left: 230px; top: 46px"></div>
+<div class="cell ne" style="left: 253px; top: 46px"></div>
+<div class="cell ne" style="left: 391px; top: 46px"></div>
+<div class="cell ne" style="left: 414px; top: 46px"></div>
+<div class="cell ne" style="left: 46px; top: 69px"></div>
+<div class="cell ne" style="left: 69px; top: 69px"></div>
+<div class="cell ne" style="left: 92px; top: 69px"></div>
+<div class="cell ne" style="left: 115px; top: 69px"></div>
+<div class="cell ne" style="left: 138px; top: 69px"></div>
+<div class="cell ne" style="left: 161px; top: 69px"></div>
+<div class="cell v1" style="left: 184px; top: 69px"></div>
+<div class="cell ne" style="left: 207px; top: 69px"></div>
+<div class="cell ne" style="left: 230px; top: 69px"></div>
+<div class="cell ne" style="left: 253px; top: 69px"></div>
+<div class="cell ne" style="left: 299px; top: 69px"></div>
+<div class="cell ne" style="left: 322px; top: 69px"></div>
+<div class="cell ne" style="left: 345px; top: 69px"></div>
+<div class="cell ne" style="left: 368px; top: 69px"></div>
+<div class="cell ne" style="left: 391px; top: 69px"></div>
+<div class="cell ne" style="left: 414px; top: 69px"></div>
+<div class="cell ne" style="left: 437px; top: 69px"></div>
+<div class="cell ne" style="left: 460px; top: 69px"></div>
+<div class="cell ne" style="left: 483px; top: 69px"></div>
+<div class="cell ne" style="left: 506px; top: 69px"></div>
+<div class="cell ne" style="left: 46px; top: 92px"></div>
+<div class="cell ne" style="left: 69px; top: 92px"></div>
+<div class="cell p4" style="left: 92px; top: 92px"></div>
+<div class="cell p2" style="left: 115px; top: 92px"></div>
+<div class="cell ne" style="left: 138px; top: 92px"></div>
+<div class="cell ne" style="left: 161px; top: 92px"></div>
+<div class="cell ne" style="left: 184px; top: 92px"></div>
+<div class="cell ne" style="left: 207px; top: 92px"></div>
+<div class="cell ne" style="left: 230px; top: 92px"></div>
+<div class="cell ne" style="left: 253px; top: 92px"></div>
+<div class="cell ne" style="left: 299px; top: 92px"></div>
+<div class="cell ne" style="left: 322px; top: 92px"></div>
+<div class="cell ne" style="left: 345px; top: 92px"></div>
+<div class="cell ne" style="left: 368px; top: 92px"></div>
+<div class="cell ne" style="left: 391px; top: 92px"></div>
+<div class="cell ne" style="left: 414px; top: 92px"></div>
+<div class="cell ne" style="left: 437px; top: 92px"></div>
+<div class="cell p4" style="left: 460px; top: 92px"></div>
+<div class="cell ne" style="left: 483px; top: 92px"></div>
+<div class="cell ne" style="left: 506px; top: 92px"></div>
+<div class="cell ne" style="left: 69px; top: 115px"></div>
+<div class="cell ne" style="left: 92px; top: 115px"></div>
+<div class="cell ne" style="left: 115px; top: 115px"></div>
+<div class="cell p2" style="left: 138px; top: 115px"></div>
+<div class="cell v2" style="left: 161px; top: 115px"></div>
+<div class="cell p3" style="left: 184px; top: 115px"></div>
+<div class="cell ne" style="left: 207px; top: 115px"></div>
+<div class="cell p3" style="left: 230px; top: 115px"></div>
+<div class="cell ne" style="left: 253px; top: 115px"></div>
+<div class="cell ne" style="left: 299px; top: 115px"></div>
+<div class="cell ne" style="left: 322px; top: 115px"></div>
+<div class="cell ne" style="left: 345px; top: 115px"></div>
+<div class="cell ne" style="left: 368px; top: 115px"></div>
+<div class="cell ne" style="left: 391px; top: 115px"></div>
+<div class="cell ne" style="left: 414px; top: 115px"></div>
+<div class="cell ne" style="left: 437px; top: 115px"></div>
+<div class="cell v3" style="left: 460px; top: 115px"></div>
+<div class="cell ne" style="left: 483px; top: 115px"></div>
+<div class="cell ne" style="left: 506px; top: 115px"></div>
+<div class="cell ne" style="left: 92px; top: 138px"></div>
+<div class="cell ne" style="left: 115px; top: 138px"></div>
+<div class="cell p3" style="left: 138px; top: 138px"></div>
+<div class="cell ne" style="left: 161px; top: 138px"></div>
+<div class="cell ne" style="left: 184px; top: 138px"></div>
+<div class="cell ne" style="left: 207px; top: 138px"></div>
+<div class="cell ne" style="left: 230px; top: 138px"></div>
+<div class="cell ne" style="left: 253px; top: 138px"></div>
+<div class="cell ne" style="left: 299px; top: 138px"></div>
+<div class="cell p4" style="left: 322px; top: 138px"></div>
+<div class="cell ne" style="left: 345px; top: 138px"></div>
+<div class="cell ne" style="left: 368px; top: 138px"></div>
+<div class="cell ne" style="left: 391px; top: 138px"></div>
+<div class="cell ne" style="left: 414px; top: 138px"></div>
+<div class="cell p2" style="left: 437px; top: 138px"></div>
+<div class="cell v3" style="left: 460px; top: 138px"></div>
+<div class="cell ne" style="left: 483px; top: 138px"></div>
+<div class="cell v1" style="left: 506px; top: 138px"></div>
+<div class="cell ne" style="left: 529px; top: 138px"></div>
+<div class="cell ne" style="left: 92px; top: 161px"></div>
+<div class="cell p4" style="left: 115px; top: 161px"></div>
+<div class="cell ne" style="left: 138px; top: 161px"></div>
+<div class="cell ne" style="left: 161px; top: 161px"></div>
+<div class="cell ne" style="left: 184px; top: 161px"></div>
+<div class="cell ne" style="left: 207px; top: 161px"></div>
+<div class="cell ne" style="left: 230px; top: 161px"></div>
+<div class="cell ne" style="left: 483px; top: 161px"></div>
+<div class="cell ne" style="left: 322px; top: 184px"></div>
+<div class="cell ne" style="left: 345px; top: 184px"></div>
+<div class="cell ne" style="left: 368px; top: 184px"></div>
+<div class="cell v3" style="left: 391px; top: 184px"></div>
+<div class="cell sel" style="left: 414px; top: 184px"></div>
+<div class="cell p3" style="left: 437px; top: 184px"></div>
+<div class="cell p2" style="left: 460px; top: 184px"></div>
+<div class="cell ne" style="left: 276px; top: 207px"></div>
+<div class="cell ne" style="left: 299px; top: 207px"></div>
+<div class="cell ne" style="left: 322px; top: 207px"></div>
+<div class="cell ne" style="left: 345px; top: 207px"></div>
+<div class="cell ne" style="left: 368px; top: 207px"></div>
+<div class="cell ne" style="left: 391px; top: 207px"></div>
+<div class="cell p3" style="left: 414px; top: 207px"></div>
+<div class="cell ne" style="left: 437px; top: 207px"></div>
+<div class="cell ne" style="left: 460px; top: 207px"></div>
+<div class="cell ne" style="left: 483px; top: 207px"></div>
+<div class="cell ne" style="left: 506px; top: 207px"></div>
+<div class="cell ne" style="left: 529px; top: 207px"></div>
+<div class="cell ne" style="left: 552px; top: 207px"></div>
+<div class="cell ne" style="left: 276px; top: 230px"></div>
+<div class="cell ne" style="left: 299px; top: 230px"></div>
+<div class="cell ne" style="left: 322px; top: 230px"></div>
+<div class="cell ne" style="left: 345px; top: 230px"></div>
+<div class="cell ne" style="left: 368px; top: 230px"></div>
+<div class="cell ne" style="left: 391px; top: 230px"></div>
+<div class="cell v1" style="left: 414px; top: 230px"></div>
+<div class="cell p5" style="left: 437px; top: 230px"></div>
+<div class="cell ne" style="left: 460px; top: 230px"></div>
+<div class="cell ne" style="left: 483px; top: 230px"></div>
+<div class="cell ne" style="left: 506px; top: 230px"></div>
+<div class="cell ne" style="left: 529px; top: 230px"></div>
+<div class="cell ne" style="left: 253px; top: 253px"></div>
+<div class="cell ne" style="left: 276px; top: 253px"></div>
+<div class="cell ne" style="left: 299px; top: 253px"></div>
+<div class="cell ne" style="left: 322px; top: 253px"></div>
+<div class="cell ne" style="left: 345px; top: 253px"></div>
+<div class="cell ne" style="left: 368px; top: 253px"></div>
+<div class="cell ne" style="left: 391px; top: 253px"></div>
+<div class="cell ne" style="left: 414px; top: 253px"></div>
+<div class="cell ne" style="left: 437px; top: 253px"></div>
+<div class="cell ne" style="left: 460px; top: 253px"></div>
+<div class="cell ne" style="left: 483px; top: 253px"></div>
+<div class="cell p5" style="left: 506px; top: 253px"></div>
+<div class="cell ne" style="left: 529px; top: 253px"></div>
+<div class="cell ne" style="left: 276px; top: 276px"></div>
+<div class="cell ne" style="left: 299px; top: 276px"></div>
+<div class="cell ne" style="left: 322px; top: 276px"></div>
+<div class="cell ne" style="left: 345px; top: 276px"></div>
+<div class="cell ne" style="left: 368px; top: 276px"></div>
+<div class="cell ne" style="left: 391px; top: 276px"></div>
+<div class="cell ne" style="left: 414px; top: 276px"></div>
+<div class="cell ne" style="left: 437px; top: 276px"></div>
+<div class="cell ne" style="left: 460px; top: 276px"></div>
+<div class="cell ne" style="left: 483px; top: 276px"></div>
+<div class="cell ne" style="left: 299px; top: 299px"></div>
+<div class="cell ne" style="left: 322px; top: 299px"></div>
+<div class="cell ne" style="left: 345px; top: 299px"></div>
+<div class="cell ne" style="left: 368px; top: 299px"></div>
+<div class="cell ne" style="left: 391px; top: 299px"></div>
+<div class="cell ne" style="left: 299px; top: 322px"></div>
+<div class="cell ne" style="left: 322px; top: 322px"></div>
+<div class="cell ne" style="left: 345px; top: 322px"></div>
+<div class="cell ne" style="left: 368px; top: 322px"></div>
+<div class="cell ne" style="left: 391px; top: 322px"></div>
+<div class="cell ne" style="left: 299px; top: 345px"></div>
+<div class="cell ne" style="left: 322px; top: 345px"></div>
+<div class="cell ne" style="left: 345px; top: 345px"></div>
+<div class="cell p4" style="left: 368px; top: 345px"></div>
+          </div>
+          <span class="dep" style="left: 48px; top: 198px">Lot-et-Garonne · 47</span>
+          <span class="dep" style="left: 556px; top: 104px">Tarn-et-Garonne · 82</span>
+          <span class="dep" style="left: 546px; top: 304px">Haute-Garonne · 31</span>
+          <div style="position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px">
+            <button type="button" aria-label="Zoomer" style="width: 44px; height: 44px; border: 1px solid #B9BEB8; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 20px">+</button>
+            <button type="button" aria-label="Dézoomer, jusqu'au périmètre" style="width: 44px; height: 44px; border: 1px solid #B9BEB8; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 20px">−</button>
+            <button type="button" aria-label="Recentrer sur la zone" style="width: 44px; height: 44px; border: 1px solid #B9BEB8; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; justify-content: center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F1D" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
+            </button>
+          </div>
+          <span style="position: absolute; right: 8px; bottom: 6px; font-size: 11px; color: #4A514D; background: rgba(255,255,255,.85); padding: 0 5px; border-radius: 3px">© CARTO · © OpenStreetMap</span>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: #2F3532">
+          <span><span class="sw" style="background: #A8431A"></span>&lt; −10 %</span>
+          <span><span class="sw" style="background: #E99A68"></span>−10 à −3 %</span>
+          <span><span class="sw" style="background: #BDB6A4"></span>−3 à +3 %</span>
+          <span><span class="sw" style="background: #9DBEDD"></span>+3 à +10 %</span>
+          <span><span class="sw" style="background: #4F7FB0"></span>&gt; +10 %</span>
+          <span style="color: #4A514D">·</span>
+          <span><span class="sw" style="background: #E99A68; opacity: .38"></span>pâle : indéterminé</span>
+          <span><span class="sw" style="background: #C4C8C3"></span>gris : non estimable</span>
+          <span><span class="sw" style="background: #EFD1BA; box-shadow: 0 0 0 2px #1B1F1D"></span>sélection</span>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #4A514D">31 communes ont un écart significatif, pour environ 10 attendues par hasard : la plupart reflètent des différences entre quartiers, pas l'argile. Cliquez sur une commune.</p>
+      </section>
+
+      <aside style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; min-height: 0">
+        <div>
+          <div style="font-size: 13px; color: #4A514D">Haute-Garonne (31)</div>
+          <div style="font-size: 22px; font-weight: 700; line-height: 1.2">[Commune sélectionnée]</div>
+        </div>
+        <div style="font-size: 13px; color: #4A514D">Écart de prix observé entre zone forte et reste de la commune</div>
+        <div style="display: flex; align-items: baseline; gap: 12px; margin-top: -6px">
+          <span class="num" style="font-size: 44px; font-weight: 700; line-height: 1; color: #C2531A">−2,3&nbsp;%</span>
+          <span class="num" style="font-size: 15px; color: #2F3532">[−4,6&nbsp;% ; 0,0&nbsp;%]</span>
+        </div>
+        <span style="align-self: flex-start; background: #EEF0EC; border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 600; color: #2F3532">Indéterminé</span>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <div style="background: #F4F5F2; border-radius: 8px; padding: 8px 10px">
+            <div style="font-size: 12px; color: #4A514D; line-height: 1.3">Ventes de maisons</div>
+            <div class="num" style="font-size: 18px; font-weight: 700">[n]</div>
+          </div>
+          <div style="background: #F4F5F2; border-radius: 8px; padding: 8px 10px">
+            <div style="font-size: 12px; color: #4A514D; line-height: 1.3">dont en zone forte</div>
+            <div class="num" style="font-size: 18px; font-weight: 700">[n]</div>
+          </div>
+          <div style="background: #F4F5F2; border-radius: 8px; padding: 8px 10px">
+            <div style="font-size: 12px; color: #4A514D; line-height: 1.3">Arrêtés sécheresse 2015-2023</div>
+            <div class="num" style="font-size: 18px; font-weight: 700">[n]</div>
+          </div>
+        </div>
+        <div style="margin-top: auto; background: #FBF3EC; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #7A3410; font-weight: 700">Note</div>
+          <p style="margin: 0; font-size: 14px; color: #2F3532">L'intervalle va de −4,6 % à 0,0 % : trop large pour conclure. Il s'agit d'un écart observé entre zone forte et reste de la commune, ni valeur de la maison, ni causalité.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>

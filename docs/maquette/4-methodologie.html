@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Méthodologie et limites</title>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#C2410C}a:hover{color:#7A3410}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F4F5F2; color: #1B1F1D; font-family: 'Public Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.45">
+  <header style="background: #1B1F1D; padding: 18px 48px 0; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #E99A68; font-weight: 600">Retrait-gonflement des argiles × ventes DVF</div>
+    <h1 style="margin: 0 0 12px; font-size: 26px; line-height: 1.2; color: #FFFFFF; font-weight: 700">Le marché distingue-t-il les zones d'argile forte et moyenne ?</h1>
+    <nav style="display: flex; gap: 4px" aria-label="Onglets">
+      <a href="Main.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Résultat</a>
+      <a href="Sinistralite.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Sinistralité × écart</a>
+      <a href="Carte.dc.html" style="padding: 11px 20px; color: #D7DAD5; text-decoration: none">Carte</a>
+      <a href="Methodologie.dc.html" style="padding: 11px 20px; border-radius: 8px 8px 0 0; background: #F4F5F2; color: #1B1F1D; font-weight: 600; text-decoration: none">Méthodologie et limites</a>
+    </nav>
+  </header>
+
+  <main style="flex: 1; min-height: 0; padding: 22px 48px 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 16px">
+    <section style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600">1 · Question testée</div>
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700">Zone forte contre zone moyenne</h2>
+      <p style="margin: 0; font-size: 14px; color: #2F3532">Dans ces quatre départements, 37 à 53 % des ventes sont en zone forte et presque toutes les autres en zone moyenne. La référence « hors zone ou faible » pèse moins de 8 % des ventes : c'est un petit groupe aux caractéristiques propres.</p>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600">2 · Données</div>
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700">Ventes, exposition, sinistres</h2>
+      <p style="margin: 0; font-size: 14px; color: #2F3532"><span class="num">82 525</span> ventes de maisons retenues sur <span class="num">366 760</span> mutations DVF (2021-2025, un seul bien par vente). Exposition : carte RGA 2020, connue du marché sur toute la période. Sinistres : arrêtés sécheresse 2015-2023 (GASPAR).</p>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600">3 · Modèle</div>
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700">Comparer des maisons voisines</h2>
+      <p style="margin: 0; font-size: 14px; color: #2F3532">Régression du prix sur la surface, le terrain et les pièces, avec un effet fixe commune × trimestre : on compare des maisons vendues dans la même commune, au même moment. Erreurs groupées par commune, intervalles à 95 %.</p>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600">4 · Robustesse</div>
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700">Le résultat tient dans toutes les variantes</h2>
+      <p style="margin: 0; font-size: 14px; color: #2F3532">Sans les ventes proches d'une limite de zone, même résultat. Zone forte contre tout le reste : <span class="num">+0,7 % [−3,0 % ; +4,5 %]</span>. Réforme 2025 (RGA dans l'état des risques) : un indice seulement, une seule année après.</p>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600">5 · Écarts par commune</div>
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700">Surtout des quartiers</h2>
+      <p style="margin: 0; font-size: 14px; color: #2F3532">193 communes estimables (15 ventes en zone forte, 15 ailleurs, 50 au total). 31 écarts significatifs pour environ 10 attendus par hasard, dans les deux sens : des différences entre quartiers, cohérentes avec le test placebo.</p>
+    </section>
+
+    <section style="background: #FBF3EC; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #7A3410; font-weight: 700">6 · Limites</div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 14px; color: #2F3532; display: flex; flex-direction: column; gap: 4px">
+        <li>Corrélation, pas causalité ; ni valeur de maison.</li>
+        <li>Quatre départements déjà très exposés.</li>
+        <li>Aucun arrêté sécheresse reconnu après 2023 (délai).</li>
+        <li>La carte 2026 change le niveau d'environ 1 % des ventes, dans les deux sens.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer style="padding: 0 48px 16px; font-size: 12px; color: #4A514D; display: flex; gap: 16px; flex-wrap: wrap">
+    <span>Méthode détaillée : <a href="https://github.com/Tropical-Tech-Code">docs/method.md sur GitHub</a></span>
+    <span>Sources : DVF géolocalisées (Etalab), RGA 2020 (Géorisques / BRGM), GASPAR, API Géo · dates de téléchargement : [lues dans resume_global.json]</span>
+  </footer>
+</div>
+</x-dc>
+</body>
+</html>
