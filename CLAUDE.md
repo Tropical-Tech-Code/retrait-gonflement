@@ -111,6 +111,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 19/10/2026 : onglet 2 en tableau à quatre cases (statut × sinistralité) à la place du nuage de points ; indéterminées comptées sous le tableau.
 - 19/10/2026 : Méthodologie en six cartes courtes, renvoi vers `docs/method.md` ; `app/methodologie.md` abandonné (remplace la décision du 17/10).
 - 19/10/2026 : agents abandonnés dans ce projet (apport faible sur des écarts surtout indéterminés) ; réservés au projet suivant, conçu autour d'eux ; nettoyage de `pyproject.toml` (groupe `agents`) et `.env.example` (`ANTHROPIC_API_KEY`) dans un commit séparé.
+- 20/10/2026 : carte en carrés (un par commune, placement par le pipeline), fond de carte retiré, couloirs et étiquettes entre départements à la place des limites ; étapes découpées par onglet complet.
 - 20/10/2026 : onglets `st.tabs` natifs (clé `onglet`, `on_change="rerun"`) sous un bandeau sombre ; onglets inactifs en gris foncé #4A514D (le gris clair de la maquette est illisible sur fond clair) ; polices système ; maquette dans `docs/maquette/`, `docs/app.md` fait foi.
 - 19/10/2026 : charte : thème sans rouge dans `.streamlit/config.toml`, encadrés beige et gris (jamais `st.info`), chiffres tabulaires, notation unique des IC « [a % ; b %] » ; IBM Plex Mono et Google Fonts abandonnés ; Public Sans servie depuis le dépôt si le temps le permet. Mise à jour du 20/10 : l'app garde la police par défaut de Streamlit (servie par l'app, aucun appel externe) ; le CSS de `charte.py` n'impose aucune police ni sélecteur universel (une police imposée à tous les éléments écrase la police d'icônes : « _arrow_right » s'affichait en texte), un test le vérifie.
 
@@ -146,17 +147,16 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - étape 2 de l'app (18/10/2026) : `app/cartographie.py` (couleurs, info-bulle, filtres, cadrage, contours), `app/vues/carte.py` (bandeau, carte pydeck, fiche commune, phrases sous la carte), `app/streamlit_app.py` (navigation), `tests/test_app_cartographie.py`, `tests/test_app_carte.py` (`streamlit.testing`) ; écrite et vérifiée au navigateur par moi (`uv run streamlit run app/streamlit_app.py`) ; `uv run pytest` : 215 tests verts.
 - 19/10/2026 : cahier des charges de l'app tranché et écrit dans `docs/app.md` (aucun code) ; agents et simulateur abandonnés.
 - 20/10/2026 : nettoyage des agents : groupe `agents` de `pyproject.toml` et `ANTHROPIC_API_KEY` de `.env.example` retirés ; lecture des notes d'agents retirée de l'app (`lire_notes`, `charger_notes`, champ `notes`, argument de `fiche`), la fiche affiche le texte automatique seul ; deux tests retirés ; sous-paquet `src/retrait_gonflement/agents/` (un `__init__.py` vide) supprimé avec `git rm`, dans le commit `2047471` ; `uv run pytest` : 213 tests verts.
-- 20/10/2026 : étape 3a (socle) écrite : `.streamlit/config.toml` (thème, `gatherUsageStats = false`, `toolbarMode = "minimal"`), `app/charte.py` (CSS, en-tête, encadrés beige et gris échappés), `streamlit_app.py` en quatre `st.tabs` (clé `onglet`, `on_change="rerun"`, seul l'onglet ouvert est calculé) ; barre latérale et `st.info` supprimés (réglages en colonnes au-dessus de la carte, légende dessous) ; bandeau provisoirement dans Résultat ; `docs/app.md` pointe vers `docs/maquette/` ; `uv run pytest` : 233 tests verts ; reste à relire au navigateur (hauteur de la carte : 560 px, défilement probable à 1 280 × 800, à traiter en 3b-2).
+- 20/10/2026 : étape 3a (socle) écrite : `.streamlit/config.toml` (thème, `gatherUsageStats = false`, `toolbarMode = "minimal"`), `app/charte.py` (CSS, en-tête, encadrés beige et gris échappés), `streamlit_app.py` en quatre `st.tabs` (clé `onglet`, `on_change="rerun"`, seul l'onglet ouvert est calculé) ; barre latérale et `st.info` supprimés (réglages en colonnes au-dessus de la carte, légende dessous) ; bandeau provisoirement dans Résultat ; `docs/app.md` pointe vers `docs/maquette/` ; `uv run pytest` : 235 tests verts ; relue au navigateur et commitée (`b10b84c`) ; hauteur de la carte : 560 px, défilement probable à 1 280 × 800, à traiter à l'étape 4 de la Reprise.
 - Pas de bloquant.
 - Reprise :
-  1. commit de cette spécification : fait (`3674361`) ;
-  2. nettoyage des agents : fait (`2047471`) ;
-  3. corrections relevées au navigateur et indispensables de la charte :
-     - 3a socle (20/10) : fait, à relire au navigateur puis commit (voir « Avancement ») ;
-     - 3b-1 (pipeline : carrés) et 3b-2 (app : carrés, retrait du fond de carte, tuiles, zones, recherche, retrait de la case « significatives seulement »), puis 3c (fiche à droite) : à faire ;
-  4. onglet Résultat ;
-  5. onglet Sinistralité × écart ;
-  6. onglet Méthodologie ;
+  Une étape = un onglet complet, vérifié en plaçant la capture à côté de sa maquette de `docs/maquette/`.
+  1. étape 3a : faite (`b10b84c`) ;
+  2. (prochaine) onglet Résultat, comparé à `docs/maquette/1-resultat.html` ;
+  3. carte, pipeline des carrés (`spatial/carres.py`, lancé par moi) ;
+  4. carte, app (tuiles, réglages, carrés, légende, fiche à droite, retrait de la case « significatives seulement »), comparée à `docs/maquette/3-carte.html` ;
+  5. onglet Sinistralité × écart, comparé à `docs/maquette/2-sinistralite.html` ;
+  6. onglet Méthodologie, comparé à `docs/maquette/4-methodologie.html` ;
   7. README et déploiement ;
   8. relecture (Opus) ;
   9. souhaitables.
