@@ -144,12 +144,12 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - étape 1 de l'app : `app/donnees.py` (lecture et contrôle de `data/processed/`, cache, dossier réglable par `RG_DONNEES`), `app/textes.py` (formats français, bandeau, classes de couleur, légende, texte automatique, vocabulaire imposé), `tests/conftest.py` (petites données construites dans les tests), `pythonpath = ["app"]` dans `pyproject.toml` ; `uv run pytest` : 176 tests verts ; commitée (`cb3ed5a`) ;
   - étape 2 de l'app (18/10/2026) : `app/cartographie.py` (couleurs, info-bulle, filtres, cadrage, contours), `app/vues/carte.py` (bandeau, carte pydeck, fiche commune, phrases sous la carte), `app/streamlit_app.py` (navigation), `tests/test_app_cartographie.py`, `tests/test_app_carte.py` (`streamlit.testing`) ; écrite et vérifiée au navigateur par moi (`uv run streamlit run app/streamlit_app.py`) ; `uv run pytest` : 215 tests verts.
 - 19/10/2026 : cahier des charges de l'app tranché et écrit dans `docs/app.md` (aucun code) ; agents et simulateur abandonnés.
-- 20/10/2026 : nettoyage des agents : groupe `agents` de `pyproject.toml` et `ANTHROPIC_API_KEY` de `.env.example` retirés ; lecture des notes d'agents retirée de l'app (`lire_notes`, `charger_notes`, champ `notes`, argument de `fiche`), la fiche affiche le texte automatique seul ; deux tests retirés, `uv run pytest` : 213 tests verts. Dossier vide `src/retrait_gonflement/agents/` à supprimer par moi (`rm -r`).
+- 20/10/2026 : nettoyage des agents : groupe `agents` de `pyproject.toml` et `ANTHROPIC_API_KEY` de `.env.example` retirés ; lecture des notes d'agents retirée de l'app (`lire_notes`, `charger_notes`, champ `notes`, argument de `fiche`), la fiche affiche le texte automatique seul ; deux tests retirés ; sous-paquet `src/retrait_gonflement/agents/` (un `__init__.py` vide) supprimé avec `git rm`, dans le commit `2047471` ; `uv run pytest` : 213 tests verts.
 - Pas de bloquant.
 - Reprise :
   1. commit de cette spécification : fait (`3674361`) ;
-  2. nettoyage des agents : fait (commit à venir) ;
-  3. corrections relevées au navigateur et indispensables de la charte ;
+  2. nettoyage des agents : fait (`2047471`) ;
+  3. (prochaine étape) corrections relevées au navigateur et indispensables de la charte ;
   4. onglet Résultat ;
   5. onglet Sinistralité × écart ;
   6. onglet Méthodologie ;
