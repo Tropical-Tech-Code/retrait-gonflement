@@ -20,8 +20,6 @@ pipeline = [
     "duckdb>=1.1",
     "pyfixest>=0.25",
 ]
-# Agents (bonus) : local uniquement
-agents = ["claude-agent-sdk>=0.1"]
 
 [tool.uv]
 # Installés par `uv sync` ; l'app déployée n'utilise que les dépendances principales

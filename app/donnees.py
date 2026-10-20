@@ -39,7 +39,6 @@ class Donnees:
     contours: dict
     departements: dict
     resume: dict
-    notes: dict
 
 
 def dossier() -> Path:
@@ -92,17 +91,6 @@ def lire_resume(dossier_: Path) -> dict:
     return resume
 
 
-def lire_notes(dossier_: Path) -> dict[str, str]:
-    """Notes des agents (bonus) : {code_insee: note}, vide si le fichier est absent."""
-    chemin = Path(dossier_) / "notes_communes.parquet"
-    if not chemin.is_file():
-        return {}
-    notes = pd.read_parquet(chemin)
-    if not {"code_insee", "note"} <= set(notes.columns):
-        raise ErreurDonneesApp("Colonnes code_insee et note absentes de notes_communes.parquet.")
-    return dict(zip(notes["code_insee"], notes["note"]))
-
-
 @st.cache_data(show_spinner=False)
 def charger_communes(dossier_: str) -> pd.DataFrame:
     return lire_communes(Path(dossier_))
@@ -123,11 +111,6 @@ def charger_resume(dossier_: str) -> dict:
     return lire_resume(Path(dossier_))
 
 
-@st.cache_data(show_spinner=False)
-def charger_notes(dossier_: str) -> dict[str, str]:
-    return lire_notes(Path(dossier_))
-
-
 def charger_tout() -> Donnees:
     d = str(dossier())
-    return Donnees(charger_communes(d), charger_contours(d), charger_departements(d), charger_resume(d), charger_notes(d))
+    return Donnees(charger_communes(d), charger_contours(d), charger_departements(d), charger_resume(d))

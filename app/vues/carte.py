@@ -58,7 +58,7 @@ def carte(entites: list[dict], departements: dict, fond: bool) -> object:
     return st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object", key="carte", height=560)
 
 
-def fiche(ligne: pd.Series, resume: dict, notes: dict) -> None:
+def fiche(ligne: pd.Series, resume: dict) -> None:
     st.subheader(f"{ligne['nom']} ({ligne['departement']})")
     estimable = ligne["statut"] == "estimable"
     colonnes = st.columns(4)
@@ -75,8 +75,7 @@ def fiche(ligne: pd.Series, resume: dict, notes: dict) -> None:
     prix = ligne["prix_m2_median"]
     colonnes[3].metric("Prix médian au m²", "—" if pd.isna(prix) else f"{textes.entier(prix)} €")
     colonnes[3].caption(f"{textes.pluriel(int(ligne['catnat_depuis_2015']), 'arrêté')} sécheresse 2015-2023")
-    note = notes.get(ligne["code_insee"])
-    st.info(note if note else textes.texte_commune(ligne, resume))
+    st.info(textes.texte_commune(ligne, resume))
 
 
 def afficher() -> None:
@@ -119,7 +118,7 @@ def afficher() -> None:
         format_func=lambda c: f"{lignes.loc[c, 'nom']} ({lignes.loc[c, 'departement']})",
     )
     if choix:
-        fiche(lignes.loc[choix], resume, tout.notes)
+        fiche(lignes.loc[choix], resume)
     else:
         st.caption(textes.INVITE_COMMUNE)
 

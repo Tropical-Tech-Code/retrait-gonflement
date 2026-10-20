@@ -21,7 +21,6 @@ def test_lecture_des_quatre_fichiers(dossier_processed, monkeypatch):
     assert len(tout.contours["features"]) == 6
     assert len(tout.departements["features"]) == 1
     assert tout.resume["n_communes_estimables"] == 4
-    assert tout.notes == {}
 
 
 def test_dossier_par_defaut_est_data_processed(monkeypatch):
@@ -68,10 +67,3 @@ def test_json_illisible(dossier_processed):
     (dossier_processed / "resume_global.json").write_text("{pas du json", encoding="utf-8")
     with pytest.raises(donnees.ErreurDonneesApp, match="illisible"):
         donnees.lire_resume(dossier_processed)
-
-
-def test_notes_lues_quand_le_fichier_existe(dossier_processed):
-    pd.DataFrame({"code_insee": ["31001"], "note": ["Une note."]}).to_parquet(
-        dossier_processed / "notes_communes.parquet", index=False
-    )
-    assert donnees.lire_notes(dossier_processed) == {"31001": "Une note."}

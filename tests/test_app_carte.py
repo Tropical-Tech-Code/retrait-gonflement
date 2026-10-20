@@ -116,17 +116,6 @@ def test_fiche_commune_non_estimable(at):
     assert "n'est pas estimable" in at.info[0].value
 
 
-def test_la_note_de_l_agent_remplace_le_texte_automatique(dossier_processed, monkeypatch):
-    import pandas as pd
-    pd.DataFrame({"code_insee": ["31001"], "note": ["Note de l'analyste."]}).to_parquet(
-        dossier_processed / "notes_communes.parquet", index=False
-    )
-    monkeypatch.setenv(donnees.VARIABLE_DOSSIER, str(dossier_processed))
-    app = AppTest.from_file(PAGE, default_timeout=30).run()
-    app.selectbox[0].select("31001").run()
-    assert app.info[0].value == "Note de l'analyste."
-
-
 def test_fichier_manquant_message_clair(dossier_processed, monkeypatch):
     (dossier_processed / "resume_global.json").unlink()
     monkeypatch.setenv(donnees.VARIABLE_DOSSIER, str(dossier_processed))

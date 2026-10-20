@@ -17,7 +17,7 @@ alternatives. Spécification dans `docs/app.md`. Projet court : 3 jours.
 - **L'app déployée ne lit que `data/processed/` : aucun appel réseau, aucun agent, aucune extension DuckDB.**
 - Le code lit et écrit `data/raw/` et `data/interim/`, mais Claude ne les ouvre jamais ; les tests utilisent des réponses simulées dans `tests/fixtures/`.
 - Les téléchargements réels sont lancés par moi, pas par Claude.
-- Les pipelines et les agents tournent en local et écrivent leurs résultats dans `data/processed/`.
+- Les pipelines tournent en local et écrivent leurs résultats dans `data/processed/`.
 - `data/processed/` est suivi par Git (l'app déployée le lit) ; `data/raw/` et `data/interim/` sont ignorés.
 - Aucune vente individuelle dans `data/processed/` : uniquement des agrégats par commune.
 - Le README s'adresse aux lecteurs : ne jamais y renvoyer vers `CLAUDE.md`.
@@ -144,10 +144,11 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - étape 1 de l'app : `app/donnees.py` (lecture et contrôle de `data/processed/`, cache, dossier réglable par `RG_DONNEES`), `app/textes.py` (formats français, bandeau, classes de couleur, légende, texte automatique, vocabulaire imposé), `tests/conftest.py` (petites données construites dans les tests), `pythonpath = ["app"]` dans `pyproject.toml` ; `uv run pytest` : 176 tests verts ; commitée (`cb3ed5a`) ;
   - étape 2 de l'app (18/10/2026) : `app/cartographie.py` (couleurs, info-bulle, filtres, cadrage, contours), `app/vues/carte.py` (bandeau, carte pydeck, fiche commune, phrases sous la carte), `app/streamlit_app.py` (navigation), `tests/test_app_cartographie.py`, `tests/test_app_carte.py` (`streamlit.testing`) ; écrite et vérifiée au navigateur par moi (`uv run streamlit run app/streamlit_app.py`) ; `uv run pytest` : 215 tests verts.
 - 19/10/2026 : cahier des charges de l'app tranché et écrit dans `docs/app.md` (aucun code) ; agents et simulateur abandonnés.
+- 20/10/2026 : nettoyage des agents : groupe `agents` de `pyproject.toml` et `ANTHROPIC_API_KEY` de `.env.example` retirés ; lecture des notes d'agents retirée de l'app (`lire_notes`, `charger_notes`, champ `notes`, argument de `fiche`), la fiche affiche le texte automatique seul ; deux tests retirés, `uv run pytest` : 213 tests verts. Dossier vide `src/retrait_gonflement/agents/` à supprimer par moi (`rm -r`).
 - Pas de bloquant.
 - Reprise :
-  1. commit de cette spécification ;
-  2. nettoyage des agents (commit séparé) ;
+  1. commit de cette spécification : fait (`3674361`) ;
+  2. nettoyage des agents : fait (commit à venir) ;
   3. corrections relevées au navigateur et indispensables de la charte ;
   4. onglet Résultat ;
   5. onglet Sinistralité × écart ;
@@ -162,5 +163,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - retouches de fin : couleur noire du bandeau, bouton de zone sélectionné, ajustements de textes, limites des départements à distinguer du contour de sélection ;
   - vérifications de la sous-section « À vérifier avant le code » de `docs/app.md` ;
   - remplir les trous de `departements.geojson` dans `spatial/contours.py` (pipeline, plus tard : fichier plus léger, plus besoin de `limites_exterieures`) ;
-  - corrections relevées au navigateur (étape 2), à reprendre à l'étape 3 de la Reprise : le fond de carte ne se retire pas ; info-bulle en HTML brut ; cadrage (initial et par zone) ; étiquettes du fond en anglais (style Carto sans étiquettes à envisager) ; fiche commune (arrêtés dans leur case, « — » si non estimable). Tranchés le 19/10, voir `docs/app.md` : prix médian, couleur pâle, charte, contenu de la fiche ;
+  - corrections relevées au navigateur (étape 2), à reprendre à l'étape 3 de la Reprise : le fond de carte ne se retire pas ; info-bulle en HTML brut ; cadrage (initial et par zone) ; étiquettes du fond en anglais (style Carto sans étiquettes à envisager) ; fiche commune (arrêtés dans leur case, « — » si non estimable). Tranchés le 19/10, voir `docs/app.md` : prix médian, couleur pâle, charte, contenu de la fiche ; remplacer `st.info` de la fiche par l'encadré beige ; adapter `test_fiche_commune_estimable` et `test_fiche_commune_non_estimable`, qui lisent `at.info[0]` ;
+  - relecture (étape 8, Opus) : « prime de risque implicite » nomme le contraste fort − moyen, alors que l'étude ne dit pas si le marché fait payer le risque (comparaison entre deux zones exposées) ; options : réserver l'expression à l'écart des zones exposées contre hors zone, ou l'abandonner partout (vocabulaire imposé, README, onglets) ;
+  - test « aucun prix médian sous 5 ventes » dans `data/processed/` : à garder tant que la colonne `prix_m2_median` existe, à retirer avec elle ;
   - vérifier si pyfixest retire `terrain_nul` (multicolinéarité) sur les vraies données des primes par commune, comme dans `test_statut_et_motif_des_communes`, et le documenter dans `docs/method.md` le cas échéant.
