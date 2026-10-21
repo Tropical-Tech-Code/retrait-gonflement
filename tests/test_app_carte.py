@@ -140,7 +140,10 @@ def test_aucun_fond_de_carte_ni_limites(at):
     bloc = next(m.value for m in at.markdown if m.value.startswith('<div class="rg-sous-carte">'))
     assert "Fond de carte © CARTO · © OpenStreetMap" in bloc
     assert "Position des carrés approximative (quelques km)." in bloc
-    assert bloc.index("approximative") < bloc.index('class="rg-legende"')
+    # légende et note sur une même ligne (un seul conteneur), la phrase dessous
+    ligne = bloc[bloc.index('<div class="rg-ligne-legende">'):bloc.index('class="rg-phrase-carte"')]
+    assert 'class="rg-legende"' in ligne and "approximative" in ligne
+    assert ligne.index('class="rg-legende"') < ligne.index("approximative")
 
 
 def test_zoom_avant_seulement_molette_et_pave_tactile_desactives(at):
@@ -197,8 +200,9 @@ def test_legende_complete_dont_la_selection(at):
 
 def test_mise_en_page_espacements_de_la_maquette():
     css = charte.CSS
-    assert ".st-key-onglet_carte { gap: 16px; }" in css                 # tuiles / bloc carte + fiche
-    assert ".rg-sous-carte { display: flex; flex-direction: column; gap: 12px; }" in css    # légende / phrase
+    # espacements réduits pour tenir à 1 280 × 800 sans défilement
+    assert ".st-key-onglet_carte { gap: 10px; }" in css                 # tuiles / bloc carte + fiche
+    assert ".rg-sous-carte { display: flex; flex-direction: column; gap: 6px; }" in css     # légende / phrase
     # la marge négative de Streamlit sous un bloc de texte faisait chevaucher les blocs
     assert '.st-key-onglet_carte [data-testid="stMarkdownContainer"] { margin-bottom: 0; }' in css
 

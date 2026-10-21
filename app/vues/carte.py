@@ -11,7 +11,7 @@ import charte
 import donnees
 import textes
 
-HAUTEUR_CARTE = 370   # px ; à régler pour tenir sans défilement à 1 280 × 800
+HAUTEUR_CARTE = 330   # px ; à régler pour tenir sans défilement à 1 280 × 800
 # Même règle que cartographie.UNITE_PIXELS : constantes textuelles entre guillemets internes
 ANCRAGE, BASE_TEXTE, JEU_CARACTERES = "'middle'", "'center'", "'auto'"
 

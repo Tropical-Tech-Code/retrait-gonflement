@@ -65,12 +65,13 @@ CSS = """
 .rg-tuile-valeur { font-size: 26px; font-weight: 700; line-height: 1.2; color: #1B1F1D; }
 .rg-tuile-complement { font-size: 15px; font-weight: 500; color: #4A514D; }
 .rg-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; box-shadow: inset 0 0 0 1px rgba(27, 31, 29, 0.12); }
-.stMain .block-container .st-key-carte_gauche { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 12px; gap: 8px; }
+.stMain .block-container .st-key-carte_gauche { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 12px; gap: 6px; }
 .st-key-carte_gauche [data-testid="stDeckGlJsonChart"] { border-radius: 6px; overflow: hidden; }
 .rg-note-carte { margin: 0; font-size: 12px; color: #4A514D; }
-.stMain .block-container .st-key-onglet_carte { gap: 16px; }
+.stMain .block-container .st-key-onglet_carte { gap: 10px; }
 .st-key-onglet_carte [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
-.rg-sous-carte { display: flex; flex-direction: column; gap: 12px; }
+.rg-sous-carte { display: flex; flex-direction: column; gap: 6px; }
+.rg-ligne-legende { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 14px; }
 .rg-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12px; color: #2F3532; }
 .rg-legende > span { display: inline-flex; align-items: center; }
 .rg-legende .rg-sw { vertical-align: middle; margin-right: 5px; flex: none; }
@@ -257,9 +258,9 @@ def html_fiche_vide(titre: str, texte: str) -> str:
 
 
 def html_sous_carte(note: str, legende: str, phrase: str) -> str:
-    """Note de position et fond de carte, légende, puis phrase des tests multiples, séparées de 12 px
-    (HTML déjà échappé par leurs fabriques)."""
-    return f'<div class="rg-sous-carte">{note}{legende}{phrase}</div>'
+    """Légende et note de position et fond de carte sur une même ligne (la note passe dessous si la
+    place manque), puis phrase des tests multiples, séparées de 6 px (HTML déjà échappé par leurs fabriques)."""
+    return f'<div class="rg-sous-carte"><div class="rg-ligne-legende">{legende}{note}</div>{phrase}</div>'
 
 
 def html_fiche(departement: str, nom: str, libelle: str, chiffre: str, couleur_chiffre: str, ic: str,
