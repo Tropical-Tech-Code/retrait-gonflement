@@ -19,6 +19,7 @@ pipeline = [
     "httpx>=0.28.1",
     "duckdb>=1.1",
     "pyfixest>=0.25",
+    "scipy>=1.11",
 ]
 
 [tool.uv]

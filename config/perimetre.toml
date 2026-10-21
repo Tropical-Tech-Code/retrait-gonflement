@@ -56,3 +56,10 @@ tolerance_simplification_m = 50
 decimales_coordonnees = 5
 # Bornes des cinq classes de prime (en fraction) : < -0,10 ; -0,10 à -0,03 ; -0,03 à 0,03 ; 0,03 à 0,10 ; > 0,10
 classes_prime = [-0.10, -0.03, 0.03, 0.10]
+taille_carre = 0.85   # côté du carré dessiné, en part de la maille de la grille
+marge_cases = 1.3    # cases exigées par département = marge_cases × communes (plus grand = maille plus fine, carrés plus près des communes)
+
+# Zones de la carte en carrés : une grille par zone, un couloir vide entre départements
+[carte.zones]
+sud_ouest = ["31", "47", "82"]
+seine_et_marne = ["77"]

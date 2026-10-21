@@ -55,10 +55,10 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 
 ### Onglet 3 : Carte
 - Tuiles : communes estimables (sur le total), décote, pas de décote, indéterminées.
+- Carte en carrés (décision du 20/10) : un carré par commune, sur une grille régulière par zone, placé par le pipeline (`carres.geojson`). Une rangée de cases vides sépare deux départements, avec le nom du département en petites capitales grises (position lue dans `resume_global.json`, clé `carres`). Ni fond de carte ni trait de limite.
 - Deux zones au choix : Sud-Ouest (31, 47, 82) et Seine-et-Marne (77). Chaque zone a son cadrage et un zoom minimal (min_zoom de pydeck.ViewState) : impossible de dézoomer au-delà de la zone. Bouton « Recentrer » si faisable.
-- Couleurs : 5 classes (bornes −10 / −3 / +3 / +10 %, orange = décote, bleu = écart positif) ; couleur franche = décote ou pas de décote ; pâle = indéterminé ; gris #C4C8C3 = non estimable ; contour noir = commune sélectionnée ; limites des départements marquées.
+- Couleurs : 5 classes (bornes −10 / −3 / +3 / +10 %, orange = décote, bleu = écart positif) ; couleur franche = décote ou pas de décote ; pâle = indéterminé ; gris #C4C8C3 = non estimable ; contour noir réservé à la commune sélectionnée.
 - Info-bulle au survol : nom de la commune et statut, en texte simple (pas de HTML brut).
-- Fond Carto coché par défaut, mention visible tant qu'il est coché.
 - Légende sous la carte (classes, pâle, gris), puis la phrase des tests multiples (communes significatives observées contre attendues par hasard : différences entre quartiers).
 - Fiche à droite : département, nom, « Écart de prix observé entre zone forte et reste de la commune », chiffre coloré selon sa classe et IC, statut, trois cases (ventes de maisons, dont en zone forte, arrêtés sécheresse 2015-2023), note beige (texte automatique terminé par « ni valeur de la maison, ni causalité »). Non estimable : encadré gris avec le motif, « — » pour l'écart. Pas de prix médian.
 - Recherche de commune (souhaitable) : même effet qu'un clic (changement de zone si nécessaire, zoom sur la commune, sélection).
@@ -93,7 +93,8 @@ Uniquement des agrégats par commune ; aucune vente individuelle.
 |---|---|---|
 | `communes.parquet` | une ligne par commune du périmètre (environ 1 600) | oui |
 | `contours.geojson` | contours simplifiés des communes, propriété `code_insee` seule | oui |
-| `departements.geojson` | limites des 4 départements (union des contours des communes) | oui |
+| `carres.geojson` | un carré par commune (grille par zone), propriété `code_insee` seule | oui |
+| `departements.geojson` | limites des 4 départements ; produit, mais l'app ne le lit plus (suppression du pipeline : souhaitable) | non |
 | `resume_global.json` | résultats du modèle global, nettoyage, tests multiples, seuils, sources | oui |
 
 ### `communes.parquet`
@@ -137,31 +138,45 @@ commune, et l'app ne le lit pas.
 - `departements.geojson` : union des contours des communes de chaque département
   (`ST_Union_Agg`), simplifiée avec la même tolérance.
 
+### `carres.geojson`
+
+- Produit par `spatial/carres.py` (section 2) à partir de `contours.geojson` et
+  `communes.parquet` ; un carré par commune, 5 décimales, propriété `code_insee` seule.
+- Contrôles du pipeline : contours et communes ont les mêmes codes ; chaque département
+  a au moins autant de cases que de communes.
+
 ### `resume_global.json`
 
 Contenu défini dans `docs/method.md` (section 8), plus :
 - `mediane_sinistralite` et `seuil_pas_de_decote` : seuils de l'onglet Sinistralité × écart (section 3) ;
 - `n_decote`, `n_pas_de_decote`, `n_indetermine` et effectifs par quadrant ;
 - `sources` : pour chaque source, URL, date de téléchargement et millésime ;
-- `date_generation` : date de production des fichiers.
+- `date_generation` : date de production des fichiers ;
+- `carres` : `zones` (maille en km, communes, écart moyen et maximal entre centre de la commune et carré, par zone) et `etiquettes` (position `lon`, `lat` du nom de chaque département : centre de ses carrés).
 
 ## 2. Onglet Carte : détails de réalisation
 
 Le contenu et la disposition de l'onglet sont dans le cahier des charges ci-dessus.
 
-- Carte pydeck (`GeoJsonLayer`) des communes, avec une seconde couche pour les limites
-  des départements (trait sombre, sans remplissage).
-- **Fond de carte** (décision du 15/10) : tuiles Carto, chargées par le navigateur du
-  visiteur et non par le serveur. Mention de la source sous la carte :
-  « Fond de carte © CARTO, données © contributeurs OpenStreetMap ».
-- **Lisible sans fond** : communes colorées et limites des départements suffisent à
-  lire la carte si les tuiles ne se chargent pas. Vérifié pendant le développement en
-  affichant la carte sans fond (`map_style=None`).
+- Carte pydeck (`GeoJsonLayer`) des carrés de `carres.geojson`, sans fond de carte
+  (`map_style=None`) ni couche de limites. Les noms des départements viennent de
+  `resume_global.json` (clé `carres`), dessinés sur un fond blanc semi-transparent.
+- **Placement des carrés** (pipeline `spatial/carres.py`, décision du 20/10) : une
+  grille régulière par zone (`[carte.zones]` de la config) ; les cases d'un département
+  sont celles dont le centre est dans le département, sauf, à chaque frontière, les
+  cases du département au code le plus grand voisines (4 voisines) d'un autre
+  département : couloir d'une seule rangée. Maille = la plus grande (à 1 m près) qui
+  laisse au moins `marge_cases` × communes cases dans chaque département (dichotomie ;
+  `marge_cases` dans la config, 1.0 au minimum, option `--marge` pour l'essayer).
+  Chaque commune reçoit une case en minimisant la somme des distances au carré entre
+  son centre et celui de la case (`scipy.optimize.linear_sum_assignment`), département
+  par département. Carré dessiné = 85 % de la maille. L'écart entre centre de commune et
+  carré est un artefact de lecture : la carte n'est pas à l'échelle.
 - **Couleur** (décisions du 14/10 et du 19/10) : orange pour une décote, bleu pour un
   écart positif, gris si non estimable. Cinq classes fixes de `prime` : décote < −10 %,
   −10 à −3 %, −3 à +3 %, +3 à +10 %, > +10 % (bornes dans la config). Couleur franche
   pour les statuts « décote » et « pas de décote », pâle pour « indéterminé ».
-- **Réglages** au-dessus de la carte (pas de barre latérale) : zone, fond de carte.
+- **Réglages** au-dessus de la carte (pas de barre latérale) : zone.
   Pas de couche « bascule 2020 → 2026 » (décision du 16/10).
 - **Info-bulle** au survol : nom de la commune et statut, en texte.
 - **Fiche commune** à droite : contenu défini dans le cahier. Choix par clic sur la
@@ -216,7 +231,7 @@ app/
   donnees.py         lecture de data/processed/ (st.cache_data), contrôle des colonnes
   textes.py          définitions, libellés, légende, texte automatique, zones
   charte.py          CSS injecté une fois, en-tête commun, encadrés beige et gris (texte échappé)
-  cartographie.py    couleurs, info-bulle, cadrage, contours
+  cartographie.py    couleurs, info-bulle, cadrage, carrés
   vues/
     resultat.py
     sinistralite.py
@@ -250,5 +265,5 @@ app/
   seulement (streamlit, pydeck, pandas, pyarrow). La prise en charge de `uv.lock`
   par la plateforme est à vérifier au moment du déploiement (sinon,
   `requirements.txt` généré par `uv export`).
-- Fond de carte : tuiles Carto chargées par le navigateur (section 2) ; le serveur de
-  l'app ne fait aucun appel réseau.
+- Aucun fond de carte : l'app ne fait aucun appel réseau, côté serveur comme côté
+  navigateur (hors le chargement de l'app elle-même).

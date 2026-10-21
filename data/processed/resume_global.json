@@ -500,5 +500,54 @@
         "date_telechargement": "2026-10-16"
       }
     ]
+  },
+  "carres": {
+    "marge_cases": 1.3,
+    "zones": {
+      "sud_ouest": {
+        "departements": [
+          "31",
+          "47",
+          "82"
+        ],
+        "maille_km": 2.904,
+        "n_communes": 1100,
+        "distance_moyenne_km": 1.381,
+        "distance_p95_km": 2.861,
+        "distance_max_km": 6.575,
+        "n_communes_plus_de_10_km": 0,
+        "largeur_carre_px": 12.7
+      },
+      "seine_et_marne": {
+        "departements": [
+          "77"
+        ],
+        "maille_km": 3.013,
+        "n_communes": 507,
+        "distance_moyenne_km": 1.637,
+        "distance_p95_km": 3.689,
+        "distance_max_km": 7.086,
+        "n_communes_plus_de_10_km": 0,
+        "largeur_carre_px": 26.2
+      }
+    },
+    "etiquettes": {
+      "31": {
+        "lon": 1.13848,
+        "lat": 43.3342
+      },
+      "47": {
+        "lon": 0.48114,
+        "lat": 44.39216
+      },
+      "77": {
+        "lon": 2.92055,
+        "lat": 48.66013
+      },
+      "82": {
+        "lon": 1.21715,
+        "lat": 44.06246
+      }
+    }
   }
 }

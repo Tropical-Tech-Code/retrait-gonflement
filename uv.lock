@@ -1041,6 +1041,7 @@ pipeline = [
     { name = "duckdb" },
     { name = "httpx" },
     { name = "pyfixest" },
+    { name = "scipy" },
 ]
 
 [package.metadata]
@@ -1057,6 +1058,7 @@ pipeline = [
     { name = "duckdb", specifier = ">=1.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pyfixest", specifier = ">=0.25" },
+    { name = "scipy", specifier = ">=1.11" },
 ]
 
 [[package]]
