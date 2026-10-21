@@ -33,7 +33,7 @@ def test_textes_lus_dans_les_donnees(resultat):
     assert textes.SURTITRE_RESULTAT in page
     assert "Pas de différence de prix détectable entre zone d'argile forte et zone moyenne." in page
     assert f"+0,9{nb}%" in page and f"[{textes.MOINS}2,9{nb}% ; +4,9{nb}%]" in page and textes.MENTION_IC in page
-    assert f"· 280 ventes · 1 département · 2021-2025" in page  # une seule valeur de « departement » dans communes_test
+    assert f"· 280 ventes · 2 départements · 2021-2025" in page  # communes_test : départements 31 et 77
     assert f"elle ne dépasse probablement pas environ 3{nb}%" in page
     assert f"se vendent 3,4 à 2,5{nb}%" not in page and f"se vendent 2,5 à 3,4{nb}% moins cher" in page
     assert "p ≈ 0,50" in page

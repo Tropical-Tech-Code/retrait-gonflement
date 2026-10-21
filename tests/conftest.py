@@ -41,6 +41,14 @@ def resume_test() -> dict:
         "n_par_quadrant": {"Risque intégré": 1, "Angle mort": 1, "Décote à expliquer": 0, "Cohérent": 0},
         "primes_communes": {"seuils": {"min_ventes_fort": 15, "min_ventes_reference": 15, "min_ventes_total": 50}},
         "catnat": {"libelle": "Sécheresse", "periode": "2015-2023"},
+        "carres": {
+            "marge_cases": 1.3,
+            "zones": {"sud_ouest": {"departements": ["31", "47", "82"], "maille_km": 3.0,
+                                    "largeur_carre_px": 13.0, "emprise": [0.5, 42.9, 2.5, 43.3]},
+                      "seine_et_marne": {"departements": ["77"], "maille_km": 3.0,
+                                         "largeur_carre_px": 26.0, "emprise": [1.8, 42.9, 2.6, 43.3]}},
+            "etiquettes": {"31": {"lon": 1.4, "lat": 43.05}, "77": {"lon": 2.2, "lat": 43.05}},
+        },
         "nettoyage": {"n_mutations": 1000, "n_ventes_retenues": 300, "etapes": []},
         "sources": {"note_date": "Date de téléchargement.", "liste": [
             {"cle": "dvf", "nom": "DVF géolocalisées (Etalab)"},
@@ -78,7 +86,9 @@ def communes_test() -> pd.DataFrame:
               statut_decote="pas_de_decote", sinistralite_sup_mediane=False, quadrant="Cohérent"),
         ligne("31005", "Escalquens", "non_estimable", motif="effectifs_insuffisants", n_ventes=30, n_fort=8,
               catnat_total=1, catnat_depuis_2015=1, catnat_dernier=dernier),
-        ligne("31006", "Fonsorbes", "non_estimable", motif="une_seule_zone", n_ventes=80, n_fort=80),
+        # seule commune de la zone Seine-et-Marne (département 77) des données de test
+        ligne("31006", "Fonsorbes", "non_estimable", motif="une_seule_zone", n_ventes=80, n_fort=80,
+              departement="77"),
     ]
     return pd.DataFrame(lignes)
 
@@ -103,7 +113,6 @@ def dossier_processed(tmp_path):
     """Dossier au format de data/processed/, sous tmp_path (jamais le vrai)."""
     communes = communes_test()
     communes.to_parquet(tmp_path / "communes.parquet", index=False)
-    (tmp_path / "contours.geojson").write_text(json.dumps(geojson_test(communes["code_insee"])), encoding="utf-8")
-    (tmp_path / "departements.geojson").write_text(json.dumps(geojson_test(["31"])), encoding="utf-8")
+    (tmp_path / "carres.geojson").write_text(json.dumps(geojson_test(communes["code_insee"])), encoding="utf-8")
     (tmp_path / "resume_global.json").write_text(json.dumps(resume_test()), encoding="utf-8")
     return tmp_path

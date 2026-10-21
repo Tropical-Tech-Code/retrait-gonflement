@@ -55,13 +55,14 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 
 ### Onglet 3 : Carte
 - Tuiles : communes estimables (sur le total), décote, pas de décote, indéterminées.
-- Carte en carrés (décision du 20/10) : un carré par commune, sur une grille régulière par zone, placé par le pipeline (`carres.geojson`). Une rangée de cases vides sépare deux départements, avec le nom du département en petites capitales grises (position lue dans `resume_global.json`, clé `carres`). Ni fond de carte ni trait de limite.
-- Deux zones au choix : Sud-Ouest (31, 47, 82) et Seine-et-Marne (77). Chaque zone a son cadrage et un zoom minimal (min_zoom de pydeck.ViewState) : impossible de dézoomer au-delà de la zone. Bouton « Recentrer » si faisable.
-- Couleurs : 5 classes (bornes −10 / −3 / +3 / +10 %, orange = décote, bleu = écart positif) ; couleur franche = décote ou pas de décote ; pâle = indéterminé ; gris #C4C8C3 = non estimable ; contour noir réservé à la commune sélectionnée.
+- Carte en carrés (décision du 20/10) : un carré par commune, sur une grille régulière par zone, placé par le pipeline (`carres.geojson`). Une rangée de cases vides sépare deux départements, avec le nom du département en capitales grises (police sans-serif de l'app, fond blanc semi-transparent), placé à côté de ses carrés et jamais dessus (position et cadrage lus dans `resume_global.json`, clé `carres`). Fond de carte Carto clair (décision du 21/10, qui revient sur celle du 20/10 : il aide à se situer), chargé par le navigateur du visiteur, avec la mention « Fond de carte © CARTO · © OpenStreetMap » et la note « Position des carrés approximative (quelques km). » sous la carte ; pas de trait de limite. Fiche sans commune : icône et invitation centrées, bloc réduit à son contenu. Champ de recherche : contour #C2410C permanent (liste décrite plus bas).
+- Deux zones au choix (`st.segmented_control`) : Sud-Ouest · 31, 47, 82 et Seine-et-Marne · 77. Chaque zone a son cadrage (carrés et étiquettes) et un `min_zoom` égal au zoom initial, transmis mais non imposé par Streamlit : la molette et le pavé tactile sont donc désactivés (`scrollZoom` à faux), les boutons + et − de la carte restent (décision du 21/10) ; ces boutons peuvent encore dézoomer au-delà de la zone. Le déplacement à la souris n'est pas borné. Pas de bouton « recentrer » : rechoisir la zone recentre la carte.
+- Couleurs (palette de la maquette, seule palette de l'app, dans `textes.py`) : 5 classes (bornes −10 / −3 / +3 / +10 %, orange = décote, bleu = écart positif) ; couleur franche = décote ou pas de décote ; pâle (38 % d'opacité) = indéterminé ; gris très clair #E4E6E2 = non estimable (pour que les communes classées ressortent) ; commune sélectionnée : sa couleur de classe, contour noir et liseré blanc.
 - Info-bulle au survol : nom de la commune et statut, en texte simple (pas de HTML brut).
-- Légende sous la carte (classes, pâle, gris), puis la phrase des tests multiples (communes significatives observées contre attendues par hasard : différences entre quartiers).
+- Légende sous la carte (classes, pâle : indéterminé, gris clair : non estimable, sélection), puis une seule phrase, chiffres lus dans `resume_global.json` : « Sur {n_estimables} communes, {n} montrent un écart net, contre une dizaine attendue par hasard. Ces écarts vont autant dans un sens que dans l'autre ({n} décotes, {n} primes) : ils reflètent surtout des différences entre quartiers, plutôt qu'un problème de terrains argileux. » (« une dizaine » si l'attendu arrondi vaut 10, sinon en chiffres ; « primes » = écarts positifs, exception à la règle du vocabulaire limitée à cette phrase ; décision du 21/10).
+- Liste de recherche : les communes en décote d'abord (« Nom (dép.) · décote », ordre alphabétique), l'option « ── Autres communes ── » (sans effet : la sélection précédente est conservée), puis toutes les autres, « Nom (dép.) », ordre alphabétique.
 - Fiche à droite : département, nom, « Écart de prix observé entre zone forte et reste de la commune », chiffre coloré selon sa classe et IC, statut, trois cases (ventes de maisons, dont en zone forte, arrêtés sécheresse 2015-2023), note beige (texte automatique terminé par « ni valeur de la maison, ni causalité »). Non estimable : encadré gris avec le motif, « — » pour l'écart. Pas de prix médian.
-- Recherche de commune (souhaitable) : même effet qu'un clic (changement de zone si nécessaire, zoom sur la commune, sélection).
+- Recherche de commune (selectbox, clé `commune`) : même effet qu'un clic (changement de zone si nécessaire, sélection). Le clic est lu au début de l'exécution suivante, avant la création des widgets.
 
 ### Onglet 4 : Méthodologie et limites
 - Six cartes courtes, sans défilement : Question testée, Données, Modèle, Robustesse, Écarts par commune, Limites (dont « la carte 2026 change le niveau d'environ 1 % des ventes, dans les deux sens »).
@@ -152,14 +153,14 @@ Contenu défini dans `docs/method.md` (section 8), plus :
 - `n_decote`, `n_pas_de_decote`, `n_indetermine` et effectifs par quadrant ;
 - `sources` : pour chaque source, URL, date de téléchargement et millésime ;
 - `date_generation` : date de production des fichiers ;
-- `carres` : `zones` (maille en km, communes, écart moyen et maximal entre centre de la commune et carré, par zone) et `etiquettes` (position `lon`, `lat` du nom de chaque département : centre de ses carrés).
+- `carres` : `zones` (maille en km, communes, écarts entre centre de la commune et carré, `emprise` [lon_min, lat_min, lon_max, lat_max] des carrés et des étiquettes, `directions_etiquettes`, par zone) et `etiquettes` (position `lon`, `lat` du centre du nom de chaque département). L'étiquette est placée à l'est, à l'ouest, au sud ou au nord des carrés du département (dans cet ordre), à 1,5 maille du bord : le premier emplacement dont le rectangle de texte estimé ne touche aucun carré ; sinon au centre des carrés.
 
 ## 2. Onglet Carte : détails de réalisation
 
 Le contenu et la disposition de l'onglet sont dans le cahier des charges ci-dessus.
 
-- Carte pydeck (`GeoJsonLayer`) des carrés de `carres.geojson`, sans fond de carte
-  (`map_style=None`) ni couche de limites. Les noms des départements viennent de
+- Carte pydeck (`GeoJsonLayer`) des carrés de `carres.geojson`, sur le fond Carto clair
+  (`map_style="light"`), sans couche de limites. Les noms des départements viennent de
   `resume_global.json` (clé `carres`), dessinés sur un fond blanc semi-transparent.
 - **Placement des carrés** (pipeline `spatial/carres.py`, décision du 20/10) : une
   grille régulière par zone (`[carte.zones]` de la config) ; les cases d'un département
@@ -265,5 +266,5 @@ app/
   seulement (streamlit, pydeck, pandas, pyarrow). La prise en charge de `uv.lock`
   par la plateforme est à vérifier au moment du déploiement (sinon,
   `requirements.txt` généré par `uv export`).
-- Aucun fond de carte : l'app ne fait aucun appel réseau, côté serveur comme côté
-  navigateur (hors le chargement de l'app elle-même).
+- Fond de carte : tuiles Carto chargées par le navigateur du visiteur ; le serveur de
+  l'app ne fait aucun appel réseau.

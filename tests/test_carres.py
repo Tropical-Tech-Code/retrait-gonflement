@@ -143,6 +143,63 @@ def test_maille_impossible_leve_une_erreur():
         carres.choisir_maille(EMPRISE, vide, {"31": 5})
 
 
+def test_etiquettes_a_cote_des_carres_jamais_dessus(zone):
+    _, maille, placement = zone
+    positions = carres.positions_etiquettes(placement, maille, EMPRISE)
+    assert set(positions) == {"31", "47", "82"}
+    for dep, e in positions.items():
+        assert e["direction"] in carres.DIRECTIONS, dep
+        recouvre = ((abs(placement["x"] - e["x"]) < e["largeur"] / 2 + maille / 2)
+                    & (abs(placement["y"] - e["y"]) < e["hauteur"] / 2 + maille / 2))
+        assert not recouvre.any(), dep
+
+
+def test_etiquette_a_au_moins_1_5_maille_du_bord_de_son_departement(zone):
+    _, maille, placement = zone
+    for dep, e in carres.positions_etiquettes(placement, maille, EMPRISE).items():
+        cases = placement[placement["departement"] == dep]
+        distances = {
+            "est": (e["x"] - e["largeur"] / 2) - (cases["x"].max() + maille / 2),
+            "ouest": (cases["x"].min() - maille / 2) - (e["x"] + e["largeur"] / 2),
+            "sud": (cases["y"].min() - maille / 2) - (e["y"] + e["hauteur"] / 2),
+            "nord": (e["y"] - e["hauteur"] / 2) - (cases["y"].max() + maille / 2),
+        }
+        assert distances[e["direction"]] == pytest.approx(1.5 * maille)
+
+
+def test_etiquette_premier_candidat_libre_dans_l_ordre_est_ouest_sud_nord(zone, monkeypatch):
+    _, maille, placement = zone
+    appels = []
+
+    def touche(x, y, largeur, hauteur, carres_, maille_):
+        appels.append((x, y))
+        return len(appels) % 3 != 0          # est et ouest touchent, le 3e candidat (sud) est libre
+
+    monkeypatch.setattr(carres, "touche_un_carre", touche)
+    positions = carres.positions_etiquettes(placement, maille, EMPRISE)
+    assert {e["direction"] for e in positions.values()} == {"sud"}
+    assert len(appels) == 9                  # 3 départements x (est, ouest, sud) : le nord n'est pas essayé
+
+
+def test_etiquette_au_centre_des_carres_si_aucun_candidat_libre(zone, monkeypatch):
+    _, maille, placement = zone
+    monkeypatch.setattr(carres, "touche_un_carre", lambda *args: True)
+    positions = carres.positions_etiquettes(placement, maille, EMPRISE)
+    assert {e["direction"] for e in positions.values()} == {"centre"}
+    cases = placement[placement["departement"] == "31"]
+    assert positions["31"]["x"] == pytest.approx(cases["x"].mean())
+
+
+def test_emprise_contient_les_cases_et_les_etiquettes(zone):
+    _, maille, placement = zone
+    positions = carres.positions_etiquettes(placement, maille, EMPRISE)
+    xmin, ymin, xmax, ymax = carres.emprise_avec_etiquettes(placement, maille, positions)
+    assert xmin <= placement["x"].min() - maille / 2 and xmax >= placement["x"].max() + maille / 2
+    for e in positions.values():
+        assert xmin <= e["x"] - e["largeur"] / 2 and e["x"] + e["largeur"] / 2 <= xmax
+        assert ymin <= e["y"] - e["hauteur"] / 2 and e["y"] + e["hauteur"] / 2 <= ymax
+
+
 def test_wkt_carre_ferme_et_centre():
     assert carres.wkt_carre(10.0, 20.0, 4.0) == "POLYGON((8.000 18.000, 12.000 18.000, 12.000 22.000, 8.000 22.000, 8.000 18.000))"
 
@@ -187,8 +244,70 @@ def test_carres_issus_de_contours_simules(connexion, tmp_path):
     assert all(set(e["properties"]) == {"code_insee"} for e in entites)
     lon, lat = np.array(entites[0]["geometry"]["coordinates"][0]).T
     assert 0.9 < lon.min() and lon.max() < 1.6 and 42.9 < lat.min() and lat.max() < 43.6
-    etiquettes = carres.etiquettes_wgs84(connexion, placement, 5)
-    assert set(etiquettes) == {"31", "47"} and etiquettes["31"]["lon"] < etiquettes["47"]["lon"]
+    etiquettes = carres.etiquettes_wgs84(connexion, carres.positions_etiquettes(placement, maille, emprise), 5)
+    assert set(etiquettes) == {"31", "47"}
+    assert set(etiquettes["31"]) == {"lon", "lat"}
+    bornes = carres.emprise_wgs84(connexion, carres.emprise_avec_etiquettes(
+        placement, maille, carres.positions_etiquettes(placement, maille, emprise)), 5)
+    assert bornes[0] < bornes[2] and bornes[1] < bornes[3] and 0.9 < bornes[0] < 1.6
+
+
+def mercator(lon, lat):
+    """(x, y) en EPSG:3857 d'après lon, lat en degrés (formule de la sphère)."""
+    rayon = carres.RAYON_MERCATOR
+    return rayon * np.radians(lon), rayon * np.log(np.tan(np.pi / 4 + np.radians(lat) / 2))
+
+
+def test_cotes_des_carres_horizontaux_et_verticaux_en_web_mercator(connexion, tmp_path):
+    # loin du méridien 3° E, où la grille en Lambert-93 apparaissait tournée à l'écran
+    pas = 0.2
+    communes = {}
+    for k, (colonne, ligne) in enumerate([(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)]):
+        dep = "31" if colonne < 2 else "47"
+        communes[f"{dep}{k:03d}"] = (dep, rectangle_wgs84(
+            0.0 + colonne * pas, 43.0 + ligne * pas, 0.0 + (colonne + 1) * pas, 43.0 + (ligne + 1) * pas))
+    fichier = tmp_path / "contours.geojson"
+    fichier.write_text(json.dumps({"type": "FeatureCollection", "features": [
+        {"type": "Feature", "properties": {"code_insee": c}, "geometry": g} for c, (_, g) in communes.items()
+    ]}), encoding="utf-8")
+    carres.charger_contours(connexion, fichier, {c: d for c, (d, _) in communes.items()})
+    deps = ["31", "47"]
+    emprise = carres.emprise_zone(connexion, deps)
+    maille, placement = carres.placer_zone(
+        carres.centroides_zone(connexion, deps), emprise, carres.classeur_duckdb(connexion, deps),
+        echelle=carres.echelle_mercator,
+    )
+    entites = carres.carres_wgs84(connexion, placement, maille * 0.85, 7)
+    assert len(entites) == 6
+    for entite in entites:
+        lon, lat = np.array(entite["geometry"]["coordinates"][0]).T
+        x, y = mercator(lon, lat)
+        a, b, c, d = np.column_stack([x, y])[:4]
+        assert a[1] == pytest.approx(b[1], abs=0.5) and c[1] == pytest.approx(d[1], abs=0.5)      # côtés horizontaux
+        assert b[0] == pytest.approx(c[0], abs=0.5) and d[0] == pytest.approx(a[0], abs=0.5)      # côtés verticaux
+        assert b[0] - a[0] == pytest.approx(maille * 0.85, abs=0.5)                                 # carré, pas rectangle
+        assert c[1] - b[1] == pytest.approx(maille * 0.85, abs=0.5)
+
+
+def test_echelle_mercator_donne_des_metres_reels():
+    assert float(carres.echelle_mercator(0.0)) == pytest.approx(1.0)
+    _, y45 = mercator(0.0, 45.0)
+    assert float(carres.echelle_mercator(y45)) == pytest.approx(np.cos(np.radians(45.0)))
+
+
+def test_distances_et_maille_publiees_en_vrais_metres():
+    _, y = mercator(0.0, 45.0)
+    k = float(carres.echelle_mercator(y))
+    donnees = pd.DataFrame({"code_insee": ["a"], "departement": ["31"], "x": [1_000.0], "y": [y]})
+    emprise = (0.0, y, 8_000.0, y + 8_000.0)
+    classe = lambda xs, ys: np.where(                                  # noqa: E731
+        (xs >= emprise[0]) & (xs < emprise[2]) & (ys >= emprise[1]) & (ys < emprise[3]), "31", "").astype("<U3")
+    maille, placement = carres.placer_zone(donnees, emprise, classe, echelle=carres.echelle_mercator)
+    _, brut = carres.placer_zone(donnees, emprise, classe)
+    assert placement.loc[0, "dist"] == pytest.approx(brut.loc[0, "dist"] * k, rel=1e-3)
+    stats = carres.statistiques_zone(maille, emprise, placement, carres.echelle_mercator)
+    k_milieu = float(carres.echelle_mercator(y + 4_000.0))           # latitude du milieu de l'emprise
+    assert stats["maille_km"] == pytest.approx(maille * k_milieu / 1000, abs=0.001)
 
 
 def test_contours_et_communes_differents_refuses(connexion, tmp_path):

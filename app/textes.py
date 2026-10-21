@@ -25,15 +25,37 @@ EXPRESSIONS_INTERDITES = ("effet de l'argile", "risque élevé", "valeur de votr
 
 ECART = "écart de prix observé entre zone forte et reste de la commune"
 ARRETES = "arrêtés sécheresse 2015-2023"
-FOND_DE_CARTE = "Fond de carte © CARTO, données © contributeurs OpenStreetMap"
 PHRASE_CARTE_2026 = (
     "Dans ces quatre départements déjà très exposés, la carte 2026 change le niveau "
     "d'environ 1 % des ventes, dans les deux sens."
 )
 RAPPEL = (
-    "Un écart moyen observé n'est ni une estimation de la valeur d'une maison, "
-    "ni une preuve de causalité."
+    "Il s'agit d'un écart observé entre zone forte et reste de la commune, "
+    "ni valeur de la maison, ni causalité."
 )
+
+# Zones de la carte en carrés : une grille par zone (pipeline spatial/carres.py). Doivent rester
+# identiques à [carte.zones] de config/perimetre.toml (un test le vérifie) : l'app ne lit pas la config.
+ZONES = {
+    "Sud-Ouest · 31, 47, 82": ("31", "47", "82"),
+    "Seine-et-Marne · 77": ("77",),
+}
+NOMS_DEPARTEMENTS = {
+    "31": "Haute-Garonne", "47": "Lot-et-Garonne", "77": "Seine-et-Marne", "82": "Tarn-et-Garonne",
+}
+
+
+def zone_de(departement: str) -> str:
+    """Libellé de la zone qui contient ce département."""
+    for libelle, departements in ZONES.items():
+        if departement in departements:
+            return libelle
+    raise KeyError(f"département hors des zones de la carte : {departement}")
+
+
+def nom_departement(departement: str) -> str:
+    return NOMS_DEPARTEMENTS.get(departement, departement)
+
 
 STATUTS_DECOTE = {"decote": "décote", "pas_de_decote": "pas de décote", "indetermine": "indéterminé"}
 QUADRANTS = ("Risque intégré", "Angle mort", "Décote à expliquer", "Cohérent")
@@ -42,6 +64,14 @@ QUADRANTS = ("Risque intégré", "Angle mort", "Décote à expliquer", "Cohéren
 # identiques à [carte] classes_prime de config/perimetre.toml (un test le vérifie) : l'app ne
 # lit pas la config.
 BORNES_CLASSES = (-0.10, -0.03, 0.03, 0.10)
+
+# Palette unique de l'app (maquette de la carte) : orange = décote, bleu = écart positif, jamais
+# de rouge ni de vert. Une classe « pâle » (OPACITE_PALE) = statut indéterminé ; gris = non estimable.
+COULEURS_CLASSES = ("#A8431A", "#E99A68", "#BDB6A4", "#9DBEDD", "#4F7FB0")
+# Même teintes, assombries pour le texte (chiffre de la fiche) : contraste suffisant sur fond blanc
+COULEURS_TEXTE_CLASSES = ("#A8431A", "#B4501A", "#6B6552", "#3F6D99", "#2F5F94")
+COULEUR_NON_ESTIMABLE = "#E4E6E2"   # gris très clair : les communes classées ressortent
+OPACITE_PALE = 0.38
 
 # Tableau des définitions (docs/method.md, section 6), repris à l'identique partout.
 DEFINITIONS = (
@@ -228,49 +258,73 @@ def sources_pied(resume: dict) -> str:
     return " · ".join([f"Sources : {', '.join(noms)}" if noms else "Sources", PIED_CALCULS, PIED_CAUSALITE])
 
 
-def phrase_estimables(n_estimables: int, n_communes: int) -> str:
-    """Phrase sous la carte."""
-    return (
-        f"Seules {entier(n_estimables)} communes sur {entier(n_communes)} sont estimables "
-        "(assez de ventes dans la zone forte et dans le reste de la commune) ; les autres sont en gris. "
-        "Une couleur pâle signale une estimation incertaine : l'intervalle de confiance contient 0."
-    )
+def phrase_tests_multiples(resume: dict) -> str:
+    """Phrase unique sous la carte : écarts nets observés contre attendus par hasard (tous les chiffres du JSON).
 
-
-def phrase_indeterminees(resume: dict) -> str:
-    """Résultat assumé : la plupart des communes estimables sont indéterminées."""
+    « primes » désigne ici un écart positif observé (colonne `significatif` = prime), pas une prime de risque.
+    """
+    decotes, primes = int(resume["n_significatives_decote"]), int(resume["n_significatives_prime"])
+    attendues = round(resume["n_attendu_hasard"])
+    attendu = "une dizaine attendue" if attendues == 10 else f"{pluriel(attendues, 'attendue')}"
     return (
-        f"Sur {entier(resume['n_communes_estimables'])} communes estimables, "
-        f"{entier(resume['n_indetermine'])} sont indéterminées : leur intervalle de confiance est trop "
-        "large pour conclure à une décote comme à son absence. "
-        f"Au total : {entier(resume['n_decote'])} en décote, {entier(resume['n_pas_de_decote'])} en pas de décote, "
-        f"{entier(resume['n_indetermine'])} indéterminées. "
-        "À l'échelle d'une commune, les ventes ne permettent le plus souvent pas de trancher."
+        f"Sur {entier(resume['n_communes_estimables'])} communes, {entier(decotes + primes)} montrent un écart net, "
+        f"contre {attendu} par hasard. Ces écarts vont autant dans un sens que dans l'autre "
+        f"({pluriel(decotes, 'décote')}, {pluriel(primes, 'prime')}) : ils reflètent surtout des différences "
+        "entre quartiers, plutôt qu'un problème de terrains argileux."
     )
 
 
 # ---------------------------------------------------------------- carte
 
-LEGENDE_TITRE = "Écart de prix observé entre zone forte et reste de la commune"
-LEGENDE_NON_ESTIMABLE = "Non estimable"
-LEGENDE_PALE = "Couleur pâle : estimation incertaine (l'intervalle de confiance contient 0)."
-LEGENDE_FILTRE = "Gris très pâle : commune écartée par un filtre."
-LIBELLE_FOND = "Afficher le fond de carte"
-LIBELLE_SIGNIFICATIVES = "Communes significatives seulement"
-LIBELLE_DEPARTEMENTS = "Départements"
-INVITE_COMMUNE = "Choisissez une commune (liste, ou clic sur la carte) pour voir sa fiche."
+LEGENDE_PALE = "pâle : indéterminé"
+LEGENDE_NON_ESTIMABLE = "gris clair : non estimable"
+LEGENDE_SELECTION = "sélection"
+LIBELLE_ZONE = "Zone affichée"
+LIBELLE_COMMUNE = "Commune"
+PLACEHOLDER_COMMUNE = "Chercher une commune"
+FOND_DE_CARTE = "Fond de carte © CARTO · © OpenStreetMap"
+NOTE_POSITION = "Position des carrés approximative (quelques km)."
+INVITE_COMMUNE = (
+    "Pour afficher la fiche d'une commune, zoomez puis cliquez sur un carré de la carte, "
+    "ou cherchez-la par son nom."
+)
+TITRE_INVITE = "Choisissez une commune"
+TUILE_ESTIMABLES = "Communes estimables"
+TUILE_DECOTE = "Décote"
+TUILE_PAS_DE_DECOTE = "Pas de décote"
+TUILE_INDETERMINEES = "Indéterminées"
+LIBELLE_ECART_FICHE = "Écart de prix observé entre zone forte et reste de la commune"
+LIBELLE_CASES = ("Ventes de maisons", "dont en zone forte", "Arrêtés sécheresse 2015-2023")
+TITRE_NOTE = "Note"
+NON_ESTIMABLE = "Non estimable"
 
 
-def lignes_info_bulle(ligne) -> list[str]:
-    """Lignes de l'info-bulle d'une commune (texte brut, mis en forme par cartographie.py)."""
-    titre = f"{ligne['nom']} ({ligne['departement']})"
-    effectifs = f"Ventes : {entier(ligne['n_fort'])} en zone forte, {entier(int(ligne['n_ventes']) - int(ligne['n_fort']))} dans le reste"
-    arretes = f"{pluriel(int(ligne['catnat_depuis_2015']), 'arrêté')} sécheresse 2015-2023"
-    if ligne["statut"] != "estimable":
-        motif = MOTIFS.get(ligne["motif"], "données insuffisantes")
-        return [titre, f"Non estimable : {motif}", effectifs, arretes]
-    ecart = f"Écart de prix observé : {pct(ligne['prime'], 1, True)} {intervalle_pct(ligne['ic_bas'], ligne['ic_haut'])}"
-    return [titre, ecart, effectifs, arretes]
+def statut_commune(ligne) -> str:
+    """« décote », « pas de décote », « indéterminé » ou « non estimable »."""
+    return NON_ESTIMABLE.lower() if ligne["statut"] != "estimable" else STATUTS_DECOTE[ligne["statut_decote"]]
+
+
+CODE_SEPARATEUR = "__autres_communes__"
+SEPARATEUR_LISTE = "── Autres communes ──"
+
+
+def libelle_liste(ligne) -> str:
+    """Entrée de la liste de recherche : « Chelles (77) · décote » pour une décote, « Chelles (77) » sinon."""
+    base = f"{ligne['nom']} ({ligne['departement']})"
+    return f"{base} · {STATUTS_DECOTE['decote']}" if ligne["statut"] == "estimable" and ligne["statut_decote"] == "decote" else base
+
+
+def codes_liste(communes: pd.DataFrame) -> list[str]:
+    """Codes de la liste de recherche : les communes en décote (ordre alphabétique), le séparateur, les autres."""
+    en_decote = (communes["statut"] == "estimable") & (communes["statut_decote"] == "decote")
+    ordonnees = communes.sort_values("nom")
+    return [*ordonnees.loc[en_decote, "code_insee"], CODE_SEPARATEUR, *ordonnees.loc[~en_decote, "code_insee"]]
+
+
+def texte_info_bulle(ligne) -> str:
+    """Info-bulle d'une commune, en texte simple : nom et statut."""
+    return f"{ligne['nom']} ({ligne['departement']})\n{statut_commune(ligne).capitalize()}"
+
 
 def classe_prime(prime: float | None, bornes: tuple[float, ...] = BORNES_CLASSES) -> int | None:
     """Classe 0 à 4 de la colonne `prime` (borne inférieure incluse) ; None si non estimable."""
@@ -305,32 +359,16 @@ def libelle_sinistralite(mediane: float) -> str:
 
 # ---------------------------------------------------------------- texte automatique
 
-def _arretes(ligne, mediane: float) -> str:
-    n = int(ligne["catnat_depuis_2015"])
-    if n == 0:
-        base = "Aucun arrêté sécheresse reconnu sur 2015-2023"
-    else:
-        base = f"{pluriel(n, 'arrêté')} sécheresse sur 2015-2023"
-    sup = ligne.get("sinistralite_sup_mediane")
-    if pd.isna(sup):
-        return base + "."
-    if bool(sup):
-        return f"{base} : sinistralité supérieure à la médiane du périmètre ({seuil_arretes(mediane)} arrêtés ou plus)."
-    return (
-        f"{base} : sinistralité inférieure ou égale à la médiane du périmètre "
-        f"({seuil_arretes(mediane) - 1} arrêtés ou moins)."
-    )
-
-
 def texte_commune(ligne, resume: dict) -> str:
-    """Texte déterministe d'une commune, à partir de sa ligne de communes.parquet."""
-    nom = ligne["nom"]
-    mediane = resume["mediane_sinistralite"]
+    """Texte déterministe de la fiche d'une commune, à partir de sa ligne de communes.parquet.
+
+    Estimable : une phrase sur l'intervalle, le quadrant s'il existe, puis RAPPEL. Non estimable :
+    le motif et les seuils (encadré gris, sans RAPPEL : il n'y a pas d'écart à interpréter).
+    """
     seuils = resume["primes_communes"]["seuils"]
-    phrases = []
     if ligne["statut"] != "estimable":
         motif = MOTIFS.get(ligne["motif"], "ses données ne permettent pas l'estimation")
-        phrases.append(f"{nom} n'est pas estimable : {motif}.")
+        phrases = [f"{ligne['nom']} n'est pas estimable : {motif}."]
         if ligne["motif"] == "effectifs_insuffisants":
             phrases.append(
                 f"Elle compte {pluriel(int(ligne['n_ventes']), 'vente retenue', 'ventes retenues')}, dont "
@@ -338,34 +376,21 @@ def texte_commune(ligne, resume: dict) -> str:
                 f"zone forte, {seuils['min_ventes_reference']} dans le reste de la commune et "
                 f"{seuils['min_ventes_total']} au total."
             )
-        phrases.append(_arretes(ligne, mediane))
-        phrases.append(RAPPEL)
         return " ".join(phrases)
 
-    n_reste = int(ligne["n_ventes"]) - int(ligne["n_fort"])
-    phrases.append(
-        f"À {nom}, l'{ECART} est de {pct(ligne['prime'], 1, True)} "
-        f"(intervalle de confiance à 95 % : {intervalle_pct(ligne['ic_bas'], ligne['ic_haut'])})."
-    )
-    phrases.append(
-        f"Il repose sur {pluriel(int(ligne['n_fort']), 'vente')} en zone forte et "
-        f"{pluriel(n_reste, 'vente')} dans le reste de la commune."
-    )
+    intervalle = f"L'intervalle va de {pct(ligne['ic_bas'], 1, True)} à {pct(ligne['ic_haut'], 1, True)}"
     statut = ligne["statut_decote"]
     if statut == "decote":
-        phrases.append("Statut : décote (l'intervalle est entièrement sous 0).")
+        phrases = [f"{intervalle} : entièrement sous 0, une décote est mesurée."]
     elif statut == "pas_de_decote":
-        phrases.append(
-            f"Statut : pas de décote (la borne basse de l'intervalle est au-dessus de "
-            f"{pct(resume['seuil_pas_de_decote'], 0, True)} : une décote éventuelle serait au plus faible)."
-        )
+        phrases = [
+            f"{intervalle} : au-dessus de {pct(resume['seuil_pas_de_decote'], 0, True)}, "
+            "une décote éventuelle serait faible."
+        ]
     else:
-        phrases.append("Statut : indéterminé (l'intervalle est trop large pour conclure).")
-    phrases.append(_arretes(ligne, mediane))
+        phrases = [f"{intervalle} : trop large pour conclure."]
     quadrant = ligne.get("quadrant")
     if isinstance(quadrant, str) and quadrant:
         phrases.append(f"Quadrant : {quadrant}.")
-    else:
-        phrases.append("Pas de quadrant : commune indéterminée.")
     phrases.append(RAPPEL)
     return " ".join(phrases)

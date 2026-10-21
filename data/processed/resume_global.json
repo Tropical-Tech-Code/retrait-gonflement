@@ -510,43 +510,63 @@
           "47",
           "82"
         ],
-        "maille_km": 2.904,
+        "maille_km": 2.882,
         "n_communes": 1100,
-        "distance_moyenne_km": 1.381,
-        "distance_p95_km": 2.861,
-        "distance_max_km": 6.575,
+        "distance_moyenne_km": 1.437,
+        "distance_p95_km": 3.288,
+        "distance_max_km": 7.971,
         "n_communes_plus_de_10_km": 0,
-        "largeur_carre_px": 12.7
+        "largeur_carre_px": 12.3,
+        "emprise": [
+          -0.10486,
+          42.71549,
+          2.64445,
+          44.76037
+        ],
+        "directions_etiquettes": {
+          "31": "est",
+          "47": "est",
+          "82": "est"
+        }
       },
       "seine_et_marne": {
         "departements": [
           "77"
         ],
-        "maille_km": 3.013,
+        "maille_km": 3.003,
         "n_communes": 507,
-        "distance_moyenne_km": 1.637,
-        "distance_p95_km": 3.689,
-        "distance_max_km": 7.086,
+        "distance_moyenne_km": 1.649,
+        "distance_p95_km": 3.733,
+        "distance_max_km": 7.144,
         "n_communes_plus_de_10_km": 0,
-        "largeur_carre_px": 26.2
+        "largeur_carre_px": 26.2,
+        "emprise": [
+          2.39234,
+          48.12008,
+          3.87011,
+          49.11822
+        ],
+        "directions_etiquettes": {
+          "77": "est"
+        }
       }
     },
     "etiquettes": {
       "31": {
-        "lon": 1.13848,
-        "lat": 43.3342
+        "lon": 2.34495,
+        "lat": 43.33561
       },
       "47": {
-        "lon": 0.48114,
-        "lat": 44.39216
+        "lon": 1.42666,
+        "lat": 44.39236
       },
       "77": {
-        "lon": 2.92055,
-        "lat": 48.66013
+        "lon": 3.71277,
+        "lat": 48.66039
       },
       "82": {
-        "lon": 1.21715,
-        "lat": 44.06246
+        "lon": 2.33577,
+        "lat": 44.06294
       }
     }
   }

@@ -60,6 +60,46 @@ CSS = """
 .st-key-signal button:hover { background: #F0AC83; color: #1B1F1D; }
 .st-key-signal button p { color: #1B1F1D !important; font-weight: 600; }
 .stMain .block-container .rg-pied { padding: 24px 0 0; font-size: 12px; color: #4A514D; }
+.rg-tuile { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 16px; }
+.rg-tuile-libelle { font-size: 13px; color: #4A514D; }
+.rg-tuile-valeur { font-size: 26px; font-weight: 700; line-height: 1.2; color: #1B1F1D; }
+.rg-tuile-complement { font-size: 15px; font-weight: 500; color: #4A514D; }
+.rg-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; box-shadow: inset 0 0 0 1px rgba(27, 31, 29, 0.12); }
+.stMain .block-container .st-key-carte_gauche { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 12px; gap: 8px; }
+.st-key-carte_gauche [data-testid="stDeckGlJsonChart"] { border-radius: 6px; overflow: hidden; }
+.rg-note-carte { margin: 0; font-size: 12px; color: #4A514D; }
+.stMain .block-container .st-key-onglet_carte { gap: 16px; }
+.st-key-onglet_carte [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
+.rg-sous-carte { display: flex; flex-direction: column; gap: 12px; }
+.rg-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12px; color: #2F3532; }
+.rg-legende > span { display: inline-flex; align-items: center; }
+.rg-legende .rg-sw { vertical-align: middle; margin-right: 5px; flex: none; }
+.rg-legende .rg-sw.rg-sw-anneau { margin: 0 9px 0 4px; }
+.rg-phrase-carte { margin: 0; font-size: 13px; color: #4A514D; }
+.stMain .block-container .st-key-fiche_vide { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 20px 22px; }
+.st-key-fiche_vide [data-testid="stVerticalBlock"] { align-items: center; text-align: center; gap: 10px; }
+.rg-invite { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.rg-invite-rond { width: 56px; height: 56px; border-radius: 50%; background: #FBF3EC; display: flex; align-items: center; justify-content: center; }
+.rg-invite-titre { margin: 0; font-size: 16px; font-weight: 700; color: #1F2420; }
+.rg-invite-texte { margin: 0; font-size: 14px; color: #4A514D; max-width: 300px; }
+.st-key-recherche [data-baseweb="select"] > div:first-child,
+.st-key-recherche [data-testid="stSelectbox"] div[role="combobox"],
+.st-key-recherche [data-testid="stSelectbox"] div:has(> input[role="combobox"]) { border: 1.5px solid #C2410C !important; }
+.rg-fiche { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+.rg-fiche-dep { font-size: 13px; color: #4A514D; }
+.rg-fiche-nom { font-size: 22px; font-weight: 700; line-height: 1.2; color: #1B1F1D; }
+.rg-fiche-libelle { font-size: 13px; color: #4A514D; }
+.rg-fiche-ecart { display: flex; align-items: baseline; gap: 12px; margin-top: -6px; }
+.rg-fiche-chiffre { font-size: 44px; font-weight: 700; line-height: 1; }
+.rg-fiche-ic { font-size: 15px; color: #2F3532; }
+.rg-pastille { align-self: flex-start; background: #EEF0EC; border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 600; color: #2F3532; }
+.rg-cases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rg-case { background: #F4F5F2; border-radius: 8px; padding: 8px 10px; }
+.rg-case-libelle { font-size: 12px; color: #4A514D; line-height: 1.3; }
+.rg-case-valeur { font-size: 18px; font-weight: 700; color: #1B1F1D; }
+.rg-note { margin-top: 4px; }
+.rg-note-titre { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #7A3410; font-weight: 700; margin-bottom: 6px; }
+.rg-note p { margin: 0; font-size: 14px; color: #2F3532; }
 """
 
 
@@ -156,6 +196,95 @@ def html_signal(titre: str, nombre: str, texte: str, note: str) -> str:
 
 def html_pied(texte: str) -> str:
     return f'<div class="rg-pied">{_e(texte)}</div>'
+
+
+def html_pastille(couleur: str, opacite: float = 1.0) -> str:
+    return f'<span class="rg-sw" style="background:{couleur};opacity:{opacite}"></span>'
+
+
+def html_tuile(libelle: str, valeur: str, complement: str = "", couleur: str | None = None,
+               opacite: float = 1.0) -> str:
+    """Tuile du bandeau de l'onglet Carte (texte échappé ; `couleur` vient de textes.py)."""
+    pastille = html_pastille(couleur, opacite) if couleur else ""
+    suite = f' <span class="rg-tuile-complement">{_e(complement)}</span>' if complement else ""
+    return (
+        '<div class="rg-tuile">'
+        f'<div class="rg-tuile-libelle">{pastille}{_e(libelle)}</div>'
+        f'<div class="rg-tuile-valeur">{_e(valeur)}{suite}</div></div>'
+    )
+
+
+def html_legende(elements: list[tuple[str, str, float, bool]]) -> str:
+    """Légende sous la carte : (couleur, libellé, opacité, avec anneau de sélection) ; « · » entre les groupes."""
+    morceaux = []
+    for couleur, libelle, opacite, anneau in elements:
+        if not couleur:
+            morceaux.append('<span style="color:#4A514D">·</span>')
+            continue
+        style = f"background:{couleur};opacity:{opacite}" + (";box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #1B1F1D" if anneau else "")
+        classe = "rg-sw rg-sw-anneau" if anneau else "rg-sw"
+        morceaux.append(f'<span><span class="{classe}" style="{style}"></span>{_e(libelle)}</span>')
+    return f'<div class="rg-legende">{"".join(morceaux)}</div>'
+
+
+def html_phrase_carte(texte: str) -> str:
+    return f'<p class="rg-phrase-carte">{_e(texte)}</p>'
+
+
+def html_note_carte(texte: str) -> str:
+    return f'<p class="rg-note-carte">{_e(texte)}</p>'
+
+
+# Icône de clic (flèche de pointage et trois traits de clic), 32 px, tracée en SVG : l'icône Material
+# de Streamlit impose sa couleur et sa taille et ne se laisse pas styler
+SVG_CLIC = (
+    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.8" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M9 9l10 4-4.2 1.6L13 19z" fill="#C2410C"/>'
+    '<path d="M7.2 3.8l1 2.4M3.8 7.2l2.4 1M4.2 3.2l2.2 2.2"/></svg>'
+)
+
+
+def html_fiche_vide(titre: str, texte: str) -> str:
+    """Fiche sans commune : icône de clic dans un rond beige, titre en gras, invite."""
+    return (
+        '<div class="rg-invite">'
+        f'<div class="rg-invite-rond">{SVG_CLIC}</div>'
+        f'<p class="rg-invite-titre">{_e(titre)}</p>'
+        f'<p class="rg-invite-texte">{_e(texte)}</p>'
+        '</div>'
+    )
+
+
+def html_sous_carte(note: str, legende: str, phrase: str) -> str:
+    """Note de position et fond de carte, légende, puis phrase des tests multiples, séparées de 12 px
+    (HTML déjà échappé par leurs fabriques)."""
+    return f'<div class="rg-sous-carte">{note}{legende}{phrase}</div>'
+
+
+def html_fiche(departement: str, nom: str, libelle: str, chiffre: str, couleur_chiffre: str, ic: str,
+               statut: str, cases: list[tuple[str, str]], note: str, titre_note: str, estimable: bool) -> str:
+    """Fiche d'une commune (colonne de droite). Estimable : note beige ; sinon encadré gris sans titre."""
+    cases_html = "".join(
+        f'<div class="rg-case"><div class="rg-case-libelle">{_e(l)}</div><div class="rg-case-valeur">{_e(v)}</div></div>'
+        for l, v in cases
+    )
+    if estimable:
+        encadre = (
+            '<div class="rg-encadre rg-beige rg-note">'
+            f'<div class="rg-note-titre">{_e(titre_note)}</div><p>{_e(note)}</p></div>'
+        )
+    else:
+        encadre = f'<div class="rg-encadre rg-gris rg-note"><p>{_e(note)}</p></div>'
+    ic_html = f'<span class="rg-fiche-ic">{_e(ic)}</span>' if ic else ""
+    return (
+        '<aside class="rg-fiche">'
+        f'<div><div class="rg-fiche-dep">{_e(departement)}</div><div class="rg-fiche-nom">{_e(nom)}</div></div>'
+        f'<div class="rg-fiche-libelle">{_e(libelle)}</div>'
+        f'<div class="rg-fiche-ecart"><span class="rg-fiche-chiffre" style="color:{couleur_chiffre}">{_e(chiffre)}</span>{ic_html}</div>'
+        f'<span class="rg-pastille">{_e(statut)}</span>'
+        f'<div class="rg-cases">{cases_html}</div>{encadre}</aside>'
+    )
 
 
 def entete(surtitre: str, titre: str) -> None:

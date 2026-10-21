@@ -1,121 +1,95 @@
-"""Carte des communes : couleurs, info-bulles, filtres, cadrage. Fonctions pures (sans Streamlit).
+"""Carte en carrés : couleurs, info-bulles, cadrage, étiquettes. Fonctions pures (sans Streamlit).
 
-Orange = décote, bleu = prime, gris = non estimable (pas de rouge ni de vert). Une couleur pâle
-signale un intervalle de confiance qui contient 0. Les libellés viennent de textes.py.
+Orange = décote, bleu = écart positif, gris = non estimable (pas de rouge ni de vert). Une couleur
+pâle signale un statut « indéterminé ». La palette et les libellés viennent de textes.py.
 """
 
-import html
 import math
 
 import donnees
 import textes
 
-# Cinq classes de l'écart observé (textes.BORNES_CLASSES), de la décote la plus forte à la plus forte prime
-COULEURS_CLASSES = ((179, 84, 6), (241, 163, 64), (233, 236, 239), (143, 184, 222), (43, 108, 176))
-GRIS = (140, 140, 140)
-ALPHA_PLEIN, ALPHA_PALE, ALPHA_NON_ESTIMABLE = 230, 110, 100
-COULEUR_ECARTEE = [225, 225, 225, 45]
-
-# Contours en pixels (donc indépendants du zoom) : communes fines et claires, départements marqués.
-# En mètres (unité par défaut de deck.gl), les traits deviendraient énormes à l'échelle du périmètre.
 # pydeck traite toute chaîne comme une expression JavaScript (« pixels » deviendrait « @@=pixels ») :
-# les guillemets internes, retirés par pydeck, envoient la valeur littérale 'pixels'.
-UNITE_LIGNES = "'pixels'"
-LIGNE_COMMUNES = {"couleur": [255, 255, 255, 150], "largeur": 0.7}
-LIGNE_DEPARTEMENTS = {"couleur": [30, 30, 30, 255], "largeur": 2.0}
+# les constantes textuelles s'écrivent avec des guillemets internes, retirés par pydeck.
+UNITE_PIXELS = "'pixels'"
+ALPHA_PLEIN, ALPHA_PALE = 255, round(255 * textes.OPACITE_PALE)
+
+# Fond de carte Carto clair (chargé par le navigateur du visiteur, pas par le serveur) : aide à se situer.
+STYLE_FOND = "light"
+# Zoom avant et déplacement seulement : la molette et le pavé tactile sont désactivés, car la limite
+# min_zoom n'est pas imposée par Streamlit (le dézoom partirait vers le monde entier). Les boutons + et −
+# de la carte restent.
+CONTROLEUR = {"scrollZoom": False}
+LARGEUR_CARTE_PX = 758
+NIVEAUX_ZOOM_COMMUNE = 1       # niveaux de zoom ajoutés au calage commun des carrés (carrés d'environ 50 px)
+CONTOUR_NOIR = {"couleur": [27, 31, 29, 255], "largeur": 4.5}
+CONTOUR_BLANC = {"couleur": [255, 255, 255, 255], "largeur": 1.8}
+ETIQUETTE = {"couleur": [74, 81, 77, 255], "fond": [255, 255, 255, 190], "taille": 11, "police": "'sans-serif'"}
 
 
-def options_couches() -> tuple[dict, dict]:
-    """Options pydeck des couches (communes, limites des départements) : couleurs et traits."""
-    communes = {
-        "get_fill_color": "properties.couleur",
-        "get_line_color": LIGNE_COMMUNES["couleur"],
-        "get_line_width": LIGNE_COMMUNES["largeur"],
-        "line_width_units": UNITE_LIGNES,
-    }
-    departements = {
-        "get_line_color": LIGNE_DEPARTEMENTS["couleur"],
-        "get_line_width": LIGNE_DEPARTEMENTS["largeur"],
-        "line_width_units": UNITE_LIGNES,
-    }
-    return communes, departements
-CENTRE_PAR_DEFAUT = {"latitude": 46.6, "longitude": 2.4, "zoom": 5.0}
+def rgb(hexa: str) -> tuple[int, int, int]:
+    return int(hexa[1:3], 16), int(hexa[3:5], 16), int(hexa[5:7], 16)
 
 
 def hex_classe(classe: int | None) -> str:
-    """Couleur de la légende (pleine opacité)."""
-    r, g, b = GRIS if classe is None else COULEURS_CLASSES[classe]
-    return f"#{r:02x}{g:02x}{b:02x}"
+    """Couleur pleine d'une classe (légende, tuiles) ; gris pour une commune non estimable."""
+    return textes.COULEUR_NON_ESTIMABLE if classe is None else textes.COULEURS_CLASSES[classe]
+
+
+def couleur_texte(classe: int) -> str:
+    """Teinte assombrie de la classe, lisible sur fond blanc (chiffre de la fiche)."""
+    return textes.COULEURS_TEXTE_CLASSES[classe]
 
 
 def couleur(ligne) -> list[int]:
-    """RGBA d'une commune : classe de l'écart, opacité réduite si l'IC contient 0, gris si non estimable."""
+    """RGBA d'un carré : couleur de la classe de l'écart, pâle si indéterminé, gris si non estimable."""
     if ligne["statut"] != "estimable":
-        return [*GRIS, ALPHA_NON_ESTIMABLE]
-    classe = textes.classe_prime(ligne["prime"])
-    alpha = ALPHA_PLEIN if ligne["significatif"] in ("decote", "prime") else ALPHA_PALE
-    return [*COULEURS_CLASSES[classe], alpha]
+        return [*rgb(textes.COULEUR_NON_ESTIMABLE), ALPHA_PLEIN]
+    alpha = ALPHA_PALE if ligne["statut_decote"] == "indetermine" else ALPHA_PLEIN
+    return [*rgb(textes.COULEURS_CLASSES[textes.classe_prime(ligne["prime"])]), alpha]
 
 
-def info_bulle(ligne) -> str:
-    """HTML de l'info-bulle (texte échappé : les noms viennent des données)."""
-    lignes = [html.escape(t) for t in textes.lignes_info_bulle(ligne)]
-    return f"<b>{lignes[0]}</b><br/>" + "<br/>".join(lignes[1:])
-
-
-def preparer_carte(communes, contours: dict) -> list[dict]:
-    """Entités GeoJSON avec leurs propriétés d'affichage (couleur, info-bulle) jointes sur code_insee."""
+def preparer_carres(communes, carres: dict) -> list[dict]:
+    """Entités GeoJSON des carrés avec leurs propriétés d'affichage, jointes sur code_insee."""
     lignes = {ligne["code_insee"]: ligne for _, ligne in communes.iterrows()}
-    codes_contours = {e["properties"]["code_insee"] for e in contours["features"]}
-    sans_contour = sorted(set(lignes) - codes_contours)
-    sans_commune = sorted(codes_contours - set(lignes))
-    if sans_contour or sans_commune:
+    codes_carres = {e["properties"]["code_insee"] for e in carres["features"]}
+    sans_carre = sorted(set(lignes) - codes_carres)
+    sans_commune = sorted(codes_carres - set(lignes))
+    if sans_carre or sans_commune:
         raise donnees.ErreurDonneesApp(
-            f"Communes et contours ne correspondent pas : {len(sans_contour)} commune(s) sans contour, "
-            f"{len(sans_commune)} contour(s) sans commune."
+            f"Communes et carrés ne correspondent pas : {len(sans_carre)} commune(s) sans carré, "
+            f"{len(sans_commune)} carré(s) sans commune."
         )
     entites = []
-    for entite in contours["features"]:
+    for entite in carres["features"]:
         code = entite["properties"]["code_insee"]
         ligne = lignes[code]
         proprietes = {
-            "code_insee": code, "nom": ligne["nom"], "departement": ligne["departement"],
-            "estimable": bool(ligne["statut"] == "estimable"),
-            "significatif": bool(ligne["significatif"] in ("decote", "prime")),
-            "couleur": couleur(ligne), "info": info_bulle(ligne),
+            # propriétés minimales : tout est renvoyé au navigateur à chaque exécution (le nom est dans « info »)
+            "code_insee": code, "departement": ligne["departement"],
+            "couleur": couleur(ligne), "info": textes.texte_info_bulle(ligne),
         }
         entites.append({"type": "Feature", "geometry": entite["geometry"], "properties": proprietes})
     return entites
 
 
-def filtrer(entites: list[dict], departements: list[str], significatives_seulement: bool) -> list[dict]:
-    """Les communes écartées par un filtre restent sur la carte, en gris très pâle."""
-    resultat = []
-    for entite in entites:
-        p = entite["properties"]
-        gardee = p["departement"] in departements and (p["significatif"] or not significatives_seulement)
-        if not gardee:
-            p = {**p, "couleur": COULEUR_ECARTEE, "info": f"<b>{html.escape(p['nom'])}</b><br/>hors filtre"}
-        resultat.append({**entite, "properties": p})
-    return resultat
+def carres_de_la_zone(entites: list[dict], zone: str) -> list[dict]:
+    departements = textes.ZONES[zone]
+    return [e for e in entites if e["properties"]["departement"] in departements]
 
 
-def limites_exterieures(departements: dict) -> dict:
-    """Limites des départements sans leurs trous : seul l'anneau extérieur de chaque polygone est gardé.
+def collection(entites: list[dict]) -> dict:
+    return {"type": "FeatureCollection", "features": entites}
 
-    L'union simplifiée des communes garde des centaines de trous (interstices entre communes
-    voisines, docs/app.md) : tracés en sombre, ils redessineraient presque toutes les frontières
-    communales. Affichage seulement : le fichier n'est pas modifié.
-    """
-    entites = []
-    for entite in departements["features"]:
-        geometrie = entite["geometry"]
-        if geometrie["type"] == "MultiPolygon":
-            nouvelle = {"type": "MultiPolygon", "coordinates": [[polygone[0]] for polygone in geometrie["coordinates"]]}
-        else:
-            nouvelle = {"type": "Polygon", "coordinates": [geometrie["coordinates"][0]]}
-        entites.append({**entite, "geometry": nouvelle})
-    return {**departements, "features": entites}
+
+def etiquettes_zone(resume: dict, zone: str) -> list[dict]:
+    """Une étiquette par département de la zone : texte en capitales et position (lon, lat)."""
+    etiquettes = resume["carres"]["etiquettes"]
+    return [
+        {"position": [etiquettes[dep]["lon"], etiquettes[dep]["lat"]],
+         "texte": f"{textes.nom_departement(dep)} · {dep}".upper()}
+        for dep in textes.ZONES[zone] if dep in etiquettes
+    ]
 
 
 def _points(coordonnees):
@@ -127,15 +101,71 @@ def _points(coordonnees):
             yield from _points(element)
 
 
-def vue_initiale(entites: list[dict], largeur_px: int = 900) -> dict:
-    """Centre et zoom (deck.gl) qui cadrent les entités ; vue de la France si la liste est vide."""
-    points = [p for e in entites for p in _points(e["geometry"]["coordinates"])]
-    if not points:
-        return dict(CENTRE_PAR_DEFAUT)
+def _mercator(latitude: float) -> float:
+    return math.log(math.tan(math.pi / 4 + math.radians(latitude) / 2))
+
+
+def emprise_de_zone(resume: dict, zone: str) -> list[float] | None:
+    """[lon_min, lat_min, lon_max, lat_max] des carrés et des étiquettes de la zone (pipeline), None si absente."""
+    for z in resume["carres"].get("zones", {}).values():
+        if tuple(z.get("departements", ())) == textes.ZONES[zone]:
+            return z.get("emprise")
+    return None
+
+
+def vue_commune(vue: dict, entite: dict, resume: dict, zone: str) -> dict:
+    """Vue centrée sur le carré d'une commune, avec des carrés de la même taille à l'écran dans toutes les zones.
+
+    Taille visée = `NIVEAUX_ZOOM_COMMUNE` niveaux de plus que le plus grand `largeur_carre_px` de la clé
+    `carres` (la zone aux carrés les plus gros) ; zoom = zoom de la zone + log2(taille visée / taille de la
+    zone). Le zoom minimal reste celui de la zone.
+    """
+    zones = resume["carres"].get("zones", {})
+    tailles = [z["largeur_carre_px"] for z in zones.values() if z.get("largeur_carre_px")]
+    actuelle = next((z.get("largeur_carre_px") for z in zones.values()
+                     if tuple(z.get("departements", ())) == textes.ZONES[zone]), None)
+    points = list(_points(entite["geometry"]["coordinates"]))
     lons, lats = [p[0] for p in points], [p[1] for p in points]
-    etendue = max(max(lons) - min(lons), 1.6 * (max(lats) - min(lats)), 1e-3)
-    zoom = min(12.0, math.log2(360 * largeur_px / 512 / etendue))
-    return {"latitude": (min(lats) + max(lats)) / 2, "longitude": (min(lons) + max(lons)) / 2, "zoom": round(zoom - 0.2, 2)}
+    zoom = vue["zoom"]
+    if tailles and actuelle:
+        zoom += math.log2(max(tailles) / actuelle) + NIVEAUX_ZOOM_COMMUNE
+    milieu = (_mercator(min(lats)) + _mercator(max(lats))) / 2
+    return {
+        **vue,
+        "latitude": round(math.degrees(2 * math.atan(math.exp(milieu)) - math.pi / 2), 5),
+        "longitude": round((min(lons) + max(lons)) / 2, 5),
+        "zoom": round(zoom, 2),
+    }
+
+
+def vue_zone(entites: list[dict], largeur_px: int = LARGEUR_CARTE_PX, hauteur_px: int = 370,
+             emprise: list[float] | None = None) -> dict:
+    """Centre, zoom et zoom minimal (deck.gl) qui cadrent la zone.
+
+    Le cadrage contient les carrés et, si `emprise` est donnée, les étiquettes des départements.
+    Le zoom minimal est le zoom du cadrage : on ne peut pas dézoomer au-delà de la zone.
+    """
+    points = [p for e in entites for p in _points(e["geometry"]["coordinates"])]
+    if emprise:
+        points += [[emprise[0], emprise[1]], [emprise[2], emprise[3]]]
+    if not points:
+        return {"latitude": 46.6, "longitude": 2.4, "zoom": 5.0, "min_zoom": 4.0}
+    lons, lats = [p[0] for p in points], [p[1] for p in points]
+    largeur = (max(lons) - min(lons)) / 360                          # part de la largeur du monde
+    hauteur = (_mercator(max(lats)) - _mercator(min(lats))) / (2 * math.pi)
+    marge = 0.94                                                      # un peu d'air autour de la zone
+    zoom = min(
+        math.log2(largeur_px * marge / (512 * max(largeur, 1e-6))),
+        math.log2(hauteur_px * marge / (512 * max(hauteur, 1e-6))),
+        12.0,
+    )
+    milieu = (_mercator(min(lats)) + _mercator(max(lats))) / 2
+    return {
+        "latitude": round(math.degrees(2 * math.atan(math.exp(milieu)) - math.pi / 2), 5),
+        "longitude": round((min(lons) + max(lons)) / 2, 5),
+        "zoom": round(zoom, 2),
+        "min_zoom": round(zoom, 2),
+    }
 
 
 def code_selectionne(evenement) -> str | None:

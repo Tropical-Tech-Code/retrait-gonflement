@@ -58,9 +58,41 @@ def test_chiffre_phare_et_phrase_exacte_sur_les_valeurs_du_projet():
     )
 
 
-def test_phrase_estimables():
-    phrase = textes.phrase_estimables(193, 1607)
-    assert f"193 communes sur 1{NB}607" in phrase and "en gris" in phrase and "pâle" in phrase
+def test_phrase_tests_multiples():
+    resume = RESUME | {"n_significatives_decote": 16, "n_significatives_prime": 15, "n_attendu_hasard": 9.65}
+    phrase = textes.phrase_tests_multiples(resume | {"n_communes_estimables": 193})
+    assert phrase == (
+        "Sur 193 communes, 31 montrent un écart net, contre une dizaine attendue par hasard. "
+        "Ces écarts vont autant dans un sens que dans l'autre (16 décotes, 15 primes) : ils reflètent surtout "
+        "des différences entre quartiers, plutôt qu'un problème de terrains argileux."
+    )
+    autre = textes.phrase_tests_multiples(resume | {"n_attendu_hasard": 4.6, "n_significatives_prime": 1})
+    assert "contre 5 attendues par hasard" in autre and "(16 décotes, 1 prime)" in autre
+    assert "Cliquez" not in phrase
+
+
+def test_liste_de_recherche_decotes_puis_separateur_puis_autres():
+    codes = textes.codes_liste(communes_test())
+    assert codes == ["31001", textes.CODE_SEPARATEUR, "31002", "31003", "31004", "31005", "31006"]
+    lignes = communes_test().set_index("code_insee", drop=False)
+    assert textes.libelle_liste(lignes.loc["31001"]) == "Aucamville (31) · décote"
+    assert textes.libelle_liste(lignes.loc["31002"]) == "Balma (31)"
+    assert textes.libelle_liste(lignes.loc["31005"]) == "Escalquens (31)"
+
+
+def test_noms_de_departements_identiques_a_ceux_du_pipeline():
+    from retrait_gonflement.spatial import carres      # le pipeline estime la largeur des étiquettes avec ces noms
+    assert carres.NOMS_DEPARTEMENTS == textes.NOMS_DEPARTEMENTS
+
+
+def test_zones_et_departements_identiques_a_la_config():
+    with open(CONFIG_PAR_DEFAUT, "rb") as f:
+        config = tomllib.load(f)
+    zones = config["carte"]["zones"]
+    assert sorted(textes.ZONES.values()) == sorted(tuple(departements) for departements in zones.values())
+    perimetre = config["perimetre"]["departements"]
+    assert sorted(textes.NOMS_DEPARTEMENTS) == sorted(perimetre)
+    assert all(textes.zone_de(dep) for dep in perimetre)
 
 
 # ---------------------------------------------------------------- onglet Résultat
@@ -165,45 +197,49 @@ def texte(code):
     return textes.texte_commune(COMMUNES.loc[code], RESUME)
 
 
-def test_texte_commune_en_decote_sinistree():
+def test_texte_commune_en_decote():
     t = texte("31001")
-    assert f"{MOINS}12,0{NB}%" in t and "60 ventes dans le reste de la commune" in t
-    assert "Statut : décote" in t and "Quadrant : Risque intégré" in t
-    assert "5 arrêtés sécheresse sur 2015-2023" in t
-    assert "supérieure à la médiane du périmètre (3 arrêtés ou plus)" in t
+    assert f"L'intervalle va de {MOINS}20,0{NB}% à {MOINS}3,0{NB}% : entièrement sous 0, une décote est mesurée." in t
+    assert "Quadrant : Risque intégré." in t
 
 
 def test_texte_commune_pas_de_decote_cite_le_seuil():
     t = texte("31002")
-    assert f"Statut : pas de décote (la borne basse de l'intervalle est au-dessus de {MOINS}3{NB}%" in t
-    assert "Quadrant : Angle mort" in t
+    assert f"au-dessus de {MOINS}3{NB}%, une décote éventuelle serait faible" in t
+    assert "Quadrant : Angle mort." in t
 
 
 def test_texte_commune_indeterminee_sans_quadrant():
     t = texte("31003")
-    assert "Statut : indéterminé" in t and "Pas de quadrant" in t
-    assert "inférieure ou égale à la médiane du périmètre (2 arrêtés ou moins)" in t
+    assert "trop large pour conclure" in t and "Quadrant" not in t
 
 
-def test_texte_commune_sans_arrete():
-    t = texte("31004")
-    assert "Aucun arrêté sécheresse reconnu sur 2015-2023" in t
+def test_texte_commune_ne_parle_ni_d_arretes_ni_de_prix_median():
+    # les arrêtés sont dans une case de la fiche ; le prix médian n'est plus affiché
+    for code in ("31001", "31004", "31005"):
+        assert "arrêté" not in texte(code) and "médian" not in texte(code)
 
 
 def test_texte_commune_non_estimable_effectifs():
     t = texte("31005")
     assert "n'est pas estimable" in t and "effectifs sont insuffisants" in t
     assert "30 ventes retenues, dont 8 en zone forte" in t and "au moins 15 ventes en zone forte" in t
-    assert "1 arrêté sécheresse" in t and "Quadrant" not in t and "écart de prix observé" not in t
+    assert "Quadrant" not in t and "intervalle" not in t
 
 
 def test_texte_commune_non_estimable_une_seule_zone():
     assert "pas de ventes dans les deux zones" in texte("31006")
 
 
-@pytest.mark.parametrize("code", list(COMMUNES.index))
-def test_texte_se_termine_par_le_rappel(code):
+@pytest.mark.parametrize("code", ["31001", "31002", "31003", "31004"])
+def test_note_estimable_se_termine_par_le_rappel(code):
+    assert texte(code).endswith("ni valeur de la maison, ni causalité.")
     assert texte(code).endswith(textes.RAPPEL)
+
+
+@pytest.mark.parametrize("code", ["31005", "31006"])
+def test_texte_non_estimable_sans_rappel(code):
+    assert textes.RAPPEL not in texte(code)
 
 
 # ---------------------------------------------------------------- vocabulaire imposé
@@ -222,7 +258,11 @@ def textes_resultat():
 
 def tous_les_textes():
     produits = [texte(code) for code in COMMUNES.index]
-    produits += [textes.phrase_estimables(193, 1607), textes.PHRASE_CARTE_2026]
+    produits += [textes.phrase_tests_multiples(RESUME), textes.PHRASE_CARTE_2026, textes.INVITE_COMMUNE,
+                 textes.TITRE_INVITE]
+    produits += [textes.texte_info_bulle(COMMUNES.reset_index().loc[i]) for i in range(len(COMMUNES))]
+    produits += [textes.LEGENDE_PALE, textes.LEGENDE_NON_ESTIMABLE, textes.LEGENDE_SELECTION, textes.LIBELLE_ECART_FICHE]
+    produits += list(textes.LIBELLE_CASES) + [textes.NOMS_DEPARTEMENTS[d] for d in textes.NOMS_DEPARTEMENTS]
     produits += textes_resultat()
     produits += [libelle for _, libelle in textes.legende()]
     produits += [t for definition in textes.DEFINITIONS for t in definition]

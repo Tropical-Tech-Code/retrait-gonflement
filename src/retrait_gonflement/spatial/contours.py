@@ -52,10 +52,12 @@ def arrondir(coordonnees, decimales: int):
     return arrondies
 
 
-def _en_wgs84(con: duckdb.DuckDBPyConnection, requete: str, decimales: int) -> list[tuple]:
-    """`requete` renvoie (cle, g) avec g en Lambert-93 ; résultat : (cle, géométrie GeoJSON arrondie)."""
+def _en_wgs84(
+    con: duckdb.DuckDBPyConnection, requete: str, decimales: int, projection: str = LAMBERT93
+) -> list[tuple]:
+    """`requete` renvoie (cle, g) avec g dans `projection` (Lambert-93 par défaut) ; résultat : (cle, GeoJSON arrondi)."""
     lignes = con.execute(
-        f"SELECT cle, ST_AsGeoJSON(ST_Transform(g, '{LAMBERT93}', '{WGS84}', always_xy := true)) "
+        f"SELECT cle, ST_AsGeoJSON(ST_Transform(g, '{projection}', '{WGS84}', always_xy := true)) "
         f"FROM ({requete}) ORDER BY cle"
     ).fetchall()
     resultat = []

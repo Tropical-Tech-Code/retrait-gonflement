@@ -25,7 +25,7 @@ CLES_RESUME = (
     "periode", "modeles_globaux", "date_generation", "n_communes_estimables", "n_significatives_decote",
     "n_significatives_prime", "n_attendu_hasard", "n_attendu_par_sens", "n_decote", "n_pas_de_decote",
     "n_indetermine", "seuil_pas_de_decote", "seuil_prix_median", "primes_communes", "mediane_sinistralite",
-    "n_par_quadrant", "catnat", "nettoyage", "sources",
+    "n_par_quadrant", "catnat", "nettoyage", "sources", "carres",
 )
 
 
@@ -36,8 +36,7 @@ class ErreurDonneesApp(Exception):
 @dataclass(frozen=True)
 class Donnees:
     communes: pd.DataFrame
-    contours: dict
-    departements: dict
+    carres: dict
     resume: dict
 
 
@@ -86,6 +85,8 @@ def lire_resume(dossier_: Path) -> dict:
         manquantes.append("modeles_globaux.principal.contraste_fort_moins_moyen")
     if "fort" not in resume.get("modeles_globaux", {}).get("fort_contre_reste", {}).get("coefficients", {}):
         manquantes.append("modeles_globaux.fort_contre_reste.coefficients.fort")
+    if "etiquettes" not in resume.get("carres", {}):
+        manquantes.append("carres.etiquettes")
     if manquantes:
         raise ErreurDonneesApp(f"Clés absentes de resume_global.json : {', '.join(manquantes)}.")
     return resume
@@ -97,13 +98,8 @@ def charger_communes(dossier_: str) -> pd.DataFrame:
 
 
 @st.cache_data(show_spinner=False)
-def charger_contours(dossier_: str) -> dict:
-    return lire_geojson(Path(dossier_), "contours.geojson", "code_insee")
-
-
-@st.cache_data(show_spinner=False)
-def charger_departements(dossier_: str) -> dict:
-    return lire_geojson(Path(dossier_), "departements.geojson")
+def charger_carres(dossier_: str) -> dict:
+    return lire_geojson(Path(dossier_), "carres.geojson", "code_insee")
 
 
 @st.cache_data(show_spinner=False)
@@ -113,4 +109,4 @@ def charger_resume(dossier_: str) -> dict:
 
 def charger_tout() -> Donnees:
     d = str(dossier())
-    return Donnees(charger_communes(d), charger_contours(d), charger_departements(d), charger_resume(d))
+    return Donnees(charger_communes(d), charger_carres(d), charger_resume(d))
