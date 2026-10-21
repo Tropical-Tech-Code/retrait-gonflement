@@ -8,8 +8,8 @@ import pytest
 IC95 = "ic95_effet"
 
 
-def coefficient(effet, bas, haut):
-    return {"effet": effet, IC95: [bas, haut], "p_valeur": 0.5, "n_ventes_terme": 100}
+def coefficient(effet, bas, haut, p=0.5):
+    return {"effet": effet, IC95: [bas, haut], "p_valeur": p, "n_ventes_terme": 100}
 
 
 def resume_test() -> dict:
@@ -18,6 +18,7 @@ def resume_test() -> dict:
         "date_generation": "2026-10-16",
         "modeles_globaux": {
             "principal": {
+                "n_ventes": 280,
                 "coefficients": {
                     "moyen": coefficient(-0.0338, -0.0671, 0.0008),
                     "fort": coefficient(-0.0250, -0.0509, 0.0016),
@@ -41,7 +42,11 @@ def resume_test() -> dict:
         "primes_communes": {"seuils": {"min_ventes_fort": 15, "min_ventes_reference": 15, "min_ventes_total": 50}},
         "catnat": {"libelle": "Sécheresse", "periode": "2015-2023"},
         "nettoyage": {"n_mutations": 1000, "n_ventes_retenues": 300, "etapes": []},
-        "sources": {"note_date": "Date de téléchargement.", "liste": []},
+        "sources": {"note_date": "Date de téléchargement.", "liste": [
+            {"cle": "dvf", "nom": "DVF géolocalisées (Etalab)"},
+            {"cle": "rga_2020", "nom": "Carte RGA 2020 (Géorisques / BRGM)"},
+            {"cle": "rga_2026", "nom": "Carte RGA 2026 (Géorisques / BRGM)"},
+        ]},
     }
 
 

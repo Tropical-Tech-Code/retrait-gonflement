@@ -9,6 +9,7 @@ import charte
 import donnees
 import textes
 from vues import carte
+from vues import resultat as resultat_vue
 
 st.set_page_config(page_title="Retrait-gonflement et prix des maisons", layout="wide")
 
@@ -32,7 +33,7 @@ def afficher() -> None:
     )
     with resultat:
         if resultat.open:
-            carte.bandeau(tout.resume)  # provisoire, jusqu'à l'étape 4
+            resultat_vue.afficher(tout)
     with sinistralite:
         if sinistralite.open:
             en_construction()

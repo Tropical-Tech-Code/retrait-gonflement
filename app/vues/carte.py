@@ -1,4 +1,4 @@
-"""Page d'accueil : bandeau des résultats globaux, carte des communes et fiche commune."""
+"""Onglet Carte : carte des communes et fiche commune."""
 
 import pandas as pd
 import pydeck as pdk
@@ -13,21 +13,6 @@ import textes
 @st.cache_data(show_spinner=False)
 def entites_carte(dossier: str) -> list[dict]:
     return cartographie.preparer_carte(donnees.charger_communes(dossier), donnees.charger_contours(dossier))
-
-
-def bandeau(resume: dict) -> None:
-    contraste = resume["modeles_globaux"]["principal"]["contraste_fort_moins_moyen"]
-    bas, haut = contraste["ic95_effet"]
-    st.subheader(textes.TITRE_BANDEAU)
-    st.metric("Maisons en zone forte contre maisons en zone moyenne", textes.chiffre_phare(contraste))
-    st.caption(f"Intervalle de confiance à 95 % : {textes.intervalle_pct(bas, haut, 2)}")
-    st.markdown(f"**{textes.phrase_chiffre_phare(contraste, resume['seuil_pas_de_decote'])}**")
-    with st.expander("Détails"):
-        for ligne in textes.lignes_details(resume):
-            st.markdown(f"- {ligne}")
-        st.warning(textes.AVERTISSEMENT_REFERENCE)
-        st.markdown(textes.phrase_indeterminees(resume))
-        st.markdown(textes.PHRASE_CARTE_2026)
 
 
 def legende() -> None:

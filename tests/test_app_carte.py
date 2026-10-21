@@ -50,22 +50,6 @@ def donnees_carte(app) -> dict:
     return couche["data"]
 
 
-def test_la_page_demarre_avec_le_bandeau(resultat):
-    assert not resultat.exception
-    assert resultat.subheader[0].value == textes.TITRE_BANDEAU
-    assert resultat.metric[0].value == f"+0,91{textes.NBSP}%"
-    phrase = f"Aucune décote mesurable : si elle existe, elle ne dépasse pas environ 3{textes.NBSP}%."
-    assert any(phrase in m.value for m in resultat.markdown)
-    assert resultat.expander[0].label == "Détails"
-
-
-def test_le_bloc_details_contient_l_avertissement_et_les_effets(resultat):
-    assert any("petit groupe" in w.value for w in resultat.warning)
-    contenu = " ".join(m.value for m in resultat.markdown)
-    assert "Décote globale « moyen »" in contenu and "Décote globale « fort »" in contenu
-    assert textes.PHRASE_CARTE_2026 in contenu
-
-
 def test_phrases_sous_la_carte(at):
     contenu = [m.value for m in at.markdown]
     assert any(m.startswith("Seules 4 communes sur 6 sont estimables") and "en gris" in m and "pâle" in m for m in contenu)
@@ -138,23 +122,18 @@ def test_fichier_manquant_message_clair(dossier_processed, monkeypatch):
     assert "Fichier manquant : data/processed/resume_global.json" in app.error[0].value
 
 
-def test_vocabulaire_de_la_page(at, resultat):
+def test_vocabulaire_de_la_page(at):
     at.selectbox[0].select("31002").run()
     carte_affichee = textes_affiches(at)
     # l'onglet Carte ne dit jamais « prime de risque implicite » (réservé au résultat global)
     assert not [t for t in carte_affichee if textes.EXPRESSION_RESERVEE in t.lower()]
-    # le titre du bandeau (onglet Résultat) est le seul texte autorisé à le dire
-    bandeau = textes_affiches(resultat)
-    assert [t for t in bandeau if textes.EXPRESSION_RESERVEE in t.lower()] == [textes.TITRE_BANDEAU]
-    for texte in carte_affichee + bandeau:
-        if texte != textes.TITRE_BANDEAU:
-            for interdit in textes.EXPRESSIONS_INTERDITES:
-                assert interdit not in texte.lower(), f"« {interdit} » dans : {texte}"
+    for texte in carte_affichee:
+        for interdit in textes.EXPRESSIONS_INTERDITES:
+            assert interdit not in texte.lower(), f"« {interdit} » dans : {texte}"
 
 
 def test_demarrage_par_le_point_d_entree(resultat):
     assert not resultat.exception
-    assert resultat.metric[0].value == f"+0,91{textes.NBSP}%"
     assert [t.label for t in resultat.tabs] == list(textes.ONGLETS)
     assert any(textes.TITRE_APP in m.value and textes.SURTITRE in m.value for m in resultat.markdown)
     assert not resultat.sidebar.children

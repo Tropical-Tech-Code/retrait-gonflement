@@ -95,5 +95,60 @@ def test_intervalle_pct_jamais_de_zero_signe():
         assert "+0,0" not in sortie and f"{textes.MOINS}0,0" not in sortie
 
 
-def test_intervalle_pct_deux_decimales():
-    assert textes.intervalle_pct(-0.0289, 0.0486, 2) == f"[−2,89{textes.NBSP}% ; +4,86{textes.NBSP}%]"
+def test_intervalle_pct_une_decimale():
+    assert textes.intervalle_pct(-0.0289, 0.0486) == f"[−2,9{textes.NBSP}% ; +4,9{textes.NBSP}%]"
+    with pytest.raises(TypeError):
+        textes.intervalle_pct(-0.0289, 0.0486, 2)
+
+
+def test_barre_fourchette_positions_et_axe():
+    sortie = charte.html_barre_fourchette(0.0091, -0.0289, 0.0486, -0.03, "description")
+    # axe de −6 % à +6 % : 0 au milieu, seuil (−3 %) à 25 %, estimation (+0,91 %) à 57,58 %
+    assert 'left:50.00%;top:16px' in sortie and 'left:25.00%;top:10px' in sortie
+    assert 'left:57.58%;top:23px' in sortie
+    assert f"{textes.MOINS}3{textes.NBSP}% : seuil" in sortie and 'aria-label="description"' in sortie
+
+
+def test_barre_fourchette_elargit_l_axe_si_l_ic_depasse():
+    etroit = charte.html_barre_fourchette(0.0, -0.01, 0.01, -0.03, "d")
+    large = charte.html_barre_fourchette(0.0, -0.10, 0.05, -0.03, "d")
+    assert f"{textes.MOINS}6{textes.NBSP}%" in etroit and f"{textes.MOINS}12{textes.NBSP}%" in large
+
+
+def test_composants_echappent_le_texte():
+    assert "<i>" not in charte.html_bloc_gris("t <i>", ["a <i>"])
+    assert "<i>" not in charte.html_signal("t <i>", "9", "x <i>", "y <i>")
+    assert "<i>" not in charte.html_pied("a <i>")
+
+
+def test_css_espacements_de_l_onglet_resultat():
+    # même spécificité que la règle générale des blocs verticaux (sinon elle l'emporte)
+    assert ".stMain .block-container .st-key-droite { gap: 20px; }" in charte.CSS
+    assert ".stMain .block-container .st-key-signal {" in charte.CSS and "gap: 16px;" in charte.CSS
+    assert '.st-key-signal [data-testid="stButton"] { margin: auto 0 0; }' in charte.CSS
+
+
+def test_css_colonne_de_droite_etiree_et_limitee_aux_conteneurs_a_cle():
+    regles = [r for r in charte.CSS.splitlines() if "st-key-resultat" in r or "st-key-droite div" in r]
+    assert regles, "règles d'étirement absentes"
+    for regle in regles:
+        # chaque sélecteur de ces règles est précédé du préfixe de la règle générale (charte.py:21)
+        for selecteur in regle.split("{")[0].split(","):
+            assert selecteur.strip().startswith(".stMain .block-container .st-key-"), selecteur
+    assert "align-items: stretch" in charte.CSS and "flex: 1 1 auto" in charte.CSS
+    # marge et padding bas des colonnes à 0 (écart de 20 px sous l'encadré sombre)
+    assert "> :last-child" in charte.CSS and "{ padding-bottom: 0; }" in charte.CSS and "{ margin-bottom: 0; }" in charte.CSS
+
+
+def test_css_pied_de_page_24px_au_dessus():
+    assert ".stMain .block-container .rg-pied { padding: 24px 0 0;" in charte.CSS
+
+
+def test_colonnes_de_l_onglet_resultat_en_gap_small():
+    source = (APP / "vues" / "resultat.py").read_text(encoding="utf-8")
+    assert 'st.columns([1.5, 1], gap="small")' in source and 'st.container(key="droite")' in source
+
+
+def test_css_du_signal_limite_au_conteneur_a_cle():
+    assert ".st-key-signal button" in charte.CSS and "#E99A68" in charte.CSS
+    assert "\nbutton" not in charte.CSS

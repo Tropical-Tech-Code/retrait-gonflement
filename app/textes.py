@@ -18,10 +18,9 @@ TITRE_APP = "Le marché distingue-t-il les zones d'argile forte et moyenne ?"
 ONGLETS = ("Résultat", "Sinistralité × écart", "Carte", "Méthodologie et limites")
 EN_CONSTRUCTION = "En construction."
 
-# Vocabulaire : « prime de risque implicite » est réservé au résultat global (bandeau et page
-# Méthodologie). Les écarts communaux ne portent jamais ce nom ni « effet de l'argile ».
+# Vocabulaire : « prime de risque implicite » est réservé au résultat global (page Méthodologie,
+# README). Les écarts communaux ne portent jamais ce nom ni « effet de l'argile ».
 EXPRESSION_RESERVEE = "prime de risque implicite"
-TITRE_BANDEAU = "Prime de risque implicite : écart de prix entre zone forte et zone moyenne"
 EXPRESSIONS_INTERDITES = ("effet de l'argile", "risque élevé", "valeur de votre maison", "prime de risque")
 
 ECART = "écart de prix observé entre zone forte et reste de la commune"
@@ -34,12 +33,6 @@ PHRASE_CARTE_2026 = (
 RAPPEL = (
     "Un écart moyen observé n'est ni une estimation de la valeur d'une maison, "
     "ni une preuve de causalité."
-)
-AVERTISSEMENT_REFERENCE = (
-    "La référence « faible ou hors zone argileuse » est un petit groupe aux caractéristiques "
-    "propres, dont la composition varie selon les départements. Ces deux effets peuvent donc "
-    "refléter autre chose que l'argile : c'est pourquoi le chiffre phare compare « fort » à "
-    "« moyen », deux groupes plus nombreux et plus proches."
 )
 
 STATUTS_DECOTE = {"decote": "décote", "pas_de_decote": "pas de décote", "indetermine": "indéterminé"}
@@ -84,9 +77,9 @@ def pct(fraction: float, decimales: int = 1, signe: bool = False) -> str:
     return f"{prefixe}{_nombre(valeur, decimales)}{NBSP}%"
 
 
-def intervalle_pct(bas: float, haut: float, decimales: int = 1) -> str:
-    """[−2,9 % ; +4,9 %] : notation unique des intervalles (signe + affiché, « 0,0 % » sans signe)."""
-    return f"[{pct(bas, decimales, True)} ; {pct(haut, decimales, True)}]"
+def intervalle_pct(bas: float, haut: float) -> str:
+    """[−2,9 % ; +4,9 %] : notation unique des intervalles, une décimale (signe + affiché, « 0,0 % » sans signe)."""
+    return f"[{pct(bas, 1, True)} ; {pct(haut, 1, True)}]"
 
 
 def date_fr(iso: str | None) -> str:
@@ -136,28 +129,103 @@ def phrase_chiffre_phare(contraste: dict, seuil: float) -> str:
 
 
 def chiffre_phare(contraste: dict) -> str:
-    """+0,91 % (deux décimales, comme dans la documentation)."""
-    return pct(contraste["effet"], 2, True)
+    """+0,9 % (une décimale, comme les intervalles)."""
+    return pct(contraste["effet"], 1, True)
 
 
-def ligne_effet(libelle: str, coefficient: dict) -> str:
-    bas, haut = coefficient["ic95_effet"]
-    return f"{libelle} : {pct(coefficient['effet'], 2, True)} {intervalle_pct(bas, haut, 2)}"
+# ---------------------------------------------------------------- onglet Résultat
+
+SURTITRE_RESULTAT = "Résultat principal"
+LIBELLE_CHIFFRE = "Écart de prix des maisons en zone forte par rapport à la zone moyenne"
+MENTION_IC = "IC 95 %"
+TITRE_TESTE = "Ce qui a vraiment été testé"
+TESTE_NEUTRE = "L'écart avec les maisons hors zone argileuse n'est pas une décote nette."
+TESTE_CONCLUSION = (
+    "L'étude ne dit donc pas si le marché fait payer le risque argileux. "
+    "Elle dit qu'il ne distingue pas nettement exposition moyenne et forte."
+)
+TITRE_SIGNAL = "Signal faible"
+SIGNAL_NOTE = "Des angles morts possibles, à surveiller. Une hypothèse, pas une prédiction."
+BOUTON_SIGNAL = f"Voir {ONGLETS[1]} →"
+PIED_CALCULS = "Calculs faits hors ligne"
+PIED_CAUSALITE = "Corrélation, pas causalité"
+# Sources citées au pied de l'onglet (clés de resume["sources"]["liste"]) ; la carte 2026 est
+# réservée à la Méthodologie (elle ne sert pas au résultat principal).
+SOURCES_PIED = ("dvf", "rga_2020", "gaspar", "communes")
 
 
-def lignes_details(resume: dict) -> list[str]:
-    """Contenu du bloc « Détails » du bandeau (l'avertissement est AVERTISSEMENT_REFERENCE)."""
-    principal = resume["modeles_globaux"]["principal"]["coefficients"]
-    reste = resume["modeles_globaux"]["fort_contre_reste"]["coefficients"]["fort"]
-    n_dec, n_prime = resume["n_significatives_decote"], resume["n_significatives_prime"]
-    return [
-        ligne_effet("Décote globale « moyen » (contre faible ou hors zone argileuse)", principal["moyen"]),
-        ligne_effet("Décote globale « fort » (contre faible ou hors zone argileuse)", principal["fort"]),
-        ligne_effet("Global « fort contre tout le reste » (même définition que les écarts communaux)", reste),
-        f"Communes estimables : {entier(resume['n_communes_estimables'])}.",
-        f"Communes significatives : {entier(n_dec + n_prime)} observées ({entier(n_dec)} en décote, "
-        f"{entier(n_prime)} en prime), contre environ {entier(round(resume['n_attendu_hasard']))} attendues par hasard.",
-    ]
+def phrase_reponse(contraste: dict, seuil: float) -> str:
+    cas = cas_chiffre_phare(contraste, seuil)
+    if cas == "decote":
+        return "Les maisons en zone forte se vendent moins cher que celles en zone moyenne."
+    if cas == "positif":
+        return "Pas de décote : les maisons en zone forte ne se vendent pas moins cher que celles en zone moyenne."
+    return "Pas de différence de prix détectable entre zone d'argile forte et zone moyenne."
+
+
+def phrase_lecture(contraste: dict, seuil: float) -> str:
+    """Lecture du chiffre phare (règle du 17/10 pour X) ; autres cas : phrase du bandeau."""
+    if cas_chiffre_phare(contraste, seuil) != "aucune_decote":
+        return phrase_chiffre_phare(contraste, seuil)
+    x = max(1, math.floor(-contraste["ic95_effet"][0] * 100 + 0.5))
+    return (
+        f"Si une décote existe, elle ne dépasse probablement pas environ {x}{NBSP}%. "
+        "Ne pas détecter de décote ne prouve pas qu'il n'y en a pas."
+    )
+
+
+def effectifs_ventes(resume: dict) -> tuple[int, str]:
+    """Ventes de l'estimation du modèle principal ; à défaut, ventes retenues par le nettoyage."""
+    n = resume["modeles_globaux"]["principal"].get("n_ventes")
+    if n is not None:
+        return int(n), "ventes"
+    return int(resume["nettoyage"]["n_ventes_retenues"]), "ventes retenues"
+
+
+def ligne_effectifs(resume: dict, n_departements: int) -> str:
+    n_ventes, libelle = effectifs_ventes(resume)
+    debut, fin = resume["periode"]
+    return (
+        f"{LIBELLE_CHIFFRE} · {entier(n_ventes)} {libelle} · {pluriel(n_departements, 'département')} "
+        f"· {debut}-{fin}"
+    )
+
+
+def _p(valeur: float) -> str:
+    return _nombre(valeur, 2)
+
+
+def paragraphe_teste(principal: dict) -> str:
+    """Premier paragraphe de l'encadré « Ce qui a vraiment été testé » (modèle principal).
+
+    Écarts « moyen » et « fort » contre la référence, rangés ; « fragile » seulement si les deux p
+    sont au moins 0,01. Si un des deux effets est positif ou nul, « moins cher » serait faux : phrase neutre.
+    """
+    coefficients = [principal["coefficients"]["moyen"], principal["coefficients"]["fort"]]
+    if any(c["effet"] >= 0 for c in coefficients):
+        return TESTE_NEUTRE
+    ecarts = sorted(round(-c["effet"] * 100, 1) for c in coefficients)
+    p1, p2 = sorted(c["p_valeur"] for c in coefficients)
+    ecart = _nombre(ecarts[0], 1) if ecarts[0] == ecarts[1] else f"{_nombre(ecarts[0], 1)} à {_nombre(ecarts[1], 1)}"
+    debut = (
+        f"Les maisons des deux zones exposées se vendent {ecart}{NBSP}% moins cher que les rares maisons "
+        "hors zone argileuse ou en zone faible. "
+    )
+    if p1 < 0.01:
+        return debut + "Cet écart est net, mais ce petit groupe diffère par d'autres traits que l'argile."
+    plage = f"p ≈ {_p(p1)}" if _p(p1) == _p(p2) else f"p ≈ {_p(p1)} à {_p(p2)}"
+    return debut + f"Cet écart est fragile ({plage}), et ce petit groupe diffère par d'autres traits que l'argile."
+
+
+def phrase_signal(n_angle_mort: int) -> str:
+    """Texte à droite du grand nombre de l'encadré « Signal faible »."""
+    verbe = "commune cumule" if n_angle_mort in (0, 1) else "communes cumulent"
+    return f"{verbe} une sinistralité supérieure à la médiane du périmètre et l'absence de décote."
+
+
+def sources_pied(resume: dict) -> str:
+    noms = [s["nom"] for cle in SOURCES_PIED for s in resume["sources"]["liste"] if s["cle"] == cle]
+    return " · ".join([f"Sources : {', '.join(noms)}" if noms else "Sources", PIED_CALCULS, PIED_CAUSALITE])
 
 
 def phrase_estimables(n_estimables: int, n_communes: int) -> str:

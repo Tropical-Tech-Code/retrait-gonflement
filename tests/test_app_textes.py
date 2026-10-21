@@ -22,7 +22,7 @@ def test_formats_francais():
     assert textes.pct(-0.0289) == f"{MOINS}2,9{NB}%"
     assert textes.pct(0.0091, 2, True) == f"+0,91{NB}%"
     assert textes.pct(0.0, 1, True) == f"0,0{NB}%"
-    assert textes.intervalle_pct(-0.0289, 0.0486, 2) == f"[{MOINS}2,89{NB}% ; +4,86{NB}%]"
+    assert textes.intervalle_pct(-0.0289, 0.0486) == f"[{MOINS}2,9{NB}% ; +4,9{NB}%]"
     assert textes.entier(82525) == f"82{NB}525"
     assert textes.entier(193) == "193"
     assert textes.date_fr("2026-10-15") == "15/10/2026"
@@ -52,19 +52,83 @@ def test_phrase_chiffre_phare(bas, haut, cas, fragment):
 
 def test_chiffre_phare_et_phrase_exacte_sur_les_valeurs_du_projet():
     c = RESUME["modeles_globaux"]["principal"]["contraste_fort_moins_moyen"]
-    assert textes.chiffre_phare(c) == f"+0,91{NB}%"
+    assert textes.chiffre_phare(c) == f"+0,9{NB}%"
     assert textes.phrase_chiffre_phare(c, SEUIL) == (
         f"Aucune décote mesurable : si elle existe, elle ne dépasse pas environ 3{NB}%."
     )
 
 
-def test_details_et_estimables():
-    lignes = textes.lignes_details(RESUME)
-    assert len(lignes) == 5
-    assert "« moyen »" in lignes[0] and "« fort »" in lignes[1]
-    assert "attendues par hasard" in lignes[4] and "2 observées" in lignes[4]
+def test_phrase_estimables():
     phrase = textes.phrase_estimables(193, 1607)
     assert f"193 communes sur 1{NB}607" in phrase and "en gris" in phrase and "pâle" in phrase
+
+
+# ---------------------------------------------------------------- onglet Résultat
+
+def principal(effet_moyen, p_moyen, effet_fort, p_fort):
+    return {"coefficients": {"moyen": coefficient(effet_moyen, -0.1, 0.1, p_moyen),
+                             "fort": coefficient(effet_fort, -0.1, 0.1, p_fort)}}
+
+
+def test_paragraphe_teste_variante_fragile_ecarts_et_p_ranges():
+    # moyen -3,38 %, fort -2,50 % : écarts rangés du plus petit au plus grand ; p égaux à deux décimales : un seul
+    assert textes.paragraphe_teste(principal(-0.0338, 0.058, -0.0250, 0.061)) == (
+        f"Les maisons des deux zones exposées se vendent 2,5 à 3,4{NB}% moins cher que les rares maisons "
+        "hors zone argileuse ou en zone faible. Cet écart est fragile (p ≈ 0,06), "
+        "et ce petit groupe diffère par d'autres traits que l'argile."
+    )
+    # p rangés quand ils diffèrent à deux décimales, quel que soit l'ordre moyen / fort
+    assert "p ≈ 0,05 à 0,12" in textes.paragraphe_teste(principal(-0.03, 0.12, -0.02, 0.05))
+
+
+def test_paragraphe_teste_variante_nette():
+    texte = textes.paragraphe_teste(principal(-0.0338, 0.004, -0.0250, 0.2))
+    assert texte.endswith("Cet écart est net, mais ce petit groupe diffère par d'autres traits que l'argile.")
+    assert "fragile" not in texte and "p ≈" not in texte
+
+
+def test_paragraphe_teste_fragile_seulement_si_les_deux_p_au_moins_0_01():
+    assert "fragile" in textes.paragraphe_teste(principal(-0.03, 0.01, -0.02, 0.5))
+    assert "net" in textes.paragraphe_teste(principal(-0.03, 0.0099, -0.02, 0.5))
+
+
+def test_paragraphe_teste_ecarts_identiques():
+    assert f"se vendent 3,0{NB}% moins cher" in textes.paragraphe_teste(principal(-0.03, 0.05, -0.03, 0.06))
+
+
+@pytest.mark.parametrize("effet_moyen, effet_fort", [(0.01, -0.02), (-0.02, 0.01), (0.0, -0.02)])
+def test_paragraphe_teste_phrase_neutre_si_un_effet_est_positif_ou_nul(effet_moyen, effet_fort):
+    texte = textes.paragraphe_teste(principal(effet_moyen, 0.05, effet_fort, 0.05))
+    assert texte == textes.TESTE_NEUTRE and "moins cher" not in texte
+
+
+def test_phrase_lecture_et_reponse():
+    c = contraste(-0.0289, 0.0486)
+    assert textes.phrase_lecture(c, SEUIL) == (
+        f"Si une décote existe, elle ne dépasse probablement pas environ 3{NB}%. "
+        "Ne pas détecter de décote ne prouve pas qu'il n'y en a pas."
+    )
+    assert textes.phrase_reponse(c, SEUIL) == "Pas de différence de prix détectable entre zone d'argile forte et zone moyenne."
+    assert "Trop imprécis" in textes.phrase_lecture(contraste(-0.1, 0.05), SEUIL)
+    assert "moins cher" in textes.phrase_reponse(contraste(-0.08, -0.01), SEUIL)
+
+
+def test_ligne_effectifs_lit_les_ventes_du_modele_puis_le_nettoyage():
+    assert textes.ligne_effectifs(RESUME, 4).endswith(f"· 280 ventes · 4 départements · 2021-2025")
+    sans_modele = {**RESUME, "modeles_globaux": {"principal": {}}}
+    assert f"· 300 ventes retenues ·" in textes.ligne_effectifs(sans_modele, 1)
+    assert "· 1 département ·" in textes.ligne_effectifs(sans_modele, 1)
+
+
+def test_phrase_signal_accord():
+    assert textes.phrase_signal(1).startswith("commune cumule ")
+    assert textes.phrase_signal(9).startswith("communes cumulent ")
+
+
+def test_sources_du_pied_sans_la_carte_2026():
+    pied = textes.sources_pied(RESUME)
+    assert "DVF géolocalisées" in pied and "RGA 2020" in pied and "2026" not in pied
+    assert pied.endswith("Calculs faits hors ligne · Corrélation, pas causalité")
 
 
 # ---------------------------------------------------------------- classes et légende
@@ -144,10 +208,22 @@ def test_texte_se_termine_par_le_rappel(code):
 
 # ---------------------------------------------------------------- vocabulaire imposé
 
+def textes_resultat():
+    principal = RESUME["modeles_globaux"]["principal"]
+    net = {"coefficients": {"moyen": coefficient(-0.034, -0.07, 0.0, p=0.004), "fort": coefficient(-0.025, -0.05, 0.0, p=0.06)}}
+    produits = [textes.paragraphe_teste(principal), textes.paragraphe_teste(net), textes.TESTE_CONCLUSION, textes.TESTE_NEUTRE]
+    produits += [textes.phrase_reponse(contraste(bas, haut), SEUIL) for bas, haut in [(-0.0289, 0.0486), (-0.08, -0.01), (0.01, 0.06)]]
+    produits += [textes.phrase_lecture(contraste(bas, haut), SEUIL) for bas, haut in [(-0.0289, 0.0486), (-0.1, 0.05)]]
+    produits += [textes.phrase_signal(n) for n in (0, 1, 9)]
+    produits += [textes.SURTITRE_RESULTAT, textes.LIBELLE_CHIFFRE, textes.SIGNAL_NOTE, textes.TITRE_SIGNAL, textes.BOUTON_SIGNAL]
+    produits += [textes.ligne_effectifs(RESUME, 4), textes.sources_pied(RESUME)]
+    return produits
+
+
 def tous_les_textes():
     produits = [texte(code) for code in COMMUNES.index]
-    produits += textes.lignes_details(RESUME)
-    produits += [textes.phrase_estimables(193, 1607), textes.AVERTISSEMENT_REFERENCE, textes.PHRASE_CARTE_2026]
+    produits += [textes.phrase_estimables(193, 1607), textes.PHRASE_CARTE_2026]
+    produits += textes_resultat()
     produits += [libelle for _, libelle in textes.legende()]
     produits += [t for definition in textes.DEFINITIONS for t in definition]
     produits += [textes.phrase_chiffre_phare(contraste(bas, haut), SEUIL)
@@ -161,11 +237,10 @@ def test_aucune_expression_interdite():
             assert interdit not in t.lower(), f"« {interdit} » dans : {t}"
 
 
-def test_prime_de_risque_implicite_reservee_au_bandeau():
-    assert textes.EXPRESSION_RESERVEE in textes.TITRE_BANDEAU.lower()
+def test_prime_de_risque_implicite_absente_des_textes_actuels():
+    # réservée au résultat global de la Méthodologie et au README : aucun texte de l'app ne la dit encore
     constantes = {nom: v for nom, v in vars(textes).items()
                   if isinstance(v, str) and not nom.startswith("_") and nom != "EXPRESSION_RESERVEE"}
-    avec_expression = {nom for nom, v in constantes.items() if textes.EXPRESSION_RESERVEE in v.lower()}
-    assert avec_expression == {"TITRE_BANDEAU"}
+    assert not {nom for nom, v in constantes.items() if textes.EXPRESSION_RESERVEE in v.lower()}
     for t in tous_les_textes():
         assert textes.EXPRESSION_RESERVEE not in t.lower()
