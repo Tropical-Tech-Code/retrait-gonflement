@@ -115,14 +115,6 @@ def intervalle_pct(bas: float, haut: float) -> str:
     return f"[{pct(bas, 1, True)} ; {pct(haut, 1, True)}]"
 
 
-def date_fr(iso: str | None) -> str:
-    """2026-10-15 -> 15/10/2026 ; « non renseignée » si absente."""
-    if not iso:
-        return "non renseignée"
-    annee, mois, jour = str(iso)[:10].split("-")
-    return f"{jour}/{mois}/{annee}"
-
-
 def pluriel(n: int, singulier: str, pluriel_: str | None = None) -> str:
     return f"{entier(n)} {singulier if n in (0, 1) else (pluriel_ or singulier + 's')}"
 
@@ -180,11 +172,11 @@ TESTE_CONCLUSION = (
 TITRE_SIGNAL = "Signal faible"
 SIGNAL_NOTE = "Des risques peut-être non intégrés, à surveiller. Une hypothèse, pas une prédiction."
 BOUTON_SIGNAL = f"Voir {ONGLETS[1]} →"
-PIED_CALCULS = "Calculs faits hors ligne"
-PIED_CAUSALITE = "Corrélation, pas causalité"
-# Sources citées au pied de l'onglet (clés de resume["sources"]["liste"]) ; la carte 2026 est
-# réservée à la Méthodologie (elle ne sert pas au résultat principal).
-SOURCES_PIED = ("dvf", "rga_2020", "gaspar", "communes")
+# Pied commun aux quatre onglets : seul le mois de téléchargement vient du JSON
+PIED_SOURCES = "Sources : DVF, RGA (Géorisques / BRGM), GASPAR, API Géo"
+PIED_TELECHARGEMENT = "données téléchargées en {mois_annee}"
+PIED_CALCULS = "calculs faits hors ligne"
+PIED_CAUSALITE = "corrélation, pas causalité"
 
 
 def phrase_reponse(contraste: dict, seuil: float) -> str:
@@ -256,9 +248,21 @@ def phrase_signal(n_angle_mort: int) -> str:
     return f"{verbe} une sinistralité supérieure à la médiane du périmètre et l'absence de décote."
 
 
-def sources_pied(resume: dict) -> str:
-    noms = [s["nom"] for cle in SOURCES_PIED for s in resume["sources"]["liste"] if s["cle"] == cle]
-    return " · ".join([f"Sources : {', '.join(noms)}" if noms else "Sources", PIED_CALCULS, PIED_CAUSALITE])
+def mois_annee(iso: str | None) -> str | None:
+    """2026-10-15 -> « octobre 2026 » ; None si la date manque ou n'est pas valide."""
+    trouve = re.match(r"(\d{4})-(\d{2})", str(iso or ""))
+    if not trouve or not 1 <= int(trouve.group(2)) <= 12:
+        return None
+    return f"{MOIS[int(trouve.group(2)) - 1]} {trouve.group(1)}"
+
+
+def pied_commun(resume: dict) -> str:
+    """Pied identique sur les quatre onglets ; le mois est celui du téléchargement le plus récent du JSON."""
+    dates = [s.get("date_telechargement") for s in resume["sources"]["liste"] if mois_annee(s.get("date_telechargement"))]
+    morceaux = [PIED_SOURCES]
+    if dates:
+        morceaux.append(PIED_TELECHARGEMENT.format(mois_annee=mois_annee(max(dates))))
+    return " · ".join(morceaux + [PIED_CALCULS, PIED_CAUSALITE])
 
 
 # ---------------------------------------------------------------- onglet Méthodologie et limites
@@ -270,7 +274,6 @@ def sources_pied(resume: dict) -> str:
 URL_METHODE = "https://github.com/Tropical-Tech-Code/retrait-gonflement/blob/main/docs/method.md"
 LIEN_METHODE = "docs/method.md sur GitHub"
 PIED_METHODE = "Méthode détaillée : "
-PIED_SOURCES = "Sources : "
 
 METHO_TITRES = {
     "question": ("Question testée", "Zone forte contre zone moyenne"),
@@ -304,20 +307,14 @@ NOMBRES_EN_LETTRES = ("zéro", "un", "deux", "trois", "quatre", "cinq", "six", "
                       "douze", "treize", "quatorze", "quinze", "seize")
 
 
+def nombre_en_lettres(n: int) -> str:
+    """Nombre en lettres jusqu'à seize (« quatre »), en chiffres au-delà."""
+    return NOMBRES_EN_LETTRES[n] if 0 <= n < len(NOMBRES_EN_LETTRES) else entier(n)
+
+
 def debut_phrase(n: int) -> str:
     """Nombre en début de phrase : en lettres jusqu'à seize (« Quatre »), en chiffres au-delà."""
-    return NOMBRES_EN_LETTRES[n].capitalize() if 0 <= n < len(NOMBRES_EN_LETTRES) else entier(n)
-
-
-def date_extraction_gaspar(millesime: str | None) -> str | None:
-    """« catnat_gaspar_2026-10-05.csv » -> « extraction du 5 octobre 2026 » ; None si le nom n'a pas de date."""
-    trouve = re.search(r"(\d{4})-(\d{2})-(\d{2})", millesime or "")
-    if not trouve:
-        return None
-    annee, mois, jour = (int(x) for x in trouve.groups())
-    if not 1 <= mois <= 12:
-        return None
-    return f"extraction du {jour} {MOIS[mois - 1]} {annee}"
+    return nombre_en_lettres(n).capitalize()
 
 
 def _contraste(resume: dict, nom: str) -> dict | None:
@@ -423,12 +420,16 @@ def texte_donnees(resume: dict) -> str:
     debut, fin = resume["periode"]
     nettoyage = resume["nettoyage"]
     catnat = resume["catnat"]
-    rga = next((s.get("millesime") for s in resume["sources"]["liste"] if s["cle"] == "rga_2020"), None)
+    def millesime(cle: str) -> str | None:
+        return next((s.get("millesime") for s in resume["sources"]["liste"] if s["cle"] == cle), None)
+
+    rga, rga_2026 = millesime("rga_2020"), millesime("rga_2026")
     exposition = f"carte RGA {rga}" if rga else "carte RGA"
+    comparaison = f" (carte {rga_2026} pour comparaison)" if rga_2026 else ""
     return (
         f"Sur {entier(nettoyage['n_mutations'])} mutations DVF ({debut}-{fin}, un seul bien par vente), "
         f"{entier(nettoyage['n_ventes_retenues'])} ventes de maisons sont retenues. "
-        f"Exposition : {exposition}, connue du marché sur toute la période. "
+        f"Exposition : {exposition}, connue du marché sur toute la période{comparaison}. "
         f"Sinistres : arrêtés {catnat['libelle'].lower()} {catnat['periode']} de GASPAR ({GASPAR_DEVELOPPE}) ; "
         "les sécheresses plus récentes ne sont pas encore reconnues."
     )
@@ -470,7 +471,8 @@ def cartes_methodologie(resume: dict) -> list[dict]:
     """Les six cartes de l'onglet : rang, surtitre, titre, paragraphes ou items, `beige` pour les limites."""
     tient, robustesse = items_robustesse(resume)
     question = (
-        f"Dans ces {pluriel(_n_departements(resume), 'département')}, " + phrase_zones(resume)
+        f"Dans ces {nombre_en_lettres(_n_departements(resume))} "
+        f"{'département' if _n_departements(resume) in (0, 1) else 'départements'}, " + phrase_zones(resume)
         if phrase_zones(resume) else "La comparaison porte sur les zones d'argile forte et moyenne."
     )
     cartes = [
@@ -487,29 +489,6 @@ def cartes_methodologie(resume: dict) -> list[dict]:
         carte.setdefault("titre", titre)
         carte["surtitre"] = f"{rang} · {surtitre}"
     return cartes
-
-
-def sources_methodologie(resume: dict) -> str:
-    """Pied des sources sur une ligne : noms courts, dates de téléchargement lues dans `sources.liste`.
-
-    Les deux cartes RGA sont regroupées ; GASPAR affiche la date d'extraction tirée du nom de son fichier.
-    """
-    par_cle = {s["cle"]: s for s in resume["sources"]["liste"]}
-    date = lambda cle: date_fr(par_cle[cle].get("date_telechargement"))  # noqa: E731
-    morceaux = []
-    if "dvf" in par_cle:
-        morceaux.append(f"DVF (Etalab, {date('dvf')})")
-    rga = [c for c in ("rga_2020", "rga_2026") if c in par_cle]
-    if rga:
-        millesimes = " et ".join(str(par_cle[c].get("millesime") or c[-4:]) for c in rga)
-        dates = list(dict.fromkeys(date(c) for c in rga))
-        morceaux.append(f"RGA {millesimes} (Géorisques / BRGM, {' et '.join(dates)})")
-    if "gaspar" in par_cle:
-        extraction = date_extraction_gaspar(par_cle["gaspar"].get("millesime"))
-        morceaux.append(f"GASPAR ({extraction or date('gaspar')})")
-    if "communes" in par_cle:
-        morceaux.append(f"Contours (API Géo, {date('communes')})")
-    return " · ".join(morceaux)
 
 
 def phrase_tests_multiples(resume: dict) -> str:
@@ -630,7 +609,6 @@ SIGNAL_SINISTRALITE = (
 TITRE_TABLEAU_ANGLES = "Communes au risque non intégré, par sinistralité"
 EN_TETES_ANGLES = ("Commune", "Dép.", "Arrêtés", "Écart [IC 95 %]", "Ventes", "dont zone forte")
 AUCUN_ANGLE_MORT = "Aucune commune au risque non intégré."
-PIED_STATUTS = "Statuts calculés hors ligne"
 
 
 def libelles_colonnes_sinistralite(mediane: float) -> tuple[tuple[str, str], tuple[str, str]]:
@@ -642,11 +620,15 @@ def libelles_colonnes_sinistralite(mediane: float) -> tuple[tuple[str, str], tup
     )
 
 
-def phrase_explication_sinistralite(mediane: float) -> str:
+def phrase_explication_sinistralite(mediane: float, seuil: float) -> str:
+    """Explication de la carte ; `seuil` (seuil « pas de décote », lu dans le JSON) sert aux définitions des statuts."""
+    decimales = 0 if round(seuil * 100) == seuil * 100 else 1
     return (
         "Chaque commune estimable est classée par son statut (décote ou pas de décote) et par sa "
         f"sinistralité : {ARRETES}, au-dessus ou non de la médiane du périmètre "
-        f"({seuil_arretes(mediane)} arrêtés ou plus)."
+        f"({seuil_arretes(mediane)} arrêtés ou plus). "
+        "Décote : intervalle de confiance entièrement sous 0 ; "
+        f"pas de décote : borne basse au-dessus de {pct(seuil, decimales, True)}."
     )
 
 
@@ -660,15 +642,6 @@ def indeterminees(n: int) -> tuple[str, str]:
 
 def titre_signal_sinistralite(n: int) -> str:
     return "commune au risque non intégré" if n in (0, 1) else "communes au risque non intégré"
-
-
-def pied_sinistralite(seuil: float) -> str:
-    """Pied de l'onglet : définitions des statuts (seuil lu dans le JSON) et rappel de prudence."""
-    decimales = 0 if round(seuil * 100) == seuil * 100 else 1
-    return (
-        f"{PIED_STATUTS} : décote = IC entièrement sous 0 ; pas de décote = borne basse de l'IC au-dessus "
-        f"de {pct(seuil, decimales, True)} · {PIED_CAUSALITE}"
-    )
 
 
 def angles_morts(communes: pd.DataFrame) -> pd.DataFrame:

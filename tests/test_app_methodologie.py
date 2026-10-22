@@ -69,10 +69,10 @@ def test_aucun_chiffre_en_dur_dans_les_cartes():
 
 def test_chiffres_lus_dans_le_resume():
     texte = texte_des_cartes()
-    assert f"Dans ces 4 départements, 48 à 53{NB}% des ventes sont en zone forte" in texte
+    assert f"Dans ces quatre départements, 48 à 53{NB}% des ventes sont en zone forte" in texte
     assert f"moins de 8{NB}% des ventes" in texte                    # (0,07 + 0,004) -> 7,4 % -> 8
     assert f"Sur 1{NB}000 mutations DVF (2021-2025, un seul bien par vente), 300 ventes de maisons sont retenues." in texte
-    assert "carte RGA 2020" in texte
+    assert "Exposition : carte RGA 2020, connue du marché sur toute la période (carte 2026 pour comparaison)." in texte
     assert ("Sinistres : arrêtés sécheresse 2015-2023 de GASPAR (Gestion assistée des procédures administratives "
             "relatives aux risques naturels et technologiques) ; les sécheresses plus récentes ne sont pas encore "
             "reconnues.") in texte
@@ -148,31 +148,17 @@ def test_cles_absentes_sans_plantage():
     assert cartes(resume)[3]["items"] == [] and cartes(resume)[3]["titre"] == textes.METHO_TITRE_TIENT
 
 
-def test_millesime_gaspar_devient_une_date_d_extraction():
-    assert textes.date_extraction_gaspar("catnat_gaspar_2026-10-05.csv") == "extraction du 5 octobre 2026"
-    assert textes.date_extraction_gaspar("catnat_gaspar_2025-01-31.csv") == "extraction du 31 janvier 2025"
-    assert textes.date_extraction_gaspar("catnat_gaspar.csv") is None
-    assert textes.date_extraction_gaspar("catnat_gaspar_2026-13-05.csv") is None
-    assert textes.date_extraction_gaspar(None) is None
-
-
-def test_sources_du_pied_sur_une_ligne_avec_noms_courts():
-    pied = textes.sources_methodologie(resume_test())
-    assert pied == (
-        "DVF (Etalab, 15/10/2026) · RGA 2020 et 2026 (Géorisques / BRGM, 16/10/2026 et 15/10/2026) · "
-        "GASPAR (extraction du 5 octobre 2026) · Contours (API Géo, non renseignée)"
-    )
-    assert "catnat_gaspar_2026-10-05.csv" not in pied and "\n" not in pied
-
-
-def test_sources_dates_des_cartes_rga_identiques_et_gaspar_sans_date_dans_le_nom():
+def test_carte_donnees_sans_carte_2026_n_ajoute_pas_de_comparaison():
     resume = resume_test()
-    for source in resume["sources"]["liste"]:
-        source["date_telechargement"] = "2026-10-15"
-        if source["cle"] == "gaspar":
-            source["millesime"] = "catnat_gaspar.csv"
-    pied = textes.sources_methodologie(resume)
-    assert "RGA 2020 et 2026 (Géorisques / BRGM, 15/10/2026)" in pied and "GASPAR (15/10/2026)" in pied
+    resume["sources"]["liste"] = [s for s in resume["sources"]["liste"] if s["cle"] != "rga_2026"]
+    assert "pour comparaison" not in textes.texte_donnees(resume)
+    assert "connue du marché sur toute la période." in textes.texte_donnees(resume)
+
+
+def test_mois_et_annee_du_pied():
+    assert textes.mois_annee("2026-10-15") == "octobre 2026"
+    assert textes.mois_annee("2025-01-31") == "janvier 2025"
+    assert textes.mois_annee("2026-13-05") is None and textes.mois_annee(None) is None and textes.mois_annee("") is None
 
 
 def test_placebo_sans_ecart_positif_ne_parle_pas_de_quartiers():
@@ -219,7 +205,8 @@ def test_onglet_affiche_les_cartes_et_le_pied(methodologie):
     assert page.count('<section class="rg-methodo-carte') == 6 and page.count('class="rg-methodo-carte rg-beige"') == 1
     assert "En construction" not in page
     assert f'href="{textes.URL_METHODE}"' in page and textes.LIEN_METHODE in page
-    assert "extraction du 5 octobre 2026" in page
+    assert textes.pied_commun(resume_test()) in page           # pied commun, sans dates précises
+    assert "extraction du" not in page and "15/10/2026" not in page
 
 
 def test_en_construction_supprime():
@@ -230,5 +217,5 @@ def test_en_construction_supprime():
 
 def test_texte_du_lien_echappe():
     import charte
-    page = charte.html_pied_methodologie("a ", "<b>", 'https://x.test/?a="b"', "<i>")
+    page = charte.html_pied("<i>", ("a ", "<b>", 'https://x.test/?a="b"'))
     assert "<b>" not in page and "<i>" not in page and '"b"' not in page

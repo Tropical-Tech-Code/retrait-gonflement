@@ -11,7 +11,7 @@ import charte
 import donnees
 import textes
 
-HAUTEUR_CARTE = 330   # px ; à régler pour tenir sans défilement à 1 280 × 800
+HAUTEUR_CARTE = 330   # px ; hauteur du graphique pydeck (valeur fixe exigée), pas liée à la fenêtre
 # Même règle que cartographie.UNITE_PIXELS : constantes textuelles entre guillemets internes
 ANCRAGE, BASE_TEXTE, JEU_CARACTERES = "'middle'", "'center'", "'auto'"
 
@@ -39,7 +39,6 @@ def tuiles(communes: pd.DataFrame, resume: dict) -> None:
 def legende() -> str:
     elements = [(cartographie.hex_classe(classe), libelle, 1.0, False) for classe, libelle in textes.legende()]
     elements += [
-        ("", "", 1.0, False),
         (cartographie.hex_classe(1), textes.LEGENDE_PALE, textes.OPACITE_PALE, False),
         (cartographie.hex_classe(None), textes.LEGENDE_NON_ESTIMABLE, 1.0, False),
         ("#FFFFFF", textes.LEGENDE_SELECTION, 1.0, True),
@@ -166,40 +165,40 @@ def afficher(tout: donnees.Donnees) -> None:
     st.session_state.setdefault("zone", zones[0])
     appliquer_clic(lignes)
 
-    with st.container(key="onglet_carte"):
+    with charte.onglet("carte", resume):
         tuiles(communes, resume)
-        gauche, droite = st.columns([784, 380], gap="medium")
-    with gauche, st.container(key="carte_gauche"):
-        reglages = st.columns([3, 2], vertical_alignment="center")
-        zone = reglages[0].segmented_control(
-            textes.LIBELLE_ZONE, zones, key="zone", label_visibility="collapsed",
-            on_change=zone_choisie, args=(zones,),
-        ) or zones[0]
-        st.session_state["zone_precedente"] = zone
-        with reglages[1], st.container(key="recherche"):      # la charte dessine le contour de ce conteneur
-            choix = st.selectbox(
-                textes.LIBELLE_COMMUNE, textes.codes_liste(communes), index=None, key="commune",
-                placeholder=textes.PLACEHOLDER_COMMUNE, label_visibility="collapsed",
-                on_change=commune_choisie, args=(lignes,),
-                format_func=lambda c: textes.SEPARATEUR_LISTE if c == textes.CODE_SEPARATEUR
-                else textes.libelle_liste(lignes.loc[c]),
+        gauche, droite = st.columns([784, 380], gap="small")
+        with gauche, st.container(key="carte_gauche"):
+            reglages = st.columns([3, 2], vertical_alignment="center")
+            zone = reglages[0].segmented_control(
+                textes.LIBELLE_ZONE, zones, key="zone", label_visibility="collapsed",
+                on_change=zone_choisie, args=(zones,),
+            ) or zones[0]
+            st.session_state["zone_precedente"] = zone
+            with reglages[1], st.container(key="recherche"):      # la charte dessine le contour de ce conteneur
+                choix = st.selectbox(
+                    textes.LIBELLE_COMMUNE, textes.codes_liste(communes), index=None, key="commune",
+                    placeholder=textes.PLACEHOLDER_COMMUNE, label_visibility="collapsed",
+                    on_change=commune_choisie, args=(lignes,),
+                    format_func=lambda c: textes.SEPARATEUR_LISTE if c == textes.CODE_SEPARATEUR
+                    else textes.libelle_liste(lignes.loc[c]),
+                )
+            st.session_state["commune_precedente"] = choix
+            entites_zone = cartographie.carres_de_la_zone(entites_carte(str(donnees.dossier())), zone)
+            selection = next((e for e in entites_zone if e["properties"]["code_insee"] == choix), None)
+            carte(entites_zone, selection, cartographie.etiquettes_zone(resume, zone),
+                  cartographie.emprise_de_zone(resume, zone), resume, zone)
+            st.markdown(
+                charte.html_sous_carte(
+                    charte.html_note_carte(f"{textes.NOTE_POSITION} {textes.FOND_DE_CARTE}"), legende(),
+                    charte.html_phrase_carte(textes.phrase_tests_multiples(resume)),
+                ),
+                unsafe_allow_html=True,
             )
-        st.session_state["commune_precedente"] = choix
-        entites_zone = cartographie.carres_de_la_zone(entites_carte(str(donnees.dossier())), zone)
-        selection = next((e for e in entites_zone if e["properties"]["code_insee"] == choix), None)
-        carte(entites_zone, selection, cartographie.etiquettes_zone(resume, zone),
-              cartographie.emprise_de_zone(resume, zone), resume, zone)
-        st.markdown(
-            charte.html_sous_carte(
-                charte.html_note_carte(f"{textes.NOTE_POSITION} {textes.FOND_DE_CARTE}"), legende(),
-                charte.html_phrase_carte(textes.phrase_tests_multiples(resume)),
-            ),
-            unsafe_allow_html=True,
-        )
-    with droite:
-        if choix:
-            st.markdown(fiche(lignes.loc[choix], resume), unsafe_allow_html=True)
-        else:
-            with st.container(key="fiche_vide"):
-                st.markdown(charte.html_fiche_vide(textes.TITRE_INVITE, textes.INVITE_COMMUNE),
-                            unsafe_allow_html=True)
+        with droite:
+            if choix:
+                st.markdown(fiche(lignes.loc[choix], resume), unsafe_allow_html=True)
+            else:
+                with st.container(key="fiche_vide"):
+                    st.markdown(charte.html_fiche_vide(textes.TITRE_INVITE, textes.INVITE_COMMUNE),
+                                unsafe_allow_html=True)

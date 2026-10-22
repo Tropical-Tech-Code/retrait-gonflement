@@ -32,7 +32,7 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 
 ### Contraintes générales
 - Navigation par onglets : Résultat (accueil), Sinistralité × écart, Carte, Méthodologie et limites.
-- Chaque onglet tient sans défilement dans un écran de 1 280 × 800.
+- Chaque onglet a la hauteur naturelle de son contenu (aucune hauteur liée à la fenêtre) ; objectif, pas exigence : tenir sans défilement dans un écran de 1 280 × 800. Dans une rangée de colonnes, les colonnes ont la même hauteur (celle de la plus haute). Pied de page commun juste après le contenu, mêmes marges latérales et même écart entre colonnes partout.
 - Pas de barre latérale : les réglages de la carte sont au-dessus d'elle.
 - En-tête commun : sur-titre « Retrait-gonflement des argiles × ventes DVF », titre « Le marché distingue-t-il les zones d'argile forte et moyenne ? ».
 - Aucun chiffre ni aucune date en dur : tout est lu dans data/processed/ (les chiffres de ce document sont des exemples).
@@ -67,7 +67,7 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 - Recherche de commune (selectbox, clé `commune`) : même effet qu'un clic (changement de zone si nécessaire, sélection). Le clic est lu au début de l'exécution suivante, avant la création des widgets.
 
 ### Onglet 4 : Méthodologie et limites
-- Six cartes courtes en grille 3 × 2, sans défilement : Question testée, Données, Modèle, Robustesse, Écarts par commune, Limites (encadré beige). Tous les chiffres sont lus dans `resume_global.json` (un test change toutes les données et vérifie qu'aucun nombre ne reste écrit en dur, hors « 95 % », « 2025 » et « 2026 »). Limites : corrélation sans causalité, nombre de départements, aucun arrêté après l'année du dernier arrêté (délai), part des ventes dont la carte 2026 change le niveau (exemple : « La carte 2026 change le niveau d'environ 2 % des ventes, dans les deux sens »), position des carrés approximative (quelques km).
+- Six cartes courtes en grille 3 × 2 (chaque rangée a la hauteur de sa carte la plus haute) : Question testée, Données, Modèle, Robustesse, Écarts par commune, Limites (encadré beige). Tous les chiffres sont lus dans `resume_global.json` (un test change toutes les données et vérifie qu'aucun nombre ne reste écrit en dur, hors « 95 % », « 2025 » et « 2026 »). Limites : corrélation sans causalité, nombre de départements, aucun arrêté après l'année du dernier arrêté (délai), part des ventes dont la carte 2026 change le niveau (exemple : « La carte 2026 change le niveau d'environ 2 % des ventes, dans les deux sens »), position des carrés approximative (quelques km).
 - Pied : renvoi vers docs/method.md sur GitHub (`URL_METHODE`, valeur provisoire tant que le dépôt n'existe pas) et sources avec leur date de téléchargement ; le millésime GASPAR (nom de fichier) s'affiche « extraction du 5 octobre 2026 » (date tirée du nom par `textes.date_extraction_gaspar`). Pas de texte long dans l'app ; le test de vocabulaire s'applique aux textes des cartes.
 
 ### Charte
@@ -77,7 +77,7 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 - Police : Public Sans servie depuis le dépôt (souhaitable), sinon polices système ; jamais Google Fonts.
 
 ### Priorités
-- Indispensable : quatre onglets sans défilement à 1 280 × 800 ; en-tête ; onglet Résultat ; tableau à quatre cases ; carte en deux zones avec zoom minimal ; couleur par statut et gris des non estimables ; légende ; fiche sans prix médian ; notation unique des IC ; thème sans rouge ; encadrés sans bleu ; Méthodologie en six cartes ; vocabulaire imposé ; pluriels corrects dans les textes automatiques.
+- Indispensable : quatre onglets à hauteur naturelle (sans défilement à 1 280 × 800 en objectif) ; en-tête ; onglet Résultat ; tableau à quatre cases ; carte en deux zones avec zoom minimal ; couleur par statut et gris des non estimables ; légende ; fiche sans prix médian ; notation unique des IC ; thème sans rouge ; encadrés sans bleu ; Méthodologie en six cartes ; vocabulaire imposé ; pluriels corrects dans les textes automatiques.
 - Souhaitable, dans cet ordre : barre de fourchette ; tuiles par statut ; recherche de commune ; chiffre de la fiche coloré ; Public Sans ; affichage mobile non cassé ; retrait de la colonne de prix médian du pipeline ; résumé en anglais dans le README.
 - Abandonné : simulateur ; agents ; euros et prix au m² ; recherche par adresse ; nuage de points ; couches CatNat et bascule ; IBM Plex Mono ; Google Fonts ; onglets dessinés à la main ; texte long de Méthodologie.
 

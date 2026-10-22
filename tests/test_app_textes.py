@@ -25,8 +25,6 @@ def test_formats_francais():
     assert textes.intervalle_pct(-0.0289, 0.0486) == f"[{MOINS}2,9{NB}% ; +4,9{NB}%]"
     assert textes.entier(82525) == f"82{NB}525"
     assert textes.entier(193) == "193"
-    assert textes.date_fr("2026-10-15") == "15/10/2026"
-    assert textes.date_fr(None) == "non renseignée"
     assert textes.pluriel(1, "arrêté") == "1 arrêté" and textes.pluriel(3, "arrêté") == "3 arrêtés"
 
 
@@ -157,10 +155,22 @@ def test_phrase_signal_accord():
     assert textes.phrase_signal(9).startswith("communes cumulent ")
 
 
-def test_sources_du_pied_sans_la_carte_2026():
-    pied = textes.sources_pied(RESUME)
-    assert "DVF géolocalisées" in pied and "RGA 2020" in pied and "2026" not in pied
-    assert pied.endswith("Calculs faits hors ligne · Corrélation, pas causalité")
+def test_pied_commun_aux_quatre_onglets():
+    assert textes.pied_commun(RESUME) == (
+        "Sources : DVF, RGA (Géorisques / BRGM), GASPAR, API Géo · données téléchargées en octobre 2026 · "
+        "calculs faits hors ligne · corrélation, pas causalité"
+    )
+
+
+def test_pied_commun_lit_le_mois_dans_le_resume_et_prend_le_plus_recent():
+    resume = {"sources": {"liste": [
+        {"cle": "dvf", "date_telechargement": "2026-03-04"},
+        {"cle": "gaspar", "date_telechargement": "2026-11-30"},
+        {"cle": "communes", "date_telechargement": None},
+    ]}}
+    assert "données téléchargées en novembre 2026" in textes.pied_commun(resume)
+    sans_date = {"sources": {"liste": [{"cle": "dvf"}]}}
+    assert "téléchargées" not in textes.pied_commun(sans_date) and textes.pied_commun(sans_date).startswith("Sources :")
 
 
 # ---------------------------------------------------------------- classes et légende
@@ -252,13 +262,13 @@ def textes_resultat():
     produits += [textes.phrase_lecture(contraste(bas, haut), SEUIL) for bas, haut in [(-0.0289, 0.0486), (-0.1, 0.05)]]
     produits += [textes.phrase_signal(n) for n in (0, 1, 9)]
     produits += [textes.SURTITRE_RESULTAT, textes.LIBELLE_CHIFFRE, textes.SIGNAL_NOTE, textes.TITRE_SIGNAL, textes.BOUTON_SIGNAL]
-    produits += [textes.ligne_effectifs(RESUME, 4), textes.sources_pied(RESUME)]
+    produits += [textes.ligne_effectifs(RESUME, 4), textes.pied_commun(RESUME)]
     return produits
 
 
 def textes_methodologie(resume):
     """Tous les textes de l'onglet Méthodologie et limites, d'après un résumé."""
-    produits = [textes.PIED_METHODE, textes.LIEN_METHODE, textes.PIED_SOURCES, textes.sources_methodologie(resume)]
+    produits = [textes.PIED_METHODE, textes.LIEN_METHODE, textes.pied_commun(resume)]
     for carte in textes.cartes_methodologie(resume):
         produits += [carte["surtitre"], carte.get("titre") or "", *carte.get("paragraphes", []), *carte.get("items", [])]
     return produits

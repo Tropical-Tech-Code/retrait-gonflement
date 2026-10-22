@@ -23,14 +23,14 @@ def afficher(tout: donnees.Donnees) -> None:
     nombre_indeterminees, suite_indeterminees = textes.indeterminees(int(resume["n_indetermine"]))
     lignes = [textes.ligne_angle_mort(ligne) for _, ligne in textes.angles_morts(tout.communes).iterrows()]
 
-    with st.container(key="onglet_sinistralite"):
+    with charte.onglet("sinistralite", resume):
         gauche, droite = st.columns([1.1, 1], gap="small")
-        # Conteneur à clé « gauche_sinistralite » : le CSS de charte.py étire la carte à la hauteur de la colonne de droite
+        # Mise en page commune (charte.onglet) : le CSS étire les deux colonnes à la hauteur de la zone
         with gauche, st.container(key="gauche_sinistralite"):
             st.markdown(
                 charte.html_carte_sinistralite(
                     textes.TITRE_SINISTRALITE,
-                    textes.phrase_explication_sinistralite(mediane),
+                    textes.phrase_explication_sinistralite(mediane, resume["seuil_pas_de_decote"]),
                     textes.libelles_colonnes_sinistralite(mediane),
                     textes.LIGNES_QUADRANTS,
                     cases,
@@ -54,4 +54,3 @@ def afficher(tout: donnees.Donnees) -> None:
                 ),
                 unsafe_allow_html=True,
             )
-    st.markdown(charte.html_pied(textes.pied_sinistralite(resume["seuil_pas_de_decote"])), unsafe_allow_html=True)

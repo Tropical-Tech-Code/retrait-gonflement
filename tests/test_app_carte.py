@@ -1,4 +1,5 @@
 import html
+import inspect
 import json
 from urllib.parse import unquote
 
@@ -9,6 +10,7 @@ import cartographie
 import charte
 import donnees
 import textes
+from conftest import resume_test
 from vues import carte as vue_carte
 
 APP = str(donnees.RACINE / "app" / "streamlit_app.py")
@@ -140,10 +142,17 @@ def test_aucun_fond_de_carte_ni_limites(at):
     bloc = next(m.value for m in at.markdown if m.value.startswith('<div class="rg-sous-carte">'))
     assert "Fond de carte © CARTO · © OpenStreetMap" in bloc
     assert "Position des carrés approximative (quelques km)." in bloc
-    # légende et note sur une même ligne (un seul conteneur), la phrase dessous
-    ligne = bloc[bloc.index('<div class="rg-ligne-legende">'):bloc.index('class="rg-phrase-carte"')]
-    assert 'class="rg-legende"' in ligne and "approximative" in ligne
-    assert ligne.index('class="rg-legende"') < ligne.index("approximative")
+    # légende sur une ligne, puis la note, puis la phrase ; les deux phrases à la taille du texte des boutons de zone
+    assert bloc.index('class="rg-legende"') < bloc.index("approximative") < bloc.index('class="rg-phrase-carte"')
+    assert "· </span>" not in bloc and '<span style="color:#4A514D">·</span>' not in bloc     # plus de séparateur
+    # note = légende (mêmes variables) ; phrase = boutons de zone (même variable)
+    assert ".rg-note-carte { margin: 0; font-size: var(--texte-legende); color: var(--couleur-legende); }" in charte.CSS
+    assert "font-size: var(--texte-legende); color: var(--couleur-legende); }" in charte.CSS.split(".rg-legende {")[1]
+    assert ".rg-phrase-carte { margin: 0; font-size: var(--texte-controle);" in charte.CSS
+    assert 'stButtonGroup"] button p { font-size: var(--texte-controle); }' in charte.CSS
+    # Streamlit impose la taille du <p> dans st.markdown : sélecteur sur le <p> lui-même, limité au bloc, en !important
+    assert ".st-key-carte_gauche .rg-sous-carte p.rg-note-carte { font-size: var(--texte-legende) !important;" in charte.CSS
+    assert ".st-key-carte_gauche .rg-sous-carte p.rg-phrase-carte { font-size: var(--texte-controle) !important;" in charte.CSS
 
 
 def test_zoom_avant_seulement_molette_et_pave_tactile_desactives(at):
@@ -198,13 +207,19 @@ def test_legende_complete_dont_la_selection(at):
     assert legende.count('class="rg-sw') == 8        # 5 classes, pâle, gris, sélection
 
 
+def test_pied_commun_sous_la_carte(at):
+    assert textes.pied_commun(resume_test()) in " ".join(m.value for m in at.markdown)
+
+
 def test_mise_en_page_espacements_de_la_maquette():
     css = charte.CSS
-    # espacements réduits pour tenir à 1 280 × 800 sans défilement
-    assert ".st-key-onglet_carte { gap: 10px; }" in css                 # tuiles / bloc carte + fiche
+    # espacements réduits pour tenir à 1 280 × 800 sans défilement ; même écart entre blocs que les autres onglets
+    assert '.stMain .block-container [data-testid="stVerticalBlock"] { gap: 0.6rem; }' in css
     assert ".rg-sous-carte { display: flex; flex-direction: column; gap: 6px; }" in css     # légende / phrase
-    # la marge négative de Streamlit sous un bloc de texte faisait chevaucher les blocs
-    assert '.st-key-onglet_carte [data-testid="stMarkdownContainer"] { margin-bottom: 0; }' in css
+    # la marge négative de Streamlit sous un bloc de texte faisait chevaucher les blocs (toutes les zones)
+    assert '[class*="st-key-zone_"] [data-testid="stMarkdownContainer"] { margin-bottom: 0; }' in css
+    source = inspect.getsource(vue_carte.afficher)
+    assert 'gap="small"' in source and 'gap="medium"' not in source
 
 
 # ---------------------------------------------------------------- recherche et clic

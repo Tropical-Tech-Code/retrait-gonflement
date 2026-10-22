@@ -104,14 +104,20 @@ def test_sans_angle_mort(dossier_processed, monkeypatch):
     assert "commune au risque non intégré" in page and 'class="rg-sombre-nombre">0</span>' in page
 
 
-def test_pied_avec_le_seuil_du_resume(dossier_processed, monkeypatch):
+def test_definitions_des_statuts_avec_le_seuil_du_resume(dossier_processed, monkeypatch):
     page = html_affiches(ouvrir(dossier_processed, monkeypatch))
-    assert f"borne basse de l'IC au-dessus de {textes.MOINS}3{NB}%" in page
-    assert "Corrélation, pas causalité" in page
+    assert (f"Décote : intervalle de confiance entièrement sous 0 ; "
+            f"pas de décote : borne basse au-dessus de {textes.MOINS}3{NB}%.") in page
+    assert "IC entièrement" not in page
     resume = resume_test()
     resume["seuil_pas_de_decote"] = -0.025
     page = html_affiches(ouvrir(dossier_processed, monkeypatch, resume))
-    assert f"au-dessus de {textes.MOINS}2,5{NB}%" in page
+    assert f"borne basse au-dessus de {textes.MOINS}2,5{NB}%." in page
+
+
+def test_pied_commun_de_l_onglet(dossier_processed, monkeypatch):
+    page = html_affiches(ouvrir(dossier_processed, monkeypatch))
+    assert textes.pied_commun(resume_test()) in page
 
 
 def test_vocabulaire_de_l_onglet(sinistralite):
@@ -139,8 +145,10 @@ def test_css_cases_sans_hauteur_fixe_et_regles_communes_avec_le_resultat():
     assert "overflow: hidden; }" not in charte.CSS.split(".rg-quad-case {")[1].split("\n")[0]
     # même règle d'espacement et d'étirement que l'onglet Résultat
     assert ".st-key-droite, .stMain .block-container .st-key-droite_sinistralite { gap: 20px; }" in charte.CSS
-    assert ".st-key-onglet_sinistralite [data-testid=\"stHorizontalBlock\"] { align-items: stretch; }" in charte.CSS
-    assert "p.rg-explication { margin: 0; font-size: 14px;" in charte.CSS  # même taille que l'encadré gris
+    assert ".st-key-zone_sinistralite [data-testid=\"stHorizontalBlock\"]" in charte.CSS and "align-items: stretch" in charte.CSS
+    assert ".st-key-zone_resultat [data-testid=\"stHorizontalBlock\"]" in charte.CSS
+    # même taille que l'encadré gris ; 16 px de plus avant les en-têtes de colonnes
+    assert "p.rg-explication { margin: 0 0 16px; font-size: 14px;" in charte.CSS
 
 
 def test_en_construction_retire(sinistralite):

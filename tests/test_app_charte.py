@@ -1,4 +1,5 @@
 import ast
+import inspect
 import tomllib
 
 import pytest
@@ -129,20 +130,56 @@ def test_css_espacements_de_l_onglet_resultat():
     assert '.st-key-signal [data-testid="stButton"] { margin: auto 0 0; }' in charte.CSS
 
 
-def test_css_colonne_de_droite_etiree_et_limitee_aux_conteneurs_a_cle():
-    regles = [r for r in charte.CSS.splitlines() if "st-key-resultat" in r or "st-key-droite div" in r]
-    assert regles, "règles d'étirement absentes"
-    for regle in regles:
-        # chaque sélecteur de ces règles est précédé du préfixe de la règle générale (charte.py:21)
-        for selecteur in regle.split("{")[0].split(","):
-            assert selecteur.strip().startswith(".stMain .block-container .st-key-"), selecteur
-    assert "align-items: stretch" in charte.CSS and "flex: 1 1 auto" in charte.CSS
-    # marge et padding bas des colonnes à 0 (écart de 20 px sous l'encadré sombre)
-    assert "> :last-child" in charte.CSS and "{ padding-bottom: 0; }" in charte.CSS and "{ margin-bottom: 0; }" in charte.CSS
+def regle(selecteur: str) -> str:
+    """Corps de la première règle de charte.CSS dont le sélecteur commence par `selecteur`."""
+    ligne = next(r for r in charte.CSS.splitlines() if r.startswith(selecteur))
+    return ligne.split("{", 1)[1].rsplit("}", 1)[0]
 
 
-def test_css_pied_de_page_24px_au_dessus():
-    assert ".stMain .block-container .rg-pied { padding: 24px 0 0;" in charte.CSS
+def test_css_hauteur_naturelle_aucune_hauteur_liee_a_la_fenetre():
+    page = regle(".stMain .block-container {")
+    assert "min-height" not in page and "display: flex" not in page
+    for lie_a_la_fenetre in ("vh", "vw", "--h-", "--ecart", "clamp("):
+        assert lie_a_la_fenetre not in charte.CSS, lie_a_la_fenetre
+    assert "flex: 1 1 auto" not in regle('.stMain .block-container [class*="st-key-page_"]')
+
+
+def test_css_pied_apres_le_contenu_avec_espaces_communs():
+    pied = regle(".stMain .block-container .rg-pied {")
+    assert "padding: 24px 0 20px" in pied                                 # 24 px au-dessus, 20 px en dessous
+    assert "gap: 0" in regle('.stMain .block-container [class*="st-key-page_"]')   # l'espace au-dessus est celui du pied
+    source = inspect.getsource(charte.onglet)
+    # zone puis pied : le pied suit directement le contenu
+    assert source.index('key=f"zone_{cle}"') < source.index("html_pied(") and 'key=f"page_{cle}"' in source
+
+
+def test_les_regles_d_etirement_ne_touchent_jamais_les_colonnes_elles_memes():
+    # `div:has(...)` hors d'un descendant de colonne rendrait flex: 1 1 auto à la colonne (base de largeur écrasée,
+    # colonne de droite renvoyée sous la gauche) : tout sélecteur `div:has(` doit être sous un stColumn
+    regles = [r for r in charte.CSS.splitlines() if ".rg-etire" in r and "flex: 1 1 auto" in r]
+    assert regles
+    for ligne in regles:
+        for selecteur in ligne.split("{")[0].split(","):
+            if "div:has(" in selecteur:
+                assert '[data-testid="stColumn"] div:has(' in selecteur, selecteur
+    assert "stHorizontalBlock\"] { flex" not in charte.CSS
+
+
+def test_css_colonnes_etirees_et_methodologie_a_rangees_naturelles():
+    assert "align-items: stretch" in charte.CSS and ".rg-etire" in charte.CSS
+    grille = regle(".rg-methodo {")
+    assert "grid-template-rows" not in grille and "--methodo-texte: 14px" in grille   # rangée = carte la plus haute
+    assert "overflow" not in grille and "overflow: hidden" not in regle(".rg-methodo-carte {")
+
+
+def test_css_ancres_des_titres_masquees():
+    assert '[data-testid="stHeaderActionElements"]' in charte.CSS
+
+
+def test_chaque_onglet_utilise_la_mise_en_page_commune():
+    for nom in ("resultat", "sinistralite", "carte", "methodologie"):
+        source = (APP / "vues" / f"{nom}.py").read_text(encoding="utf-8")
+        assert f'charte.onglet("{nom}"' in source and "html_pied" not in source
 
 
 def test_colonnes_de_l_onglet_resultat_en_gap_small():

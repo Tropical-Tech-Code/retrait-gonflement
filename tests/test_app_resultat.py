@@ -38,8 +38,8 @@ def test_textes_lus_dans_les_donnees(resultat):
     assert f"se vendent 3,4 à 2,5{nb}%" not in page and f"se vendent 2,5 à 3,4{nb}% moins cher" in page
     assert "p ≈ 0,50" in page
     assert textes.TESTE_CONCLUSION in page
-    assert "Calculs faits hors ligne" in page and "Corrélation, pas causalité" in page
-    assert "RGA 2026" not in page and "DVF géolocalisées (Etalab)" in page
+    assert "calculs faits hors ligne" in page and "corrélation, pas causalité" in page
+    assert textes.pied_commun(resume_test()) in page and "RGA 2026" not in page
 
 
 def test_barre_de_fourchette_presente(resultat):

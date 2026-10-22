@@ -7,6 +7,7 @@ Spécification : docs/app.md, section « Charte ».
 
 import html
 import math
+from contextlib import contextmanager
 
 import streamlit as st
 
@@ -17,8 +18,15 @@ GRIS = "#EEF0EC"
 
 CSS = """
 [data-testid="stHeader"] { background: transparent; }
-.stMain .block-container { padding: 0 48px 12px; max-width: none; }
+.stMain .block-container { padding: 0 48px; max-width: none; }
 .stMain .block-container [data-testid="stVerticalBlock"] { gap: 0.6rem; }
+[data-testid="stHeaderActionElements"], .stMarkdown :is(h1, h2, h3, h4, h5, h6) > a[href^="#"] { display: none !important; }
+.stMain .block-container [class*="st-key-page_"] { gap: 0; }
+.stMain .block-container [class*="st-key-zone_"] [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
+.stMain .block-container .st-key-zone_resultat [data-testid="stHorizontalBlock"], .stMain .block-container .st-key-zone_sinistralite [data-testid="stHorizontalBlock"] { align-items: stretch; }
+.stMain .block-container :is(.st-key-zone_resultat, .st-key-zone_sinistralite) [data-testid="stColumn"], .stMain .block-container :is(.st-key-zone_resultat, .st-key-zone_sinistralite) [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { display: flex; flex-direction: column; padding-bottom: 0; }
+.stMain .block-container :is(.st-key-zone_resultat, .st-key-zone_sinistralite) [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { flex: 1 1 auto; }
+.stMain .block-container :is(.st-key-zone_resultat, .st-key-zone_sinistralite) [data-testid="stColumn"] div:has(.rg-etire), .stMain .block-container :is(.st-key-zone_resultat, .st-key-zone_sinistralite) [data-testid="stColumn"] div:has(.st-key-signal), .stMain .block-container :is(.st-key-zone_resultat, .st-key-zone_sinistralite) .rg-etire, .stMain .block-container :is(.st-key-zone_resultat, .st-key-zone_sinistralite) .st-key-signal { display: flex; flex-direction: column; flex: 1 1 auto; }
 .rg-entete { background: #1B1F1D; margin: 0 -48px; padding: 18px 48px 12px; }
 .stMarkdown .rg-entete .rg-surtitre { margin: 0 0 4px; padding: 0; font-size: 12px; line-height: 1.4; letter-spacing: 0.08em; text-transform: uppercase; color: #E99A68 !important; font-weight: 600; }
 .stMarkdown .rg-entete h1.rg-titre { margin: 0 !important; padding: 0 !important; font-size: 26px !important; line-height: 1.2 !important; color: #FFFFFF !important; font-weight: 700 !important; }
@@ -46,11 +54,6 @@ CSS = """
 .stMain .block-container .st-key-droite, .stMain .block-container .st-key-droite_sinistralite { gap: 20px; }
 .stMain .block-container .st-key-signal { background: #1B1F1D; border-radius: 10px; padding: 24px 26px; gap: 16px; }
 .stMain .block-container .st-key-signal [data-testid="stButton"] { margin: auto 0 0; }
-.stMain .block-container .st-key-resultat [data-testid="stHorizontalBlock"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stHorizontalBlock"] { align-items: stretch; }
-.stMain .block-container .st-key-resultat [data-testid="stColumn"], .stMain .block-container .st-key-resultat [data-testid="stColumn"] > [data-testid="stVerticalBlock"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { padding-bottom: 0; }
-.stMain .block-container .st-key-resultat [data-testid="stColumn"] [data-testid="stVerticalBlock"] > :last-child, .stMain .block-container .st-key-resultat [data-testid="stColumn"] [data-testid="stMarkdownContainer"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] [data-testid="stVerticalBlock"] > :last-child, .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
-.stMain .block-container .st-key-resultat [data-testid="stColumn"]:has(.st-key-droite) { display: flex; flex-direction: column; }
-.stMain .block-container .st-key-resultat [data-testid="stColumn"] div:has(.st-key-droite), .stMain .block-container .st-key-droite, .stMain .block-container .st-key-droite div:has(.st-key-signal), .stMain .block-container .st-key-signal { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .st-key-signal .rg-surtitre-signal { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #E99A68 !important; font-weight: 600; }
 .st-key-signal .rg-signal-ligne { display: flex; align-items: center; gap: 18px; }
 .st-key-signal .rg-signal-nombre { font-size: 64px; font-weight: 700; line-height: 1; color: #E99A68 !important; }
@@ -59,24 +62,26 @@ CSS = """
 .st-key-signal button { background: #E99A68; color: #1B1F1D; border: 0; border-radius: 8px; padding: 12px 18px; font-weight: 600; }
 .st-key-signal button:hover { background: #F0AC83; color: #1B1F1D; }
 .st-key-signal button p { color: #1B1F1D !important; font-weight: 600; }
-.stMain .block-container .rg-pied { padding: 24px 0 0; font-size: 12px; color: #4A514D; }
-.rg-tuile { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 16px; }
-.rg-tuile-libelle { font-size: 13px; color: #4A514D; }
-.rg-tuile-valeur { font-size: 26px; font-weight: 700; line-height: 1.2; color: #1B1F1D; }
-.rg-tuile-complement { font-size: 15px; font-weight: 500; color: #4A514D; }
+.stMain .block-container .rg-pied { padding: 24px 0 20px; font-size: 12px; line-height: 1.5; color: #4A514D; }
+.stMain .block-container .rg-pied a { color: #C2410C; }
+.stMain .block-container .rg-pied a:hover { color: #7A3410; }
+.rg-tuile { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 6px 14px; }
+.rg-tuile-libelle { font-size: 12px; color: #4A514D; }
+.rg-tuile-valeur { font-size: 22px; font-weight: 700; line-height: 1.2; color: #1B1F1D; }
+.rg-tuile-complement { font-size: 14px; font-weight: 500; color: #4A514D; }
 .rg-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; box-shadow: inset 0 0 0 1px rgba(27, 31, 29, 0.12); }
-.stMain .block-container .st-key-carte_gauche { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 12px; gap: 6px; }
+.stMain .block-container .st-key-carte_gauche { --texte-legende: 12px; --couleur-legende: #2F3532; --texte-controle: 14px; background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 10px 12px; gap: 6px; }
+.st-key-carte_gauche [data-testid="stButtonGroup"] button, .st-key-carte_gauche [data-testid="stButtonGroup"] button p { font-size: var(--texte-controle); }
 .st-key-carte_gauche [data-testid="stDeckGlJsonChart"] { border-radius: 6px; overflow: hidden; }
-.rg-note-carte { margin: 0; font-size: 12px; color: #4A514D; }
-.stMain .block-container .st-key-onglet_carte { gap: 10px; }
-.st-key-onglet_carte [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
+.rg-note-carte { margin: 0; font-size: var(--texte-legende); color: var(--couleur-legende); }
 .rg-sous-carte { display: flex; flex-direction: column; gap: 6px; }
-.rg-ligne-legende { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 14px; }
-.rg-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12px; color: #2F3532; }
+.rg-legende { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: var(--texte-legende); color: var(--couleur-legende); }
 .rg-legende > span { display: inline-flex; align-items: center; }
 .rg-legende .rg-sw { vertical-align: middle; margin-right: 5px; flex: none; }
 .rg-legende .rg-sw.rg-sw-anneau { margin: 0 9px 0 4px; }
-.rg-phrase-carte { margin: 0; font-size: 13px; color: #4A514D; }
+.rg-phrase-carte { margin: 0; font-size: var(--texte-controle); color: #4A514D; }
+.st-key-carte_gauche .rg-sous-carte p.rg-note-carte { font-size: var(--texte-legende) !important; color: var(--couleur-legende) !important; line-height: 1.4 !important; }
+.st-key-carte_gauche .rg-sous-carte p.rg-phrase-carte { font-size: var(--texte-controle) !important; line-height: 1.4 !important; }
 .stMain .block-container .st-key-fiche_vide { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 20px 22px; }
 .st-key-fiche_vide [data-testid="stVerticalBlock"] { align-items: center; text-align: center; gap: 10px; }
 .rg-invite { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
@@ -103,7 +108,7 @@ CSS = """
 .rg-note p { margin: 0; font-size: 14px; color: #2F3532; }
 .rg-carte-s { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 20px 28px; display: flex; flex-direction: column; gap: 10px; }
 .stMain .block-container .rg-carte-s h2.rg-titre-s { margin: 0 !important; padding: 0 !important; font-size: 22px !important; font-weight: 700 !important; line-height: 1.2 !important; color: #1B1F1D !important; }
-.stMain .block-container .rg-carte-s p.rg-explication { margin: 0; font-size: 14px; line-height: 1.45; color: #4A514D; }
+.stMain .block-container .rg-carte-s p.rg-explication { margin: 0 0 16px; font-size: 14px; line-height: 1.45; color: #4A514D; }
 .rg-quad { display: grid; grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(104px, auto) minmax(104px, auto); gap: 8px; }
 .rg-quad-colonne { font-size: 13px; font-weight: 600; color: #4A514D; text-align: center; }
 .rg-quad-ligne { font-size: 13px; font-weight: 600; color: #4A514D; align-self: center; }
@@ -113,9 +118,6 @@ CSS = """
 .rg-quad-nombre { font-size: 34px; font-weight: 700; line-height: 1.05; }
 .rg-quad-phrase { font-size: 13px; line-height: 1.3; }
 .rg-indeterminees { background: #EEF0EC; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2F3532; margin-top: auto; }
-.stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"]:has(.st-key-gauche_sinistralite) { display: flex; flex-direction: column; }
-.stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] > [data-testid="stVerticalBlock"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] div:has(.st-key-gauche_sinistralite), .st-key-gauche_sinistralite, .st-key-gauche_sinistralite [data-testid="stElementContainer"], .st-key-gauche_sinistralite [data-testid="stMarkdown"], .st-key-gauche_sinistralite [data-testid="stMarkdownContainer"] { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.st-key-gauche_sinistralite .rg-carte-s { flex: 1 1 auto; }
 .rg-sombre { background: #1B1F1D; border-radius: 10px; padding: 20px 24px; display: flex; align-items: center; gap: 20px; }
 .rg-sombre .rg-sombre-nombre { font-size: 60px; font-weight: 700; line-height: 1; color: #E99A68 !important; }
 .rg-sombre .rg-sombre-titre { font-size: 20px; font-weight: 600; color: #F4F5F2 !important; }
@@ -123,24 +125,21 @@ CSS = """
 .rg-sombre > div { display: flex; flex-direction: column; gap: 4px; }
 .rg-angles { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; }
 .rg-angles-titre { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600; padding-bottom: 4px; }
-.rg-angles-corps { max-height: 330px; overflow-y: auto; }
+.rg-angles { min-height: 220px; }
+.rg-angles-corps { flex: 1 1 0; min-height: 120px; overflow-y: auto; }
 .rg-angles-ligne { display: grid; grid-template-columns: minmax(0, 1fr) 32px 50px 160px 46px 88px; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #EEF0EC; }
 .rg-angles-ligne span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rg-angles-ligne.rg-angles-entete { color: #4A514D; font-weight: 600; border-bottom: 1px solid #DCDFDA; padding: 0 0 6px; }
 .rg-angles-ligne span:nth-child(n+3) { text-align: right; }
 .rg-angles-vide { font-size: 13px; color: #4A514D; padding: 4px 0; }
-.rg-methodo { --methodo-texte: 14px; --h-entete: 82px; --h-onglets: 48px; --h-pied: 50px; --h-marges: 80px; --ecart: clamp(0px, calc(800px - 100vh), 140px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(min-content, 1fr)); min-height: calc(100vh - var(--h-entete) - var(--h-onglets) - var(--h-pied) - var(--h-marges)); align-items: stretch; gap: calc(20px - var(--ecart) * 0.06); padding-top: 10px; }
-.rg-methodo-carte { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: calc(24px - var(--ecart) * 0.09); display: flex; flex-direction: column; gap: calc(8px - var(--ecart) * 0.02); }
+.rg-methodo { --methodo-texte: 14px; --methodo-interligne: 21px; --methodo-espace: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: var(--methodo-espace); }
+.rg-methodo-carte { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 18px var(--methodo-espace); display: flex; flex-direction: column; gap: 6px; }
 .rg-methodo-carte.rg-beige { background: #FBF3EC; border-color: #FBF3EC; }
 .rg-methodo-surtitre { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600; }
 .rg-beige .rg-methodo-surtitre { color: #7A3410; font-weight: 700; }
 .stMarkdown .rg-methodo-carte h2 { margin: 0; padding: 0; font-size: 17px; line-height: 1.3; font-weight: 700; color: #1B1F1D; }
-.rg-methodo-carte p, .rg-methodo-carte li { margin: 0; font-size: var(--methodo-texte); line-height: calc(1.6 * var(--methodo-texte) - var(--ecart) * 0.03); color: #2F3532; }
-.rg-methodo-carte ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: calc(6px - var(--ecart) * 0.02); }
-.rg-pied-methodo { padding: 14px 0 0; font-size: 12px; color: #4A514D; display: flex; flex-direction: column; gap: 2px; }
-.rg-pied-methodo span { white-space: nowrap; }
-.rg-pied-methodo a { color: #C2410C; }
-.rg-pied-methodo a:hover { color: #7A3410; }
+.rg-methodo-carte p, .rg-methodo-carte li { margin: 0; font-size: var(--methodo-texte); line-height: var(--methodo-interligne); color: #2F3532; }
+.rg-methodo-carte ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 """
 
 
@@ -172,7 +171,7 @@ def html_carte_resultat(surtitre: str, reponse: str, chiffre: str, ic: str, ment
                         detail: str, barre: str, lecture: str) -> str:
     """Carte blanche de l'onglet Résultat (tous les textes sont échappés ; `barre` vient de html_barre_fourchette)."""
     return (
-        '<section class="rg-carte">'
+        '<section class="rg-carte rg-etire">'
         f'<div class="rg-surtitre-carte">{_e(surtitre)}</div>'
         f'<h2 class="rg-reponse">{_e(reponse)}</h2>'
         '<div class="rg-chiffre-ligne">'
@@ -235,8 +234,16 @@ def html_signal(titre: str, nombre: str, texte: str, note: str) -> str:
     )
 
 
-def html_pied(texte: str) -> str:
-    return f'<div class="rg-pied">{_e(texte)}</div>'
+def html_pied(texte: str, lien: tuple[str, str, str] | None = None) -> str:
+    """Pied commun ; `lien` = (introduction, texte du lien, URL), seulement pour la Méthodologie."""
+    suite = ""
+    if lien:
+        introduction, libelle, url = lien
+        suite = (
+            f'<br>{_e(introduction)}<a href="{html.escape(url, quote=True)}" target="_blank" '
+            f'rel="noopener noreferrer">{_e(libelle)}</a>'
+        )
+    return f'<div class="rg-pied">{_e(texte)}{suite}</div>'
 
 
 def html_grille_methodologie(cartes: list[dict]) -> str:
@@ -250,16 +257,6 @@ def html_grille_methodologie(cartes: list[dict]) -> str:
         classe = "rg-methodo-carte rg-beige" if carte.get("beige") else "rg-methodo-carte"
         blocs.append(f'<section class="{classe}"><div class="rg-methodo-surtitre">{_e(carte["surtitre"])}</div>{titre}{corps}</section>')
     return f'<div class="rg-methodo">{"".join(blocs)}</div>'
-
-
-def html_pied_methodologie(introduction: str, lien: str, url: str, sources: str) -> str:
-    """Pied de Méthodologie : renvoi vers la méthode détaillée (lien externe) et sources datées."""
-    return (
-        '<div class="rg-pied-methodo">'
-        f'<span>{_e(introduction)}<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{_e(lien)}</a></span>'
-        f'<span>{_e(sources)}</span></div>'
-    )
-
 
 def html_pastille(couleur: str, opacite: float = 1.0) -> str:
     return f'<span class="rg-sw" style="background:{couleur};opacity:{opacite}"></span>'
@@ -320,9 +317,9 @@ def html_fiche_vide(titre: str, texte: str) -> str:
 
 
 def html_sous_carte(note: str, legende: str, phrase: str) -> str:
-    """Légende et note de position et fond de carte sur une même ligne (la note passe dessous si la
-    place manque), puis phrase des tests multiples, séparées de 6 px (HTML déjà échappé par leurs fabriques)."""
-    return f'<div class="rg-sous-carte"><div class="rg-ligne-legende">{legende}{note}</div>{phrase}</div>'
+    """Légende sur une ligne, puis note de position et fond de carte, puis phrase des tests multiples,
+    séparées de 6 px (HTML déjà échappé par leurs fabriques)."""
+    return f'<div class="rg-sous-carte">{legende}{note}{phrase}</div>'
 
 
 def html_fiche(departement: str, nom: str, libelle: str, chiffre: str, couleur_chiffre: str, ic: str,
@@ -386,7 +383,7 @@ def html_carte_sinistralite(titre: str, explication: str, colonnes: tuple, ligne
         for i, libelle in enumerate(lignes)
     )
     return (
-        '<section class="rg-carte-s">'
+        '<section class="rg-carte-s rg-etire">'
         f'<h2 class="rg-titre-s">{_e(titre)}</h2><p class="rg-explication">{_e(explication)}</p>'
         f'<div class="rg-quad"><div></div>{en_tetes}{etiquettes}{"".join(cases)}</div>'
         f'<div class="rg-indeterminees"><strong>{_e(nombre_indeterminees)}</strong>{_e(suite_indeterminees)}</div>'
@@ -410,10 +407,20 @@ def html_tableau_angles(titre: str, en_tetes: tuple, lignes: list[tuple], vide: 
 
     corps = "".join(rangee(v) for v in lignes) or f'<div class="rg-angles-vide">{_e(vide)}</div>'
     return (
-        '<section class="rg-angles">'
+        '<section class="rg-angles rg-etire">'
         f'<div class="rg-angles-titre">{_e(titre)}</div>{rangee(en_tetes, "rg-angles-entete")}'
         f'<div class="rg-angles-corps">{corps}</div></section>'
     )
+
+
+@contextmanager
+def onglet(cle: str, resume: dict, lien: tuple[str, str, str] | None = None):
+    """Mise en page commune d'un onglet : hauteur naturelle du contenu (aucune hauteur liée à la fenêtre), puis
+    pied commun (24 px au-dessus, 20 px en dessous). Les règles sont dans CSS (clés `page_*` et `zone_*`)."""
+    with st.container(key=f"page_{cle}"):
+        with st.container(key=f"zone_{cle}"):
+            yield
+        st.markdown(html_pied(textes.pied_commun(resume), lien), unsafe_allow_html=True)
 
 
 def entete(surtitre: str, titre: str) -> None:

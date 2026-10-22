@@ -21,8 +21,8 @@ def afficher(tout: donnees.Donnees) -> None:
     ic = textes.intervalle_pct(bas, haut)
     description = f"Intervalle de confiance {ic} ; seuil « pas de décote » à {textes.pct(seuil, 1, True)}"
 
-    # Conteneur à clé « resultat » : le CSS de charte.py étire la colonne de droite à la hauteur de la gauche
-    with st.container(key="resultat"):
+    # Mise en page commune (charte.onglet) : le CSS étire les deux colonnes à la hauteur de la zone
+    with charte.onglet("resultat", resume):
         gauche, droite = st.columns([1.5, 1], gap="small")
         with gauche:
             st.markdown(
@@ -55,4 +55,3 @@ def afficher(tout: donnees.Donnees) -> None:
                     unsafe_allow_html=True,
                 )
                 st.button(textes.BOUTON_SIGNAL, key="vers_sinistralite", on_click=ouvrir_sinistralite)
-    st.markdown(charte.html_pied(textes.sources_pied(resume)), unsafe_allow_html=True)
