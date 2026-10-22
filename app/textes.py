@@ -6,6 +6,7 @@ chiffres viennent des fichiers de data/processed/ (lus par donnees.py), les text
 """
 
 import math
+import re
 from bisect import bisect_right
 
 import pandas as pd
@@ -16,7 +17,6 @@ MOINS = "−"
 SURTITRE = "Retrait-gonflement des argiles × ventes DVF"
 TITRE_APP = "Le marché distingue-t-il les zones d'argile forte et moyenne ?"
 ONGLETS = ("Résultat", "Sinistralité × écart", "Carte", "Méthodologie et limites")
-EN_CONSTRUCTION = "En construction."
 
 # Vocabulaire : « prime de risque implicite » est réservé au résultat global (page Méthodologie,
 # README). Les écarts communaux ne portent jamais ce nom ni « effet de l'argile ».
@@ -25,10 +25,6 @@ EXPRESSIONS_INTERDITES = ("effet de l'argile", "risque élevé", "valeur de votr
 
 ECART = "écart de prix observé entre zone forte et reste de la commune"
 ARRETES = "arrêtés sécheresse 2015-2023"
-PHRASE_CARTE_2026 = (
-    "Dans ces quatre départements déjà très exposés, la carte 2026 change le niveau "
-    "d'environ 1 % des ventes, dans les deux sens."
-)
 RAPPEL = (
     "Il s'agit d'un écart observé entre zone forte et reste de la commune, "
     "ni valeur de la maison, ni causalité."
@@ -263,6 +259,257 @@ def phrase_signal(n_angle_mort: int) -> str:
 def sources_pied(resume: dict) -> str:
     noms = [s["nom"] for cle in SOURCES_PIED for s in resume["sources"]["liste"] if s["cle"] == cle]
     return " · ".join([f"Sources : {', '.join(noms)}" if noms else "Sources", PIED_CALCULS, PIED_CAUSALITE])
+
+
+# ---------------------------------------------------------------- onglet Méthodologie et limites
+# Les gabarits ne contiennent aucun chiffre : tout vient de resume_global.json. Seuls restent écrits
+# les noms de la réforme (2025), de la carte (2026) et le niveau des intervalles (95 %). Le vocabulaire
+# est celui de docs/app.md : on parle du « contraste fort − moyen », jamais d'une prime de risque.
+
+# URL provisoire : le dépôt GitHub n'est pas encore créé (Points ouverts du CLAUDE.md)
+URL_METHODE = "https://github.com/Tropical-Tech-Code/retrait-gonflement/blob/main/docs/method.md"
+LIEN_METHODE = "docs/method.md sur GitHub"
+PIED_METHODE = "Méthode détaillée : "
+PIED_SOURCES = "Sources : "
+
+METHO_TITRES = {
+    "question": ("Question testée", "Zone forte contre zone moyenne"),
+    "donnees": ("Données", "Ventes, exposition, sinistres"),
+    "modele": ("Modèle", "Comparer des maisons voisines"),
+    "robustesse": ("Robustesse", None),
+    "communes": ("Écarts par commune", "Surtout des quartiers"),
+    "limites": ("Limites", None),
+}
+METHO_TITRE_TIENT = "Le résultat tient dans les variantes"
+METHO_TITRE_DEPEND = "Le résultat dépend des variantes"
+METHO_REFERENCE = (
+    "La référence « hors zone ou faible » pèse moins de {plafond} des ventes : "
+    "c'est un petit groupe aux caractéristiques propres."
+)
+METHO_MODELE = (
+    "Régression du prix sur la surface, le terrain et les pièces, avec un effet fixe commune × trimestre : "
+    "on compare des maisons vendues dans la même commune, au même moment. "
+    "Erreurs groupées par commune, intervalles de confiance à 95 %."
+)
+METHO_COMMUNES_FIN = "des différences entre quartiers, cohérentes avec le test placebo."
+# Sigle développé une seule fois dans l'app (carte « Données » de la Méthodologie)
+GASPAR_DEVELOPPE = "Gestion assistée des procédures administratives relatives aux risques naturels et technologiques"
+LIMITE_CAUSALITE ="Corrélation, pas causalité ; ni valeur de maison."
+LIMITE_CARRES = "Position des carrés de la carte approximative (quelques km)."
+MOIS = ("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
+        "novembre", "décembre")
+
+
+NOMBRES_EN_LETTRES = ("zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix", "onze",
+                      "douze", "treize", "quatorze", "quinze", "seize")
+
+
+def debut_phrase(n: int) -> str:
+    """Nombre en début de phrase : en lettres jusqu'à seize (« Quatre »), en chiffres au-delà."""
+    return NOMBRES_EN_LETTRES[n].capitalize() if 0 <= n < len(NOMBRES_EN_LETTRES) else entier(n)
+
+
+def date_extraction_gaspar(millesime: str | None) -> str | None:
+    """« catnat_gaspar_2026-10-05.csv » -> « extraction du 5 octobre 2026 » ; None si le nom n'a pas de date."""
+    trouve = re.search(r"(\d{4})-(\d{2})-(\d{2})", millesime or "")
+    if not trouve:
+        return None
+    annee, mois, jour = (int(x) for x in trouve.groups())
+    if not 1 <= mois <= 12:
+        return None
+    return f"extraction du {jour} {MOIS[mois - 1]} {annee}"
+
+
+def _contraste(resume: dict, nom: str) -> dict | None:
+    return (resume["modeles_globaux"].get(nom) or {}).get("contraste_fort_moins_moyen")
+
+
+def _coefficient(resume: dict, nom: str, cle: str) -> dict | None:
+    return ((resume["modeles_globaux"].get(nom) or {}).get("coefficients") or {}).get(cle)
+
+
+def _n_departements(resume: dict) -> int:
+    return len(resume["primes_communes"]["par_departement"])
+
+
+def _plage_zones(resume: dict) -> tuple[float, float, float] | None:
+    """(part forte minimale, part forte maximale, part maximale de « hors zone + faible »), par département."""
+    zones = resume.get("zones_rga")
+    if not zones:
+        return None
+    forts = [z["part_3"] for z in zones.values()]
+    return min(forts), max(forts), max(z["part_0"] + z["part_1"] for z in zones.values())
+
+
+def phrase_zones(resume: dict) -> str:
+    plage = _plage_zones(resume)
+    if plage is None:
+        return ""
+    bas, haut, reference = plage
+    forte = _nombre(round(bas * 100), 0) if round(bas * 100) == round(haut * 100) else (
+        f"{_nombre(round(bas * 100), 0)} à {_nombre(round(haut * 100), 0)}")
+    plafond = f"{entier(math.floor(reference * 100) + 1)}{NBSP}%"
+    return (
+        f"{forte}{NBSP}% des ventes sont en zone forte, les autres surtout en zone moyenne. "
+        + METHO_REFERENCE.format(plafond=plafond)
+    )
+
+
+def phrase_carte_2026(resume: dict) -> str | None:
+    """Part des ventes dont le niveau change entre les cartes 2020 et 2026 (clé `carte_2026`) ; None si absente."""
+    c = resume.get("carte_2026")
+    if not c or c.get("part_change") is None:
+        return None
+    if not c["n_change"]:
+        return "La carte 2026 ne change le niveau d'aucune vente."
+    plus, moins = c["n_vers_plus_fort"], c["n_vers_moins_fort"]
+    sens = (", dans les deux sens" if plus and moins else
+            ", vers un niveau plus fort" if plus else ", vers un niveau moins fort")
+    part = round(c["part_change"] * 100)
+    quantite = f"d'environ {entier(part)}{NBSP}%" if part >= 1 else "de moins d'un pour cent"
+    return f"La carte 2026 change le niveau {quantite} des ventes{sens}."
+
+
+def _ligne_modele(libelle: str, coefficient: dict | None) -> str | None:
+    if not coefficient:
+        return None
+    bas, haut = coefficient["ic95_effet"]
+    return f"{libelle} : {pct(coefficient['effet'], 1, True)} {intervalle_pct(bas, haut)}."
+
+
+def _conclusion(coefficient: dict) -> str:
+    """decote | positif | indetermine : la position de l'IC par rapport à 0 (le seuil de −3 % ne sert pas ici).
+
+    Deux variantes ont « la même conclusion » si leurs intervalles sont du même côté de 0 ou contiennent 0 tous les deux.
+    """
+    bas, haut = coefficient["ic95_effet"]
+    return "decote" if haut < 0 else "positif" if bas > 0 else "indetermine"
+
+
+def items_robustesse(resume: dict) -> tuple[bool, list[str]]:
+    """(le résultat tient dans les variantes, phrases de la carte Robustesse), toutes lues dans `modeles_globaux`."""
+    modeles = resume["modeles_globaux"]
+    principal = modeles["principal"]["contraste_fort_moins_moyen"]
+    cas = _conclusion(principal)
+    items, tient = [], True
+    sans_limite = _contraste(resume, "sans_limite")
+    if sans_limite:
+        meme = _conclusion(sans_limite) == cas
+        tient &= meme
+        bas, haut = sans_limite["ic95_effet"]
+        items.append(
+            f"Sans les ventes proches d'une limite de zone : {'même' if meme else 'autre'} conclusion "
+            f"({pct(sans_limite['effet'], 1, True)} {intervalle_pct(bas, haut)})."
+        )
+    contre_reste = _coefficient(resume, "fort_contre_reste", "fort")
+    if contre_reste:
+        tient &= _conclusion(contre_reste) == cas
+        items.append(_ligne_modele("Zone forte contre tout le reste", contre_reste))
+    reforme = modeles.get("reforme_2025")
+    if reforme:
+        items.append(f"Réforme 2025 (RGA dans l'état des risques) : {reforme['statut'].replace(' : ', ', ')}.")
+    placebo = modeles.get("placebo_bascule")
+    if placebo:
+        bascule = _coefficient(resume, "placebo_bascule", "bascule")
+        suite = (
+            "son écart positif évoque des différences de quartiers, pas un effet causal"
+            if bascule and bascule["effet"] > 0 else "son écart n'est pas un effet causal"
+        )
+        items.append(f"Placebo (ventes reclassées par la carte 2026) : {placebo['statut']} ; {suite}.")
+    return tient, items
+
+
+def texte_donnees(resume: dict) -> str:
+    debut, fin = resume["periode"]
+    nettoyage = resume["nettoyage"]
+    catnat = resume["catnat"]
+    rga = next((s.get("millesime") for s in resume["sources"]["liste"] if s["cle"] == "rga_2020"), None)
+    exposition = f"carte RGA {rga}" if rga else "carte RGA"
+    return (
+        f"Sur {entier(nettoyage['n_mutations'])} mutations DVF ({debut}-{fin}, un seul bien par vente), "
+        f"{entier(nettoyage['n_ventes_retenues'])} ventes de maisons sont retenues. "
+        f"Exposition : {exposition}, connue du marché sur toute la période. "
+        f"Sinistres : arrêtés {catnat['libelle'].lower()} {catnat['periode']} de GASPAR ({GASPAR_DEVELOPPE}) ; "
+        "les sécheresses plus récentes ne sont pas encore reconnues."
+    )
+
+
+def texte_modele(resume: dict) -> str:
+    n = resume["modeles_globaux"]["principal"].get("n_ventes")
+    return METHO_MODELE + (f" Estimation sur {entier(n)} ventes." if n is not None else "")
+
+
+def texte_communes(resume: dict) -> str:
+    seuils = resume["primes_communes"]["seuils"]
+    decotes, primes = int(resume["n_significatives_decote"]), int(resume["n_significatives_prime"])
+    sens = ", dans les deux sens" if decotes and primes else ""
+    return (
+        f"Parmi les {entier(int(resume['n_communes_estimables']))} communes estimables "
+        f"({seuils['min_ventes_fort']} ventes en zone forte, {seuils['min_ventes_reference']} ailleurs, "
+        f"{seuils['min_ventes_total']} au total), on compte "
+        f"{pluriel(decotes + primes, 'écart significatif', 'écarts significatifs')} pour environ "
+        f"{entier(round(resume['n_attendu_hasard']))} attendus par hasard{sens} : {METHO_COMMUNES_FIN}"
+    )
+
+
+def limites(resume: dict) -> list[str]:
+    catnat = resume["catnat"]
+    items = [
+        LIMITE_CAUSALITE,
+        f"{debut_phrase(_n_departements(resume))} "
+        + ("département déjà très exposé." if _n_departements(resume) in (0, 1) else "départements déjà très exposés."),
+        f"Aucun arrêté {catnat['libelle'].lower()} reconnu après {catnat['annee_debut_max']} (délai de reconnaissance).",
+    ]
+    carte = phrase_carte_2026(resume)
+    if carte:
+        items.append(carte)
+    return items + [LIMITE_CARRES]
+
+
+def cartes_methodologie(resume: dict) -> list[dict]:
+    """Les six cartes de l'onglet : rang, surtitre, titre, paragraphes ou items, `beige` pour les limites."""
+    tient, robustesse = items_robustesse(resume)
+    question = (
+        f"Dans ces {pluriel(_n_departements(resume), 'département')}, " + phrase_zones(resume)
+        if phrase_zones(resume) else "La comparaison porte sur les zones d'argile forte et moyenne."
+    )
+    cartes = [
+        {"paragraphes": [question]},
+        {"paragraphes": [texte_donnees(resume)]},
+        {"paragraphes": [texte_modele(resume)]},
+        {"items": robustesse, "titre": METHO_TITRE_TIENT if tient else METHO_TITRE_DEPEND},
+        {"paragraphes": [texte_communes(resume)]},
+        {"items": limites(resume), "beige": True},
+    ]
+    cles = list(METHO_TITRES)
+    for rang, (cle, carte) in enumerate(zip(cles, cartes), start=1):
+        surtitre, titre = METHO_TITRES[cle]
+        carte.setdefault("titre", titre)
+        carte["surtitre"] = f"{rang} · {surtitre}"
+    return cartes
+
+
+def sources_methodologie(resume: dict) -> str:
+    """Pied des sources sur une ligne : noms courts, dates de téléchargement lues dans `sources.liste`.
+
+    Les deux cartes RGA sont regroupées ; GASPAR affiche la date d'extraction tirée du nom de son fichier.
+    """
+    par_cle = {s["cle"]: s for s in resume["sources"]["liste"]}
+    date = lambda cle: date_fr(par_cle[cle].get("date_telechargement"))  # noqa: E731
+    morceaux = []
+    if "dvf" in par_cle:
+        morceaux.append(f"DVF (Etalab, {date('dvf')})")
+    rga = [c for c in ("rga_2020", "rga_2026") if c in par_cle]
+    if rga:
+        millesimes = " et ".join(str(par_cle[c].get("millesime") or c[-4:]) for c in rga)
+        dates = list(dict.fromkeys(date(c) for c in rga))
+        morceaux.append(f"RGA {millesimes} (Géorisques / BRGM, {' et '.join(dates)})")
+    if "gaspar" in par_cle:
+        extraction = date_extraction_gaspar(par_cle["gaspar"].get("millesime"))
+        morceaux.append(f"GASPAR ({extraction or date('gaspar')})")
+    if "communes" in par_cle:
+        morceaux.append(f"Contours (API Géo, {date('communes')})")
+    return " · ".join(morceaux)
 
 
 def phrase_tests_multiples(resume: dict) -> str:

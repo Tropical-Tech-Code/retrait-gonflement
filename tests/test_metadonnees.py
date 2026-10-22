@@ -60,6 +60,72 @@ def test_decrire_sources_avec_et_sans_fichiers(tmp_path):
     assert set(sources) == {"dvf", "rga_2020", "rga_2026", "gaspar", "communes"}
 
 
+def base_ventes_rga():
+    """10 ventes : dép. 31 (4 ventes) et 77 (6 ventes), niveaux 2020 et 2026 simulés."""
+    con = duckdb.connect()
+    con.execute("CREATE TABLE ventes_rga (code_departement VARCHAR, rga_2020 INTEGER, rga_2026 INTEGER)")
+    lignes = [("31", 3, 3), ("31", 3, 2), ("31", 2, 2), ("31", 0, 0)]
+    lignes += [("77", 3, 3), ("77", 3, 3), ("77", 2, 3), ("77", 2, 2), ("77", 1, 1), ("77", 2, 1)]
+    con.executemany("INSERT INTO ventes_rga VALUES (?, ?, ?)", lignes)
+    return con
+
+
+def test_repartition_zones_par_departement():
+    zones = metadonnees.repartition_zones(base_ventes_rga())
+    assert set(zones) == {"31", "77"}
+    assert zones["31"]["n_ventes"] == 4
+    assert (zones["31"]["part_0"], zones["31"]["part_1"], zones["31"]["part_2"], zones["31"]["part_3"]) == (0.25, 0, 0.25, 0.5)
+    assert zones["77"]["n_ventes"] == 6
+    assert zones["77"]["part_3"] == 2 / 6 and zones["77"]["part_2"] == 3 / 6 and zones["77"]["part_1"] == 1 / 6
+    for z in zones.values():
+        assert abs(sum(z[f"part_{n}"] for n in range(4)) - 1) < 1e-12
+
+
+def test_changements_carte_2026_dans_les_deux_sens():
+    c = metadonnees.changements_carte_2026(base_ventes_rga())
+    assert c["n_ventes"] == 10
+    assert c["n_vers_plus_fort"] == 1       # 2 -> 3 en 77
+    assert c["n_vers_moins_fort"] == 2      # 3 -> 2 en 31, 2 -> 1 en 77
+    assert c["n_change"] == 3
+    assert c["part_change"] == 0.3
+
+
+def test_changements_carte_2026_sans_vente():
+    con = duckdb.connect()
+    con.execute("CREATE TABLE ventes_rga (code_departement VARCHAR, rga_2020 INTEGER, rga_2026 INTEGER)")
+    c = metadonnees.changements_carte_2026(con)
+    assert c["n_ventes"] == 0 and c["part_change"] is None
+
+
+def test_main_ecrit_zones_et_carte_2026_si_la_table_existe(tmp_path, capsys):
+    base = tmp_path / "travail.duckdb"
+    con = duckdb.connect(str(base))
+    con.execute("CREATE TABLE mutations_dvf (n_lignes INTEGER, annee INTEGER, motif VARCHAR)")
+    con.execute("INSERT INTO mutations_dvf VALUES (1, 2021, NULL)")
+    con.execute("CREATE TABLE ventes_rga (code_departement VARCHAR, rga_2020 INTEGER, rga_2026 INTEGER)")
+    con.execute("INSERT INTO ventes_rga VALUES ('31', 3, 3), ('31', 2, 3)")
+    con.close()
+    resume = tmp_path / "resume_global.json"
+    resume.write_text("{}", encoding="utf-8")
+    metadonnees.main(["--base", str(base), "--resume", str(resume), "--raw", str(tmp_path / "raw")])
+    contenu = json.loads(resume.read_text(encoding="utf-8"))
+    assert contenu["zones_rga"]["31"]["part_3"] == 0.5
+    assert contenu["carte_2026"]["n_change"] == 1 and contenu["carte_2026"]["n_vers_plus_fort"] == 1
+    assert "Carte 2026 contre 2020" in capsys.readouterr().out
+
+
+def test_main_sans_table_ventes_rga_ne_touche_pas_aux_cles_existantes(tmp_path, capsys):
+    base = tmp_path / "travail.duckdb"
+    con = duckdb.connect(str(base))
+    con.execute("CREATE TABLE mutations_dvf (n_lignes INTEGER, annee INTEGER, motif VARCHAR)")
+    con.close()
+    resume = tmp_path / "resume_global.json"
+    resume.write_text(json.dumps({"zones_rga": {"31": {}}}), encoding="utf-8")
+    metadonnees.main(["--base", str(base), "--resume", str(resume), "--raw", str(tmp_path / "raw")])
+    assert json.loads(resume.read_text(encoding="utf-8"))["zones_rga"] == {"31": {}}
+    assert "ventes_rga absente" in capsys.readouterr().out
+
+
 def test_main_complete_le_resume_sans_ecraser_les_autres_cles(tmp_path):
     base = tmp_path / "travail.duckdb"
     con = duckdb.connect(str(base))

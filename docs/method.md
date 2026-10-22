@@ -101,9 +101,11 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
   Une décote sur ces ventes signifierait que le marché perçoit le risque sans la
   carte officielle, ou que la zone est corrélée à autre chose. Résultat dans
   `resume_global.json` uniquement, marqué « indicatif, faible puissance (861 ventes,
-  8 communes) » : la carte 2026 fait basculer vers « fort » environ 1 % des ventes, dans
+  8 communes) » : la carte 2026 fait basculer vers « fort » 861 ventes, dans
   8 communes (3 en 31, 5 en 77, aucune en 47 et 82) ; elle reclasse aussi des ventes vers le
-  bas (3 → 2 : 378 en 31, 187 en 77). **L'IC repose sur 8 communes** : les erreurs
+  bas (3 → 2 : 378 en 31, 187 en 77). Au total, la carte 2026 change le niveau de 1 474
+  ventes sur 82 525 (1,79 %, soit environ 2 %) : 894 vers un niveau plus fort, 580 vers un
+  niveau moins fort (clé `carte_2026` de `resume_global.json`). **L'IC repose sur 8 communes** : les erreurs
   groupées par commune sont peu fiables avec si peu de groupes. Le signe du coefficient
   est positif, ce qui suggère une hétérogénéité de quartiers au sein des communes ; les
   écarts ne sont pas causaux. Ces deux avertissements figurent dans le JSON.

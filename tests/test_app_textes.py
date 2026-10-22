@@ -256,10 +256,18 @@ def textes_resultat():
     return produits
 
 
+def textes_methodologie(resume):
+    """Tous les textes de l'onglet Méthodologie et limites, d'après un résumé."""
+    produits = [textes.PIED_METHODE, textes.LIEN_METHODE, textes.PIED_SOURCES, textes.sources_methodologie(resume)]
+    for carte in textes.cartes_methodologie(resume):
+        produits += [carte["surtitre"], carte.get("titre") or "", *carte.get("paragraphes", []), *carte.get("items", [])]
+    return produits
+
+
 def tous_les_textes():
     produits = [texte(code) for code in COMMUNES.index]
-    produits += [textes.phrase_tests_multiples(RESUME), textes.PHRASE_CARTE_2026, textes.INVITE_COMMUNE,
-                 textes.TITRE_INVITE]
+    produits += [textes.phrase_tests_multiples(RESUME), textes.INVITE_COMMUNE, textes.TITRE_INVITE]
+    produits += textes_methodologie(RESUME)
     produits += [textes.texte_info_bulle(COMMUNES.reset_index().loc[i]) for i in range(len(COMMUNES))]
     produits += [textes.LEGENDE_PALE, textes.LEGENDE_NON_ESTIMABLE, textes.LEGENDE_SELECTION, textes.LIBELLE_ECART_FICHE]
     produits += list(textes.LIBELLE_CASES) + [textes.NOMS_DEPARTEMENTS[d] for d in textes.NOMS_DEPARTEMENTS]

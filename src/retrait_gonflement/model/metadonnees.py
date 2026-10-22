@@ -45,6 +45,41 @@ def effectifs_nettoyage(con: duckdb.DuckDBPyConnection) -> dict:
     }
 
 
+def table_existe(con: duckdb.DuckDBPyConnection, nom: str) -> bool:
+    return con.execute("SELECT count(*) FROM information_schema.tables WHERE table_name = ?", [nom]).fetchone()[0] > 0
+
+
+def repartition_zones(con: duckdb.DuckDBPyConnection) -> dict:
+    """Part des ventes par niveau RGA 2020 (0 à 3), par département (table `ventes_rga`).
+
+    Fractions entre 0 et 1 ; l'app en tire la plage de la zone forte et la part maximale de la référence.
+    """
+    lignes = con.execute(
+        "SELECT code_departement, count(*), "
+        + ", ".join(f"count(*) FILTER (WHERE rga_2020 = {n})" for n in range(4))
+        + " FROM ventes_rga GROUP BY code_departement ORDER BY code_departement"
+    ).fetchall()
+    return {
+        str(dep): {"n_ventes": int(total), **{f"part_{n}": effectif / total for n, effectif in enumerate(par_niveau)}}
+        for dep, total, *par_niveau in lignes
+    }
+
+
+def changements_carte_2026(con: duckdb.DuckDBPyConnection) -> dict:
+    """Ventes dont le niveau RGA change entre la carte 2020 et la carte 2026, dans les deux sens."""
+    n_ventes, n_change, plus, moins = con.execute(
+        "SELECT count(*), count(*) FILTER (WHERE rga_2020 <> rga_2026), "
+        "count(*) FILTER (WHERE rga_2026 > rga_2020), count(*) FILTER (WHERE rga_2026 < rga_2020) FROM ventes_rga"
+    ).fetchone()
+    return {
+        "n_ventes": int(n_ventes),
+        "n_change": int(n_change),
+        "n_vers_plus_fort": int(plus),
+        "n_vers_moins_fort": int(moins),
+        "part_change": n_change / n_ventes if n_ventes else None,
+    }
+
+
 def date_fichiers(fichiers: list[Path]) -> str | None:
     """Date (ISO) du fichier le plus récent ; None s'il n'y a aucun fichier."""
     if not fichiers:
@@ -97,6 +132,20 @@ def decrire_sources(config: dict, racine: Path = DOSSIER_RAW) -> list[dict]:
     return liste
 
 
+def lignes_zones(zones: dict, carte_2026: dict) -> list[str]:
+    sortie = ["Part des ventes par niveau RGA 2020 (%)", "  dep  ventes  hors zone  faible  moyen  fort"]
+    for dep, z in zones.items():
+        sortie.append(f"  {dep}  {z['n_ventes']}  " + "  ".join(f"{100 * z[f'part_{n}']:.1f}" for n in range(4)))
+    part = carte_2026["part_change"]
+    sortie += [
+        "",
+        f"Carte 2026 contre 2020 : {carte_2026['n_change']} ventes sur {carte_2026['n_ventes']} changent de niveau"
+        + (f" ({100 * part:.2f} %)" if part is not None else "")
+        + f", dont {carte_2026['n_vers_plus_fort']} vers un niveau plus fort et {carte_2026['n_vers_moins_fort']} vers un niveau moins fort",
+    ]
+    return sortie
+
+
 def lignes_resume(nettoyage: dict, sources: list[dict]) -> list[str]:
     sortie = [f"Nettoyage DVF : {nettoyage['n_mutations']} mutations -> {nettoyage['n_ventes_retenues']} ventes retenues"]
     sortie += [f"  {e['libelle']} : -{e['exclues']} (reste {e['restantes']})" for e in nettoyage["etapes"]]
@@ -106,22 +155,36 @@ def lignes_resume(nettoyage: dict, sources: list[dict]) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Ajoute les effectifs du nettoyage et les sources à resume_global.json")
+    parser = argparse.ArgumentParser(
+        description="Ajoute les effectifs du nettoyage, les sources, la répartition par zone et les changements "
+        "de la carte 2026 à resume_global.json"
+    )
     parser.add_argument("--base", type=Path, default=BASE_PAR_DEFAUT)
     parser.add_argument("--resume", type=Path, default=CHEMIN_RESUME)
     parser.add_argument("--raw", type=Path, default=DOSSIER_RAW)
     args = parser.parse_args(argv)
+    zones = carte_2026 = None
     try:
         con = duckdb.connect(str(args.base), read_only=True)
         try:
             nettoyage = effectifs_nettoyage(con)
+            if table_existe(con, "ventes_rga"):
+                zones, carte_2026 = repartition_zones(con), changements_carte_2026(con)
         finally:
             con.close()
         sources = decrire_sources(charger_config(), args.raw)
     except (ErreurDonnees, duckdb.Error) as e:
         raise SystemExit(f"Erreur : {e}") from e
-    ecrire_resume(args.resume, {"nettoyage": nettoyage, "sources": {"note_date": NOTE_DATE, "liste": sources}})
-    print("\n".join(lignes_resume(nettoyage, sources)))
+    ajout = {"nettoyage": nettoyage, "sources": {"note_date": NOTE_DATE, "liste": sources}}
+    if zones is not None:
+        ajout |= {"zones_rga": zones, "carte_2026": carte_2026}
+    ecrire_resume(args.resume, ajout)
+    sortie = lignes_resume(nettoyage, sources)
+    if zones is not None:
+        sortie += ["", *lignes_zones(zones, carte_2026)]
+    else:
+        sortie += ["", "Table ventes_rga absente : répartition par zone et carte 2026 non calculées"]
+    print("\n".join(sortie))
 
 
 if __name__ == "__main__":

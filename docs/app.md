@@ -11,9 +11,11 @@ DuckDB, aucun calcul statistique. Tout est calculé par le pipeline (voir
   zone forte et reste de la commune »**. Jamais un « effet de l'argile », ni une « prime
   de risque » : la colonne garde son nom de fichier, pas ses libellés à l'écran (info-bulle,
   fiche, texte automatique, axes, tableau, légende).
-- L'expression **« prime de risque implicite »** est réservée au résultat global
-  (onglet Résultat, onglet Méthodologie et limites, README) : le contraste « fort − moyen »
-  et les modèles globaux.
+- L'expression **« prime de risque implicite »** n'apparaît nulle part dans l'app
+  (décision du 22/10 : l'étude compare deux zones exposées et ne dit pas si le marché fait
+  payer le risque). Les textes parlent du **« contraste fort − moyen »**. Elle reste
+  possible au README ; décision à l'étape 7. Le test d'expressions interdites est strict,
+  sans exception.
 - Les écarts communaux ne sont ni causaux ni une estimation de la valeur d'une maison.
 
 ## Cahier des charges et parcours (19/10/2026)
@@ -45,7 +47,7 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 - Encadré gris « Ce qui a vraiment été testé » : écart des deux zones exposées par rapport aux maisons hors zone, sa fragilité (p), et la conclusion « l'étude ne dit pas si le marché fait payer le risque argileux ; elle dit qu'il ne distingue pas nettement exposition moyenne et forte ».
 - Encadré sombre « Signal faible » : nombre de communes en angle mort, formulé comme une hypothèse à surveiller, lien vers l'onglet 2.
 - Pied : sources, « Calculs faits hors ligne », « Corrélation, pas causalité ».
-- Hors de cet onglet : variante réforme 2025, placebo et phrase « environ 1 % des ventes » (Méthodologie), tests multiples (Carte).
+- Hors de cet onglet : variante réforme 2025, placebo et phrase sur la part des ventes dont la carte 2026 change le niveau (Méthodologie), tests multiples (Carte).
 
 ### Onglet 2 : Sinistralité × écart
 - Tableau à quatre cases : colonnes « sinistralité ≤ médiane (0 à 2 arrêtés) » et « > médiane (3 arrêtés ou plus) » ; lignes « pas de décote » et « décote ». Cases : Cohérent, Risque non intégré (mis en avant ; valeur « Angle mort » dans les fichiers, libellé affiché seulement à l'écran, décision du 22/10), Décote à expliquer, Risque intégré, chacune avec son effectif et une phrase.
@@ -65,8 +67,8 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 - Recherche de commune (selectbox, clé `commune`) : même effet qu'un clic (changement de zone si nécessaire, sélection). Le clic est lu au début de l'exécution suivante, avant la création des widgets.
 
 ### Onglet 4 : Méthodologie et limites
-- Six cartes courtes, sans défilement : Question testée, Données, Modèle, Robustesse, Écarts par commune, Limites (dont « la carte 2026 change le niveau d'environ 1 % des ventes, dans les deux sens »).
-- Renvoi vers docs/method.md sur GitHub pour le détail. Pas de texte long dans l'app ; le test de vocabulaire s'applique aux textes des cartes.
+- Six cartes courtes en grille 3 × 2, sans défilement : Question testée, Données, Modèle, Robustesse, Écarts par commune, Limites (encadré beige). Tous les chiffres sont lus dans `resume_global.json` (un test change toutes les données et vérifie qu'aucun nombre ne reste écrit en dur, hors « 95 % », « 2025 » et « 2026 »). Limites : corrélation sans causalité, nombre de départements, aucun arrêté après l'année du dernier arrêté (délai), part des ventes dont la carte 2026 change le niveau (exemple : « La carte 2026 change le niveau d'environ 2 % des ventes, dans les deux sens »), position des carrés approximative (quelques km).
+- Pied : renvoi vers docs/method.md sur GitHub (`URL_METHODE`, valeur provisoire tant que le dépôt n'existe pas) et sources avec leur date de téléchargement ; le millésime GASPAR (nom de fichier) s'affiche « extraction du 5 octobre 2026 » (date tirée du nom par `textes.date_extraction_gaspar`). Pas de texte long dans l'app ; le test de vocabulaire s'applique aux textes des cartes.
 
 ### Charte
 - .streamlit/config.toml, [theme] : backgroundColor #F4F5F2, textColor #1B1F1D, primaryColor #C2410C, secondaryBackgroundColor #FFFFFF (aucun rouge Streamlit).
@@ -153,6 +155,7 @@ Contenu défini dans `docs/method.md` (section 8), plus :
 - `n_decote`, `n_pas_de_decote`, `n_indetermine` et effectifs par quadrant ;
 - `sources` : pour chaque source, URL, date de téléchargement et millésime ;
 - `date_generation` : date de production des fichiers ;
+- `zones_rga` et `carte_2026` (voir section 4) ;
 - `carres` : `zones` (maille en km, communes, écarts entre centre de la commune et carré, `emprise` [lon_min, lat_min, lon_max, lat_max] des carrés et des étiquettes, `directions_etiquettes`, par zone) et `etiquettes` (position `lon`, `lat` du centre du nom de chaque département). L'étiquette est placée à l'est, à l'ouest, au sud ou au nord des carrés du département (dans cet ordre), à 1,5 maille du bord : le premier emplacement dont le rectangle de texte estimé ne touche aucun carré ; sinon au centre des carrés.
 
 ## 2. Onglet Carte : détails de réalisation
@@ -219,8 +222,10 @@ charges. Le nuage de points est abandonné.
 
 Six cartes courtes et un renvoi vers `docs/method.md` (voir le cahier des charges). Les
 effectifs du nettoyage et les sources sont lus dans `resume_global.json` (clés
-`nettoyage` et `sources`). La phrase « environ 1 % des ventes » est calculée par le
-pipeline et écrite dans `resume_global.json` (point ouvert du `CLAUDE.md`).
+`nettoyage` et `sources`). `model/metadonnees.py` écrit aussi `zones_rga` (par département,
+part des ventes par niveau RGA 2020 : plage de la zone forte et plafond de la référence) et
+`carte_2026` (ventes dont le niveau change entre les cartes 2020 et 2026, dans chaque sens,
+et leur part) ; si ces clés manquent, l'app omet les phrases concernées.
 
 ## 5. Organisation du code
 

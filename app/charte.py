@@ -129,6 +129,18 @@ CSS = """
 .rg-angles-ligne.rg-angles-entete { color: #4A514D; font-weight: 600; border-bottom: 1px solid #DCDFDA; padding: 0 0 6px; }
 .rg-angles-ligne span:nth-child(n+3) { text-align: right; }
 .rg-angles-vide { font-size: 13px; color: #4A514D; padding: 4px 0; }
+.rg-methodo { --methodo-texte: 14px; --h-entete: 82px; --h-onglets: 48px; --h-pied: 50px; --h-marges: 80px; --ecart: clamp(0px, calc(800px - 100vh), 140px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(min-content, 1fr)); min-height: calc(100vh - var(--h-entete) - var(--h-onglets) - var(--h-pied) - var(--h-marges)); align-items: stretch; gap: calc(20px - var(--ecart) * 0.06); padding-top: 10px; }
+.rg-methodo-carte { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: calc(24px - var(--ecart) * 0.09); display: flex; flex-direction: column; gap: calc(8px - var(--ecart) * 0.02); }
+.rg-methodo-carte.rg-beige { background: #FBF3EC; border-color: #FBF3EC; }
+.rg-methodo-surtitre { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600; }
+.rg-beige .rg-methodo-surtitre { color: #7A3410; font-weight: 700; }
+.stMarkdown .rg-methodo-carte h2 { margin: 0; padding: 0; font-size: 17px; line-height: 1.3; font-weight: 700; color: #1B1F1D; }
+.rg-methodo-carte p, .rg-methodo-carte li { margin: 0; font-size: var(--methodo-texte); line-height: calc(1.6 * var(--methodo-texte) - var(--ecart) * 0.03); color: #2F3532; }
+.rg-methodo-carte ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: calc(6px - var(--ecart) * 0.02); }
+.rg-pied-methodo { padding: 14px 0 0; font-size: 12px; color: #4A514D; display: flex; flex-direction: column; gap: 2px; }
+.rg-pied-methodo span { white-space: nowrap; }
+.rg-pied-methodo a { color: #C2410C; }
+.rg-pied-methodo a:hover { color: #7A3410; }
 """
 
 
@@ -225,6 +237,28 @@ def html_signal(titre: str, nombre: str, texte: str, note: str) -> str:
 
 def html_pied(texte: str) -> str:
     return f'<div class="rg-pied">{_e(texte)}</div>'
+
+
+def html_grille_methodologie(cartes: list[dict]) -> str:
+    """Grille 3 × 2 des cartes de Méthodologie (textes échappés). Carte : surtitre, titre, paragraphes ou items, beige."""
+    blocs = []
+    for carte in cartes:
+        titre = f"<h2>{_e(carte['titre'])}</h2>" if carte.get("titre") else ""
+        corps = "".join(f"<p>{_e(p)}</p>" for p in carte.get("paragraphes", []))
+        if carte.get("items"):
+            corps += "<ul>" + "".join(f"<li>{_e(i)}</li>" for i in carte["items"]) + "</ul>"
+        classe = "rg-methodo-carte rg-beige" if carte.get("beige") else "rg-methodo-carte"
+        blocs.append(f'<section class="{classe}"><div class="rg-methodo-surtitre">{_e(carte["surtitre"])}</div>{titre}{corps}</section>')
+    return f'<div class="rg-methodo">{"".join(blocs)}</div>'
+
+
+def html_pied_methodologie(introduction: str, lien: str, url: str, sources: str) -> str:
+    """Pied de Méthodologie : renvoi vers la méthode détaillée (lien externe) et sources datées."""
+    return (
+        '<div class="rg-pied-methodo">'
+        f'<span>{_e(introduction)}<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{_e(lien)}</a></span>'
+        f'<span>{_e(sources)}</span></div>'
+    )
 
 
 def html_pastille(couleur: str, opacite: float = 1.0) -> str:

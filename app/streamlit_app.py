@@ -9,14 +9,11 @@ import charte
 import donnees
 import textes
 from vues import carte
+from vues import methodologie as methodologie_vue
 from vues import resultat as resultat_vue
 from vues import sinistralite as sinistralite_vue
 
 st.set_page_config(page_title="Retrait-gonflement et prix des maisons", layout="wide")
-
-
-def en_construction() -> None:
-    charte.encadre_gris(textes.EN_CONSTRUCTION)
 
 
 def afficher() -> None:
@@ -43,7 +40,7 @@ def afficher() -> None:
             carte.afficher(tout)
     with methodologie:
         if methodologie.open:
-            en_construction()
+            methodologie_vue.afficher(tout)
 
 
 afficher()

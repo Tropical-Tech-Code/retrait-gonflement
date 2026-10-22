@@ -26,6 +26,13 @@ def resume_test() -> dict:
                 "contraste_fort_moins_moyen": coefficient(0.0091, -0.0289, 0.0486),
             },
             "fort_contre_reste": {"coefficients": {"fort": coefficient(0.0070, -0.0297, 0.0451)}},
+            "sans_limite": {"contraste_fort_moins_moyen": coefficient(0.0137, -0.0350, 0.0640)},
+            "reforme_2025": {"statut": "indice : une seule année après la réforme"},
+            "placebo_bascule": {
+                "statut": "indicatif, faible puissance (853 ventes, 8 communes)",
+                "coefficients": {"bascule": coefficient(0.0356, 0.0167, 0.0548, 0.0003)},
+                "avertissements": ["l'IC repose sur 8 communes", "le signe positif suggère des quartiers"],
+            },
         },
         "n_communes_estimables": 4,
         "n_significatives_decote": 1,
@@ -39,8 +46,11 @@ def resume_test() -> dict:
         "seuil_prix_median": 5,
         "mediane_sinistralite": 2.0,
         "n_par_quadrant": {"Risque intégré": 1, "Angle mort": 1, "Décote à expliquer": 0, "Cohérent": 0},
-        "primes_communes": {"seuils": {"min_ventes_fort": 15, "min_ventes_reference": 15, "min_ventes_total": 50}},
-        "catnat": {"libelle": "Sécheresse", "periode": "2015-2023"},
+        "primes_communes": {
+            "seuils": {"min_ventes_fort": 15, "min_ventes_reference": 15, "min_ventes_total": 50},
+            "par_departement": {"31": {}, "47": {}, "77": {}, "82": {}},
+        },
+        "catnat": {"libelle": "Sécheresse", "periode": "2015-2023", "annee_debut_max": 2023},
         "carres": {
             "marge_cases": 1.3,
             "zones": {"sud_ouest": {"departements": ["31", "47", "82"], "maille_km": 3.0,
@@ -51,10 +61,23 @@ def resume_test() -> dict:
         },
         "nettoyage": {"n_mutations": 1000, "n_ventes_retenues": 300, "etapes": []},
         "sources": {"note_date": "Date de téléchargement.", "liste": [
-            {"cle": "dvf", "nom": "DVF géolocalisées (Etalab)"},
-            {"cle": "rga_2020", "nom": "Carte RGA 2020 (Géorisques / BRGM)"},
-            {"cle": "rga_2026", "nom": "Carte RGA 2026 (Géorisques / BRGM)"},
+            {"cle": "dvf", "nom": "DVF géolocalisées (Etalab)", "millesime": "ventes 2021-2025",
+             "date_telechargement": "2026-10-15"},
+            {"cle": "rga_2020", "nom": "Carte RGA 2020 (Géorisques / BRGM)", "millesime": "2020",
+             "date_telechargement": "2026-10-16"},
+            {"cle": "rga_2026", "nom": "Carte RGA 2026 (Géorisques / BRGM)", "millesime": "2026",
+             "date_telechargement": "2026-10-15"},
+            {"cle": "gaspar", "nom": "GASPAR (Géorisques)", "millesime": "catnat_gaspar_2026-10-05.csv",
+             "date_telechargement": "2026-10-16"},
+            {"cle": "communes", "nom": "Contours des communes (API Géo)", "millesime": "version de l'API Géo",
+             "date_telechargement": None},
         ]},
+        "zones_rga": {
+            "31": {"n_ventes": 100, "part_0": 0.02, "part_1": 0.004, "part_2": 0.5, "part_3": 0.476},
+            "77": {"n_ventes": 200, "part_0": 0.07, "part_1": 0.004, "part_2": 0.4, "part_3": 0.526},
+        },
+        "carte_2026": {"n_ventes": 1000, "n_change": 18, "n_vers_plus_fort": 10, "n_vers_moins_fort": 8,
+                       "part_change": 0.018},
     }
 
 
