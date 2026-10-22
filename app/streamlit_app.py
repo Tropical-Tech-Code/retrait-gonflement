@@ -10,6 +10,7 @@ import donnees
 import textes
 from vues import carte
 from vues import resultat as resultat_vue
+from vues import sinistralite as sinistralite_vue
 
 st.set_page_config(page_title="Retrait-gonflement et prix des maisons", layout="wide")
 
@@ -36,7 +37,7 @@ def afficher() -> None:
             resultat_vue.afficher(tout)
     with sinistralite:
         if sinistralite.open:
-            en_construction()
+            sinistralite_vue.afficher(tout)
     with vue_carte:
         if vue_carte.open:
             carte.afficher(tout)

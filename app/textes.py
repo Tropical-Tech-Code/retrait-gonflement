@@ -59,6 +59,13 @@ def nom_departement(departement: str) -> str:
 
 STATUTS_DECOTE = {"decote": "décote", "pas_de_decote": "pas de décote", "indetermine": "indéterminé"}
 QUADRANTS = ("Risque intégré", "Angle mort", "Décote à expliquer", "Cohérent")
+# Les fichiers de data/processed/ gardent la valeur « Angle mort » ; l'écran affiche le libellé ci-dessous
+LIBELLES_QUADRANTS = {"Angle mort": "Risque non intégré"}
+
+
+def libelle_quadrant(valeur: str) -> str:
+    """Libellé affiché d'un quadrant (la valeur des fichiers si elle n'a pas de libellé propre)."""
+    return LIBELLES_QUADRANTS.get(valeur, valeur)
 
 # Bornes des cinq classes de écart (fraction), borne inférieure incluse. Doivent rester
 # identiques à [carte] classes_prime de config/perimetre.toml (un test le vérifie) : l'app ne
@@ -175,7 +182,7 @@ TESTE_CONCLUSION = (
     "Elle dit qu'il ne distingue pas nettement exposition moyenne et forte."
 )
 TITRE_SIGNAL = "Signal faible"
-SIGNAL_NOTE = "Des angles morts possibles, à surveiller. Une hypothèse, pas une prédiction."
+SIGNAL_NOTE = "Des risques peut-être non intégrés, à surveiller. Une hypothèse, pas une prédiction."
 BOUTON_SIGNAL = f"Voir {ONGLETS[1]} →"
 PIED_CALCULS = "Calculs faits hors ligne"
 PIED_CAUSALITE = "Corrélation, pas causalité"
@@ -357,6 +364,83 @@ def libelle_sinistralite(mediane: float) -> str:
     )
 
 
+# ---------------------------------------------------------------- onglet Sinistralité × écart
+
+TITRE_SINISTRALITE = "Sinistralité constatée et écart de prix"
+LIGNES_QUADRANTS = ("Pas de décote", "Décote")
+# (ligne, colonne) de chaque case : colonne 0 = sinistralité ≤ médiane, 1 = > médiane
+POSITIONS_QUADRANTS = {"Cohérent": (0, 0), "Angle mort": (0, 1), "Décote à expliquer": (1, 0), "Risque intégré": (1, 1)}
+PHRASES_QUADRANTS = {
+    "Cohérent": "Peu de sinistres, pas de décote.",
+    "Angle mort": "Des sinistres reconnus, pas de décote.",
+    "Décote à expliquer": "Une décote sans sinistralité marquée : sans doute un effet de quartier plutôt que de l'argile.",
+    "Risque intégré": "Des sinistres et une décote.",
+}
+SIGNAL_SINISTRALITE = (
+    "Hypothèse à surveiller : des sinistres sont reconnus, mais aucune décote n'est mesurée "
+    "entre zone forte et reste de la commune. Ce n'est pas une prédiction."
+)
+TITRE_TABLEAU_ANGLES = "Communes au risque non intégré, par sinistralité"
+EN_TETES_ANGLES = ("Commune", "Dép.", "Arrêtés", "Écart [IC 95 %]", "Ventes", "dont zone forte")
+AUCUN_ANGLE_MORT = "Aucune commune au risque non intégré."
+PIED_STATUTS = "Statuts calculés hors ligne"
+
+
+def libelles_colonnes_sinistralite(mediane: float) -> tuple[tuple[str, str], tuple[str, str]]:
+    """Deux lignes par colonne : k = partie entière de la médiane (arrêtés entiers)."""
+    k = seuil_arretes(mediane) - 1
+    return (
+        ("Sinistralité ≤ médiane", f"(0 à {k} arrêtés)"),
+        ("Sinistralité > médiane", f"({k + 1} arrêtés ou plus)"),
+    )
+
+
+def phrase_explication_sinistralite(mediane: float) -> str:
+    return (
+        "Chaque commune estimable est classée par son statut (décote ou pas de décote) et par sa "
+        f"sinistralité : {ARRETES}, au-dessus ou non de la médiane du périmètre "
+        f"({seuil_arretes(mediane)} arrêtés ou plus)."
+    )
+
+
+def indeterminees(n: int) -> tuple[str, str]:
+    """(nombre, suite de la phrase) de l'encadré gris sous le tableau."""
+    fin = " : trop peu de ventes pour trancher entre décote et absence de décote."
+    if n in (0, 1):
+        return entier(n), " commune n'est pas classée" + fin
+    return entier(n), " communes ne sont pas classées" + fin
+
+
+def titre_signal_sinistralite(n: int) -> str:
+    return "commune au risque non intégré" if n in (0, 1) else "communes au risque non intégré"
+
+
+def pied_sinistralite(seuil: float) -> str:
+    """Pied de l'onglet : définitions des statuts (seuil lu dans le JSON) et rappel de prudence."""
+    decimales = 0 if round(seuil * 100) == seuil * 100 else 1
+    return (
+        f"{PIED_STATUTS} : décote = IC entièrement sous 0 ; pas de décote = borne basse de l'IC au-dessus "
+        f"de {pct(seuil, decimales, True)} · {PIED_CAUSALITE}"
+    )
+
+
+def angles_morts(communes: pd.DataFrame) -> pd.DataFrame:
+    """Communes dont le quadrant est « Angle mort » (affiché « Risque non intégré »), arrêtés décroissants puis nom."""
+    angles = communes[communes["quadrant"] == "Angle mort"]
+    return angles.sort_values(["catnat_depuis_2015", "nom"], ascending=[False, True])
+
+
+def ligne_angle_mort(ligne) -> tuple[str, str, str, str, str, str]:
+    if pd.isna(ligne["prime"]) or pd.isna(ligne["ic_bas"]) or pd.isna(ligne["ic_haut"]):
+        ecart = "—"
+    else:
+        ecart = f"{pct(ligne['prime'], 1, True)} {intervalle_pct(ligne['ic_bas'], ligne['ic_haut'])}"
+    return (
+        str(ligne["nom"]), str(ligne["departement"]), entier(ligne["catnat_depuis_2015"]),
+        ecart, entier(ligne["n_ventes"]), entier(ligne["n_fort"]),
+    )
+
+
 # ---------------------------------------------------------------- texte automatique
 
 def texte_commune(ligne, resume: dict) -> str:
@@ -391,6 +475,6 @@ def texte_commune(ligne, resume: dict) -> str:
         phrases = [f"{intervalle} : trop large pour conclure."]
     quadrant = ligne.get("quadrant")
     if isinstance(quadrant, str) and quadrant:
-        phrases.append(f"Quadrant : {quadrant}.")
+        phrases.append(f"Quadrant : {libelle_quadrant(quadrant)}.")
     phrases.append(RAPPEL)
     return " ".join(phrases)

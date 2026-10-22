@@ -43,12 +43,12 @@ CSS = """
 .rg-barre .rg-etiquette { top: 56px; font-size: 12px; color: #4A514D; transform: translateX(-50%); white-space: nowrap; }
 .rg-bloc-gris { background: #EEF0EC; border-radius: 10px; padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; }
 .rg-bloc-gris p { margin: 0; font-size: 15px; color: #2F3532; }
-.stMain .block-container .st-key-droite { gap: 20px; }
+.stMain .block-container .st-key-droite, .stMain .block-container .st-key-droite_sinistralite { gap: 20px; }
 .stMain .block-container .st-key-signal { background: #1B1F1D; border-radius: 10px; padding: 24px 26px; gap: 16px; }
 .stMain .block-container .st-key-signal [data-testid="stButton"] { margin: auto 0 0; }
-.stMain .block-container .st-key-resultat [data-testid="stHorizontalBlock"] { align-items: stretch; }
-.stMain .block-container .st-key-resultat [data-testid="stColumn"], .stMain .block-container .st-key-resultat [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { padding-bottom: 0; }
-.stMain .block-container .st-key-resultat [data-testid="stColumn"] [data-testid="stVerticalBlock"] > :last-child, .stMain .block-container .st-key-resultat [data-testid="stColumn"] [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
+.stMain .block-container .st-key-resultat [data-testid="stHorizontalBlock"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stHorizontalBlock"] { align-items: stretch; }
+.stMain .block-container .st-key-resultat [data-testid="stColumn"], .stMain .block-container .st-key-resultat [data-testid="stColumn"] > [data-testid="stVerticalBlock"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { padding-bottom: 0; }
+.stMain .block-container .st-key-resultat [data-testid="stColumn"] [data-testid="stVerticalBlock"] > :last-child, .stMain .block-container .st-key-resultat [data-testid="stColumn"] [data-testid="stMarkdownContainer"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] [data-testid="stVerticalBlock"] > :last-child, .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
 .stMain .block-container .st-key-resultat [data-testid="stColumn"]:has(.st-key-droite) { display: flex; flex-direction: column; }
 .stMain .block-container .st-key-resultat [data-testid="stColumn"] div:has(.st-key-droite), .stMain .block-container .st-key-droite, .stMain .block-container .st-key-droite div:has(.st-key-signal), .stMain .block-container .st-key-signal { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .st-key-signal .rg-surtitre-signal { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #E99A68 !important; font-weight: 600; }
@@ -101,6 +101,34 @@ CSS = """
 .rg-note { margin-top: 4px; }
 .rg-note-titre { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #7A3410; font-weight: 700; margin-bottom: 6px; }
 .rg-note p { margin: 0; font-size: 14px; color: #2F3532; }
+.rg-carte-s { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 20px 28px; display: flex; flex-direction: column; gap: 10px; }
+.stMain .block-container .rg-carte-s h2.rg-titre-s { margin: 0 !important; padding: 0 !important; font-size: 22px !important; font-weight: 700 !important; line-height: 1.2 !important; color: #1B1F1D !important; }
+.stMain .block-container .rg-carte-s p.rg-explication { margin: 0; font-size: 14px; line-height: 1.45; color: #4A514D; }
+.rg-quad { display: grid; grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(104px, auto) minmax(104px, auto); gap: 8px; }
+.rg-quad-colonne { font-size: 13px; font-weight: 600; color: #4A514D; text-align: center; }
+.rg-quad-ligne { font-size: 13px; font-weight: 600; color: #4A514D; align-self: center; }
+.rg-quad-case { border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; }
+.rg-quad-case.rg-mis-en-avant { border: 2px solid #C2410C; padding: 9px 13px; }
+.rg-quad-nom { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
+.rg-quad-nombre { font-size: 34px; font-weight: 700; line-height: 1.05; }
+.rg-quad-phrase { font-size: 13px; line-height: 1.3; }
+.rg-indeterminees { background: #EEF0EC; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2F3532; margin-top: auto; }
+.stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"]:has(.st-key-gauche_sinistralite) { display: flex; flex-direction: column; }
+.stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] > [data-testid="stVerticalBlock"], .stMain .block-container .st-key-onglet_sinistralite [data-testid="stColumn"] div:has(.st-key-gauche_sinistralite), .st-key-gauche_sinistralite, .st-key-gauche_sinistralite [data-testid="stElementContainer"], .st-key-gauche_sinistralite [data-testid="stMarkdown"], .st-key-gauche_sinistralite [data-testid="stMarkdownContainer"] { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.st-key-gauche_sinistralite .rg-carte-s { flex: 1 1 auto; }
+.rg-sombre { background: #1B1F1D; border-radius: 10px; padding: 20px 24px; display: flex; align-items: center; gap: 20px; }
+.rg-sombre .rg-sombre-nombre { font-size: 60px; font-weight: 700; line-height: 1; color: #E99A68 !important; }
+.rg-sombre .rg-sombre-titre { font-size: 20px; font-weight: 600; color: #F4F5F2 !important; }
+.rg-sombre .rg-sombre-texte { font-size: 13px; color: #C9CDC7 !important; }
+.rg-sombre > div { display: flex; flex-direction: column; gap: 4px; }
+.rg-angles { background: #FFFFFF; border: 1px solid #DCDFDA; border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; }
+.rg-angles-titre { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4A514D; font-weight: 600; padding-bottom: 4px; }
+.rg-angles-corps { max-height: 330px; overflow-y: auto; }
+.rg-angles-ligne { display: grid; grid-template-columns: minmax(0, 1fr) 32px 50px 160px 46px 88px; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #EEF0EC; }
+.rg-angles-ligne span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rg-angles-ligne.rg-angles-entete { color: #4A514D; font-weight: 600; border-bottom: 1px solid #DCDFDA; padding: 0 0 6px; }
+.rg-angles-ligne span:nth-child(n+3) { text-align: right; }
+.rg-angles-vide { font-size: 13px; color: #4A514D; padding: 4px 0; }
 """
 
 
@@ -285,6 +313,72 @@ def html_fiche(departement: str, nom: str, libelle: str, chiffre: str, couleur_c
         f'<div class="rg-fiche-ecart"><span class="rg-fiche-chiffre" style="color:{couleur_chiffre}">{_e(chiffre)}</span>{ic_html}</div>'
         f'<span class="rg-pastille">{_e(statut)}</span>'
         f'<div class="rg-cases">{cases_html}</div>{encadre}</aside>'
+    )
+
+
+# Couleurs des quatre cases de l'onglet Sinistralité × écart : (fond, bordure, titre, nombre, phrase)
+COULEURS_QUADRANTS = {
+    "Cohérent": ("#FFFFFF", "1px solid #DCDFDA", "#4A514D", "#1B1F1D", "#4A514D"),
+    "Angle mort": ("#FBE3D3", None, "#8A2E0B", "#8A2E0B", "#7A3410"),
+    "Décote à expliquer": ("#F7F2EA", None, "#6B5A40", "#6B5A40", "#6B5A40"),
+    "Risque intégré": ("#EEF3F0", None, "#2E5A48", "#2E5A48", "#2E5A48"),
+}
+
+
+def html_case_quadrant(nom: str, libelle: str, nombre: str, phrase: str, ligne: int, colonne: int) -> str:
+    """Une case du tableau 2 × 2 (placée dans la grille par ligne et colonne, la 1re étant l'en-tête).
+
+    `nom` est la valeur du quadrant dans les fichiers (clé des couleurs), `libelle` le texte affiché."""
+    fond, bordure, c_nom, c_nombre, c_phrase = COULEURS_QUADRANTS[nom]
+    mis_en_avant = nom == "Angle mort"
+    style = f"background:{fond};grid-row:{ligne + 2};grid-column:{colonne + 2};"
+    if bordure:
+        style += f"border:{bordure};"
+    classe = "rg-quad-case rg-mis-en-avant" if mis_en_avant else "rg-quad-case"
+    return (
+        f'<div class="{classe}" style="{style}">'
+        f'<span class="rg-quad-nom" style="color:{c_nom}">{_e(libelle)}</span>'
+        f'<span class="rg-quad-nombre" style="color:{c_nombre}">{_e(nombre)}</span>'
+        f'<span class="rg-quad-phrase" style="color:{c_phrase}">{_e(phrase)}</span></div>'
+    )
+
+
+def html_carte_sinistralite(titre: str, explication: str, colonnes: tuple, lignes: tuple, cases: list[str],
+                            nombre_indeterminees: str, suite_indeterminees: str) -> str:
+    """Carte blanche de gauche : tableau à quatre cases puis encadré gris (`cases` vient de html_case_quadrant)."""
+    en_tetes = "".join(f'<div class="rg-quad-colonne">{_e(a)}<br>{_e(b)}</div>' for a, b in colonnes)
+    etiquettes = "".join(
+        f'<div class="rg-quad-ligne" style="grid-row:{i + 2};grid-column:1">{_e(libelle)}</div>'
+        for i, libelle in enumerate(lignes)
+    )
+    return (
+        '<section class="rg-carte-s">'
+        f'<h2 class="rg-titre-s">{_e(titre)}</h2><p class="rg-explication">{_e(explication)}</p>'
+        f'<div class="rg-quad"><div></div>{en_tetes}{etiquettes}{"".join(cases)}</div>'
+        f'<div class="rg-indeterminees"><strong>{_e(nombre_indeterminees)}</strong>{_e(suite_indeterminees)}</div>'
+        '</section>'
+    )
+
+
+def html_signal_sombre(nombre: str, titre: str, texte: str) -> str:
+    return (
+        '<section class="rg-sombre">'
+        f'<span class="rg-sombre-nombre">{_e(nombre)}</span>'
+        f'<div><span class="rg-sombre-titre">{_e(titre)}</span><span class="rg-sombre-texte">{_e(texte)}</span></div>'
+        '</section>'
+    )
+
+
+def html_tableau_angles(titre: str, en_tetes: tuple, lignes: list[tuple], vide: str) -> str:
+    """Tableau des communes en angle mort : en-tête fixe, corps qui défile seul s'il est trop long."""
+    def rangee(valeurs, classe=""):
+        return f'<div class="rg-angles-ligne {classe}">' + "".join(f"<span>{_e(v)}</span>" for v in valeurs) + "</div>"
+
+    corps = "".join(rangee(v) for v in lignes) or f'<div class="rg-angles-vide">{_e(vide)}</div>'
+    return (
+        '<section class="rg-angles">'
+        f'<div class="rg-angles-titre">{_e(titre)}</div>{rangee(en_tetes, "rg-angles-entete")}'
+        f'<div class="rg-angles-corps">{corps}</div></section>'
     )
 
 

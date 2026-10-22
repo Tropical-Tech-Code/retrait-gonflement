@@ -48,7 +48,7 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 - Hors de cet onglet : variante réforme 2025, placebo et phrase « environ 1 % des ventes » (Méthodologie), tests multiples (Carte).
 
 ### Onglet 2 : Sinistralité × écart
-- Tableau à quatre cases : colonnes « sinistralité ≤ médiane (0 à 2 arrêtés) » et « > médiane (3 arrêtés ou plus) » ; lignes « pas de décote » et « décote ». Cases : Cohérent, Angle mort (mis en avant), Décote à expliquer, Risque intégré, chacune avec son effectif et une phrase.
+- Tableau à quatre cases : colonnes « sinistralité ≤ médiane (0 à 2 arrêtés) » et « > médiane (3 arrêtés ou plus) » ; lignes « pas de décote » et « décote ». Cases : Cohérent, Risque non intégré (mis en avant ; valeur « Angle mort » dans les fichiers, libellé affiché seulement à l'écran, décision du 22/10), Décote à expliquer, Risque intégré, chacune avec son effectif et une phrase.
 - Sous le tableau : nombre de communes indéterminées, non classées.
 - À droite : encadré sombre (nombre d'angles morts, hypothèse sans prédiction) et tableau des communes en angle mort (commune, département, arrêtés, écart [IC 95 %], ventes en zone forte), trié par arrêtés décroissants.
 - Le nuage de points est abandonné : les cases sont définies par le statut, pas par la valeur de l'écart.

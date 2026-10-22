@@ -206,7 +206,7 @@ def test_texte_commune_en_decote():
 def test_texte_commune_pas_de_decote_cite_le_seuil():
     t = texte("31002")
     assert f"au-dessus de {MOINS}3{NB}%, une décote éventuelle serait faible" in t
-    assert "Quadrant : Angle mort." in t
+    assert "Quadrant : Risque non intégré." in t
 
 
 def test_texte_commune_indeterminee_sans_quadrant():

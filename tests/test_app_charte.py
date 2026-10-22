@@ -123,7 +123,8 @@ def test_composants_echappent_le_texte():
 
 def test_css_espacements_de_l_onglet_resultat():
     # même spécificité que la règle générale des blocs verticaux (sinon elle l'emporte)
-    assert ".stMain .block-container .st-key-droite { gap: 20px; }" in charte.CSS
+    # règle partagée avec l'onglet Sinistralité × écart (même sélecteur groupé)
+    assert ".stMain .block-container .st-key-droite, .stMain .block-container .st-key-droite_sinistralite { gap: 20px; }" in charte.CSS
     assert ".stMain .block-container .st-key-signal {" in charte.CSS and "gap: 16px;" in charte.CSS
     assert '.st-key-signal [data-testid="stButton"] { margin: auto 0 0; }' in charte.CSS
 
