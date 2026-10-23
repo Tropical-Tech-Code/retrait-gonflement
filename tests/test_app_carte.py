@@ -194,8 +194,9 @@ def test_phrase_unique_sous_la_carte_apres_la_legende(at):
     assert len(blocs) == 1
     bloc = blocs[0]
     assert bloc.count('class="rg-phrase-carte"') == 1 and "par hasard" in bloc
-    assert "Sur 4 communes, 2 montrent un écart net, contre 0 attendue par hasard." in bloc    # chiffres de communes_test
-    assert "(1 décote, 1 prime)" in bloc and "Cliquez" not in bloc
+    assert "Sur 4 communes, 2 montrent un écart significatif, contre 0 attendue par hasard." in bloc    # chiffres de communes_test
+    assert "(1 zone forte moins chère, 1 plus chère)" in bloc and "Cliquez" not in bloc and "prime" not in bloc.lower()
+    assert "Écart zone forte / reste :" in bloc
     assert bloc.index('class="rg-legende"') < bloc.index('class="rg-phrase-carte"')
     assert "Seules" not in " ".join(m.value for m in at.markdown)
 

@@ -117,6 +117,7 @@ CSS = """
 .rg-quad-nom { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
 .rg-quad-nombre { font-size: 34px; font-weight: 700; line-height: 1.05; }
 .rg-quad-phrase { font-size: 13px; line-height: 1.3; }
+.stMain .block-container .rg-carte-s p.rg-note-s { margin: 0 0 2px; font-size: var(--texte-legende, 12px) !important; color: var(--couleur-legende, #2F3532) !important; line-height: 1.4 !important; }
 .rg-indeterminees { background: #EEF0EC; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2F3532; margin-top: auto; }
 .rg-sombre { background: #1B1F1D; border-radius: 10px; padding: 20px 24px; display: flex; align-items: center; gap: 20px; }
 .rg-sombre .rg-sombre-nombre { font-size: 60px; font-weight: 700; line-height: 1; color: #E99A68 !important; }
@@ -274,9 +275,12 @@ def html_tuile(libelle: str, valeur: str, complement: str = "", couleur: str | N
     )
 
 
-def html_legende(elements: list[tuple[str, str, float, bool]]) -> str:
-    """Légende sous la carte : (couleur, libellé, opacité, avec anneau de sélection) ; « · » entre les groupes."""
-    morceaux = []
+def html_legende(elements: list[tuple[str, str, float, bool]], prefixe: str = "") -> str:
+    """Légende sous la carte : (couleur, libellé, opacité, avec anneau de sélection) ; « · » entre les groupes.
+
+    `prefixe` dit ce que mesurent les couleurs (texte placé avant le premier élément).
+    """
+    morceaux = [f"<span>{_e(prefixe)}</span>"] if prefixe else []
     for couleur, libelle, opacite, anneau in elements:
         if not couleur:
             morceaux.append('<span style="color:#4A514D">·</span>')
@@ -375,8 +379,8 @@ def html_case_quadrant(nom: str, libelle: str, nombre: str, phrase: str, ligne: 
 
 
 def html_carte_sinistralite(titre: str, explication: str, colonnes: tuple, lignes: tuple, cases: list[str],
-                            nombre_indeterminees: str, suite_indeterminees: str) -> str:
-    """Carte blanche de gauche : tableau à quatre cases puis encadré gris (`cases` vient de html_case_quadrant)."""
+                            nombre_indeterminees: str, suite_indeterminees: str, note: str = "") -> str:
+    """Carte blanche de gauche : tableau à quatre cases, `note` sous le tableau, puis encadré gris (`cases` vient de html_case_quadrant)."""
     en_tetes = "".join(f'<div class="rg-quad-colonne">{_e(a)}<br>{_e(b)}</div>' for a, b in colonnes)
     etiquettes = "".join(
         f'<div class="rg-quad-ligne" style="grid-row:{i + 2};grid-column:1">{_e(libelle)}</div>'
@@ -386,7 +390,8 @@ def html_carte_sinistralite(titre: str, explication: str, colonnes: tuple, ligne
         '<section class="rg-carte-s rg-etire">'
         f'<h2 class="rg-titre-s">{_e(titre)}</h2><p class="rg-explication">{_e(explication)}</p>'
         f'<div class="rg-quad"><div></div>{en_tetes}{etiquettes}{"".join(cases)}</div>'
-        f'<div class="rg-indeterminees"><strong>{_e(nombre_indeterminees)}</strong>{_e(suite_indeterminees)}</div>'
+        + (f'<p class="rg-note-s">{_e(note)}</p>' if note else "")
+        + f'<div class="rg-indeterminees"><strong>{_e(nombre_indeterminees)}</strong>{_e(suite_indeterminees)}</div>'
         '</section>'
     )
 

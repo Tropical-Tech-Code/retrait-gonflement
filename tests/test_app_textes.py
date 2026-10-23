@@ -60,13 +60,13 @@ def test_phrase_tests_multiples():
     resume = RESUME | {"n_significatives_decote": 16, "n_significatives_prime": 15, "n_attendu_hasard": 9.65}
     phrase = textes.phrase_tests_multiples(resume | {"n_communes_estimables": 193})
     assert phrase == (
-        "Sur 193 communes, 31 montrent un écart net, contre une dizaine attendue par hasard. "
-        "Ces écarts vont autant dans un sens que dans l'autre (16 décotes, 15 primes) : ils reflètent surtout "
-        "des différences entre quartiers, plutôt qu'un problème de terrains argileux."
+        "Sur 193 communes, 31 montrent un écart significatif, contre une dizaine attendue par hasard. "
+        "Ils vont dans les deux sens (16 zones fortes moins chères, 15 plus chères) : si l'argile jouait, "
+        "on verrait surtout des décotes ; ce sont plutôt des différences entre quartiers."
     )
     autre = textes.phrase_tests_multiples(resume | {"n_attendu_hasard": 4.6, "n_significatives_prime": 1})
-    assert "contre 5 attendues par hasard" in autre and "(16 décotes, 1 prime)" in autre
-    assert "Cliquez" not in phrase
+    assert "contre 5 attendues par hasard" in autre and "(16 zones fortes moins chères, 1 plus chère)" in autre
+    assert "Cliquez" not in phrase and "prime" not in phrase and "IC" not in phrase and "(IC" not in phrase
 
 
 def test_liste_de_recherche_decotes_puis_separateur_puis_autres():
@@ -103,9 +103,9 @@ def principal(effet_moyen, p_moyen, effet_fort, p_fort):
 def test_paragraphe_teste_variante_fragile_ecarts_et_p_ranges():
     # moyen -3,38 %, fort -2,50 % : écarts rangés du plus petit au plus grand ; p égaux à deux décimales : un seul
     assert textes.paragraphe_teste(principal(-0.0338, 0.058, -0.0250, 0.061)) == (
-        f"Les maisons des deux zones exposées se vendent 2,5 à 3,4{NB}% moins cher que les rares maisons "
-        "hors zone argileuse ou en zone faible. Cet écart est fragile (p ≈ 0,06), "
-        "et ce petit groupe diffère par d'autres traits que l'argile."
+        f"Les maisons des deux zones exposées se vendraient 2,5 à 3,4{NB}% moins cher que les rares maisons "
+        "hors zone argileuse ou en zone faible. Écart fragile (p ≈ 0,06) : "
+        "ce petit groupe peut différer pour d'autres raisons : emplacement, type de maisons, quartier."
     )
     # p rangés quand ils diffèrent à deux décimales, quel que soit l'ordre moyen / fort
     assert "p ≈ 0,05 à 0,12" in textes.paragraphe_teste(principal(-0.03, 0.12, -0.02, 0.05))
@@ -113,17 +113,17 @@ def test_paragraphe_teste_variante_fragile_ecarts_et_p_ranges():
 
 def test_paragraphe_teste_variante_nette():
     texte = textes.paragraphe_teste(principal(-0.0338, 0.004, -0.0250, 0.2))
-    assert texte.endswith("Cet écart est net, mais ce petit groupe diffère par d'autres traits que l'argile.")
+    assert texte.endswith("Cet écart est significatif, mais ce petit groupe peut différer pour d'autres raisons : emplacement, type de maisons, quartier.")
     assert "fragile" not in texte and "p ≈" not in texte
 
 
 def test_paragraphe_teste_fragile_seulement_si_les_deux_p_au_moins_0_01():
     assert "fragile" in textes.paragraphe_teste(principal(-0.03, 0.01, -0.02, 0.5))
-    assert "net" in textes.paragraphe_teste(principal(-0.03, 0.0099, -0.02, 0.5))
+    assert "significatif" in textes.paragraphe_teste(principal(-0.03, 0.0099, -0.02, 0.5))
 
 
 def test_paragraphe_teste_ecarts_identiques():
-    assert f"se vendent 3,0{NB}% moins cher" in textes.paragraphe_teste(principal(-0.03, 0.05, -0.03, 0.06))
+    assert f"se vendraient 3,0{NB}% moins cher" in textes.paragraphe_teste(principal(-0.03, 0.05, -0.03, 0.06))
 
 
 @pytest.mark.parametrize("effet_moyen, effet_fort", [(0.01, -0.02), (-0.02, 0.01), (0.0, -0.02)])
@@ -151,8 +151,15 @@ def test_ligne_effectifs_lit_les_ventes_du_modele_puis_le_nettoyage():
 
 
 def test_phrase_signal_accord():
-    assert textes.phrase_signal(1).startswith("commune cumule ")
-    assert textes.phrase_signal(9).startswith("communes cumulent ")
+    assert textes.phrase_signal(1, SEUIL).startswith("commune cumule ")
+    assert textes.phrase_signal(9, SEUIL).startswith("communes cumulent ")
+
+
+def test_phrase_signal_lit_le_seuil():
+    assert textes.phrase_signal(9, -0.03).endswith(f"aucune décote de plus de 3{NB}% (intervalle de confiance).")
+    assert f"de plus de 5{NB}%" in textes.phrase_signal(9, -0.05)
+    assert f"de plus de 2,5{NB}%" in textes.phrase_signal(9, -0.025)
+    assert f"de plus de 3{NB}% est exclue" in textes.signal_sinistralite(-0.03)
 
 
 def test_pied_commun_aux_quatre_onglets():
@@ -210,13 +217,13 @@ def texte(code):
 def test_texte_commune_en_decote():
     t = texte("31001")
     assert f"L'intervalle va de {MOINS}20,0{NB}% à {MOINS}3,0{NB}% : entièrement sous 0, une décote est mesurée." in t
-    assert "Quadrant : Risque intégré." in t
+    assert "Quadrant : Sinistres et décote." in t
 
 
 def test_texte_commune_pas_de_decote_cite_le_seuil():
     t = texte("31002")
-    assert f"au-dessus de {MOINS}3{NB}%, une décote éventuelle serait faible" in t
-    assert "Quadrant : Risque non intégré." in t
+    assert f"sa borne basse dépasse {MOINS}3{NB}%, une décote éventuelle serait faible" in t
+    assert "Quadrant : Sinistres sans décote." in t
 
 
 def test_texte_commune_indeterminee_sans_quadrant():
@@ -260,7 +267,7 @@ def textes_resultat():
     produits = [textes.paragraphe_teste(principal), textes.paragraphe_teste(net), textes.TESTE_CONCLUSION, textes.TESTE_NEUTRE]
     produits += [textes.phrase_reponse(contraste(bas, haut), SEUIL) for bas, haut in [(-0.0289, 0.0486), (-0.08, -0.01), (0.01, 0.06)]]
     produits += [textes.phrase_lecture(contraste(bas, haut), SEUIL) for bas, haut in [(-0.0289, 0.0486), (-0.1, 0.05)]]
-    produits += [textes.phrase_signal(n) for n in (0, 1, 9)]
+    produits += [textes.phrase_signal(n, SEUIL) for n in (0, 1, 9)]
     produits += [textes.SURTITRE_RESULTAT, textes.LIBELLE_CHIFFRE, textes.SIGNAL_NOTE, textes.TITRE_SIGNAL, textes.BOUTON_SIGNAL]
     produits += [textes.ligne_effectifs(RESUME, 4), textes.pied_commun(RESUME)]
     return produits
@@ -282,6 +289,8 @@ def tous_les_textes():
     produits += [textes.LEGENDE_PALE, textes.LEGENDE_NON_ESTIMABLE, textes.LEGENDE_SELECTION, textes.LIBELLE_ECART_FICHE]
     produits += list(textes.LIBELLE_CASES) + [textes.NOMS_DEPARTEMENTS[d] for d in textes.NOMS_DEPARTEMENTS]
     produits += textes_resultat()
+    produits += [textes.signal_sinistralite(SEUIL), textes.NOTE_ARRETES, textes.TITRE_TABLEAU_ANGLES, textes.AUCUN_ANGLE_MORT,
+                 textes.PREFIXE_LEGENDE, *textes.PHRASES_QUADRANTS.values(), *textes.LIBELLES_QUADRANTS.values()]
     produits += [libelle for _, libelle in textes.legende()]
     produits += [t for definition in textes.DEFINITIONS for t in definition]
     produits += [textes.phrase_chiffre_phare(contraste(bas, haut), SEUIL)
@@ -293,6 +302,21 @@ def test_aucune_expression_interdite():
     for t in tous_les_textes():
         for interdit in textes.EXPRESSIONS_INTERDITES:
             assert interdit not in t.lower(), f"« {interdit} » dans : {t}"
+
+
+def test_reforme_et_decret_absents_de_l_app():
+    # le décret n° 2024-405 concerne le risque incendie (vérifié le 23/10) : plus de « réforme » à l'écran
+    for t in tous_les_textes():
+        for absent in textes.EXPRESSIONS_ABSENTES:
+            assert absent not in t.lower(), f"« {absent} » dans : {t}"
+
+
+def test_libelles_des_quadrants_couvrent_les_quatre_valeurs():
+    assert set(textes.LIBELLES_QUADRANTS) == set(textes.QUADRANTS) == set(textes.PHRASES_QUADRANTS)
+    assert len(set(textes.LIBELLES_QUADRANTS.values())) == 4
+    anciens = {"Risque intégré", "Risque non intégré", "Angle mort", "Cohérent", "Décote à expliquer"}
+    for t in tous_les_textes():
+        assert not [a for a in anciens if a in t], t
 
 
 def test_prime_de_risque_implicite_absente_des_textes_actuels():

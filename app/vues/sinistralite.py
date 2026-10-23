@@ -1,4 +1,4 @@
-"""Onglet Sinistralité × écart : tableau à quatre cases et communes au risque non intégré (docs/app.md, onglet 2)."""
+"""Onglet Sinistralité × écart : tableau à quatre cases et communes avec sinistres sans décote (docs/app.md, onglet 2)."""
 
 import streamlit as st
 
@@ -36,6 +36,7 @@ def afficher(tout: donnees.Donnees) -> None:
                     cases,
                     nombre_indeterminees,
                     suite_indeterminees,
+                    textes.NOTE_ARRETES,
                 ),
                 unsafe_allow_html=True,
             )
@@ -44,7 +45,7 @@ def afficher(tout: donnees.Donnees) -> None:
                 charte.html_signal_sombre(
                     textes.entier(n_angle_mort),
                     textes.titre_signal_sinistralite(n_angle_mort),
-                    textes.SIGNAL_SINISTRALITE,
+                    textes.signal_sinistralite(resume["seuil_pas_de_decote"]),
                 ),
                 unsafe_allow_html=True,
             )

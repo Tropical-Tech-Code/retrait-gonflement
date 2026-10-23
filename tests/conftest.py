@@ -27,10 +27,13 @@ def resume_test() -> dict:
             },
             "fort_contre_reste": {"coefficients": {"fort": coefficient(0.0070, -0.0297, 0.0451)}},
             "sans_limite": {"contraste_fort_moins_moyen": coefficient(0.0137, -0.0350, 0.0640)},
-            "reforme_2025": {"statut": "indice : une seule année après la réforme"},
+            "reforme_2025": {
+                "statut": "indice : une seule année après la réforme",
+                "coefficients": {"fort_2025": coefficient(-0.0121, -0.0272, 0.0031, 0.12)},
+            },
             "placebo_bascule": {
                 "statut": "indicatif, faible puissance (853 ventes, 8 communes)",
-                "coefficients": {"bascule": coefficient(0.0356, 0.0167, 0.0548, 0.0003)},
+                "coefficients": {"bascule": coefficient(0.0356, 0.0167, 0.0548, 0.0003) | {"n_ventes_terme": 853}},
                 "avertissements": ["l'IC repose sur 8 communes", "le signe positif suggère des quartiers"],
             },
         },

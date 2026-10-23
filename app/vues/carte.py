@@ -43,7 +43,7 @@ def legende() -> str:
         (cartographie.hex_classe(None), textes.LEGENDE_NON_ESTIMABLE, 1.0, False),
         ("#FFFFFF", textes.LEGENDE_SELECTION, 1.0, True),
     ]
-    return charte.html_legende(elements)
+    return charte.html_legende(elements, textes.PREFIXE_LEGENDE)
 
 
 def couches(entites_zone: list[dict], selection: dict | None, etiquettes: list[dict]) -> list[pdk.Layer]:

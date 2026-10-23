@@ -18,10 +18,12 @@ SURTITRE = "Retrait-gonflement des argiles × ventes DVF"
 TITRE_APP = "Le marché distingue-t-il les zones d'argile forte et moyenne ?"
 ONGLETS = ("Résultat", "Sinistralité × écart", "Carte", "Méthodologie et limites")
 
-# Vocabulaire : « prime de risque implicite » est réservé au résultat global (page Méthodologie,
-# README). Les écarts communaux ne portent jamais ce nom ni « effet de l'argile ».
+# Vocabulaire : « prime de risque implicite » est absente de l'app (décision du 22/10). README : une
+# seule fois, comme question de départ non tranchée (voir docs/app.md, « Vocabulaire imposé »).
 EXPRESSION_RESERVEE = "prime de risque implicite"
 EXPRESSIONS_INTERDITES = ("effet de l'argile", "risque élevé", "valeur de votre maison", "prime de risque")
+# Décret n° 2024-405 : il concerne le risque incendie, pas le RGA (vérifié le 23/10) ; plus de « réforme » à l'écran
+EXPRESSIONS_ABSENTES = ("réforme", "état des risques", "placebo", "2024-405")
 
 ECART = "écart de prix observé entre zone forte et reste de la commune"
 ARRETES = "arrêtés sécheresse 2015-2023"
@@ -55,8 +57,13 @@ def nom_departement(departement: str) -> str:
 
 STATUTS_DECOTE = {"decote": "décote", "pas_de_decote": "pas de décote", "indetermine": "indéterminé"}
 QUADRANTS = ("Risque intégré", "Angle mort", "Décote à expliquer", "Cohérent")
-# Les fichiers de data/processed/ gardent la valeur « Angle mort » ; l'écran affiche le libellé ci-dessous
-LIBELLES_QUADRANTS = {"Angle mort": "Risque non intégré"}
+# Les fichiers de data/processed/ gardent les valeurs ci-dessus ; l'écran affiche des libellés descriptifs
+LIBELLES_QUADRANTS = {
+    "Angle mort": "Sinistres sans décote",
+    "Risque intégré": "Sinistres et décote",
+    "Décote à expliquer": "Décote sans sinistres",
+    "Cohérent": "Ni sinistres ni décote",
+}
 
 
 def libelle_quadrant(valeur: str) -> str:
@@ -161,8 +168,11 @@ def chiffre_phare(contraste: dict) -> str:
 # ---------------------------------------------------------------- onglet Résultat
 
 SURTITRE_RESULTAT = "Résultat principal"
-LIBELLE_CHIFFRE = "Écart de prix des maisons en zone forte par rapport à la zone moyenne"
-MENTION_IC = "IC 95 %"
+LIBELLE_CHIFFRE = (
+    "Écart de prix des maisons en zone forte par rapport à la zone moyenne, "
+    "à caractéristiques comparables (même commune, même trimestre)"
+)
+MENTION_IC = "intervalle de confiance à 95 %"
 TITRE_TESTE = "Ce qui a vraiment été testé"
 TESTE_NEUTRE = "L'écart avec les maisons hors zone argileuse n'est pas une décote nette."
 TESTE_CONCLUSION = (
@@ -170,7 +180,7 @@ TESTE_CONCLUSION = (
     "Elle dit qu'il ne distingue pas nettement exposition moyenne et forte."
 )
 TITRE_SIGNAL = "Signal faible"
-SIGNAL_NOTE = "Des risques peut-être non intégrés, à surveiller. Une hypothèse, pas une prédiction."
+SIGNAL_NOTE = "Le marché ne tiendrait peut-être pas compte de ces sinistres. Une hypothèse, pas une prédiction."
 BOUTON_SIGNAL = f"Voir {ONGLETS[1]} →"
 # Pied commun aux quatre onglets : seul le mois de téléchargement vient du JSON
 PIED_SOURCES = "Sources : DVF, RGA (Géorisques / BRGM), GASPAR, API Géo"
@@ -233,19 +243,30 @@ def paragraphe_teste(principal: dict) -> str:
     p1, p2 = sorted(c["p_valeur"] for c in coefficients)
     ecart = _nombre(ecarts[0], 1) if ecarts[0] == ecarts[1] else f"{_nombre(ecarts[0], 1)} à {_nombre(ecarts[1], 1)}"
     debut = (
-        f"Les maisons des deux zones exposées se vendent {ecart}{NBSP}% moins cher que les rares maisons "
+        f"Les maisons des deux zones exposées se vendraient {ecart}{NBSP}% moins cher que les rares maisons "
         "hors zone argileuse ou en zone faible. "
     )
     if p1 < 0.01:
-        return debut + "Cet écart est net, mais ce petit groupe diffère par d'autres traits que l'argile."
+        return debut + f"Cet écart est significatif, mais {PETIT_GROUPE}"
     plage = f"p ≈ {_p(p1)}" if _p(p1) == _p(p2) else f"p ≈ {_p(p1)} à {_p(p2)}"
-    return debut + f"Cet écart est fragile ({plage}), et ce petit groupe diffère par d'autres traits que l'argile."
+    return debut + f"Écart fragile ({plage}) : {PETIT_GROUPE}"
 
 
-def phrase_signal(n_angle_mort: int) -> str:
-    """Texte à droite du grand nombre de l'encadré « Signal faible »."""
+PETIT_GROUPE = "ce petit groupe peut différer pour d'autres raisons : emplacement, type de maisons, quartier."
+
+
+def _seuil_entier(seuil: float) -> str:
+    """Seuil « pas de décote » sans signe, pour les phrases (−0,03 -> « 3 % »)."""
+    return pct(abs(seuil), 0 if round(abs(seuil) * 100) == abs(seuil) * 100 else 1)
+
+
+def phrase_signal(n_angle_mort: int, seuil: float) -> str:
+    """Texte à droite du grand nombre de l'encadré « Signal faible » ; `seuil` est lu dans le JSON."""
     verbe = "commune cumule" if n_angle_mort in (0, 1) else "communes cumulent"
-    return f"{verbe} une sinistralité supérieure à la médiane du périmètre et l'absence de décote."
+    return (
+        f"{verbe} une sinistralité supérieure à la médiane du périmètre et aucune décote de plus de "
+        f"{_seuil_entier(seuil)} (intervalle de confiance)."
+    )
 
 
 def mois_annee(iso: str | None) -> str | None:
@@ -267,7 +288,7 @@ def pied_commun(resume: dict) -> str:
 
 # ---------------------------------------------------------------- onglet Méthodologie et limites
 # Les gabarits ne contiennent aucun chiffre : tout vient de resume_global.json. Seuls restent écrits
-# les noms de la réforme (2025), de la carte (2026) et le niveau des intervalles (95 %). Le vocabulaire
+# les années 2025 et 2026 (ventes de 2025, carte 2026) et le niveau des intervalles (95 %). Le vocabulaire
 # est celui de docs/app.md : on parle du « contraste fort − moyen », jamais d'une prime de risque.
 
 # URL provisoire : le dépôt GitHub n'est pas encore créé (Points ouverts du CLAUDE.md)
@@ -290,14 +311,15 @@ METHO_REFERENCE = (
     "c'est un petit groupe aux caractéristiques propres."
 )
 METHO_MODELE = (
-    "Régression du prix sur la surface, le terrain et les pièces, avec un effet fixe commune × trimestre : "
+    "Régression du prix au m² (en logarithme, pour lire les écarts en %) sur la surface, le terrain et les pièces, avec un effet fixe commune × trimestre : "
     "on compare des maisons vendues dans la même commune, au même moment. "
     "Erreurs groupées par commune, intervalles de confiance à 95 %."
 )
-METHO_COMMUNES_FIN = "des différences entre quartiers, cohérentes avec le test placebo."
+METHO_COMMUNES_FIN = "plutôt des différences entre quartiers, ce que confirme le contrôle par la carte {carte}."
+METHO_COMMUNES_FIN_SANS_CARTE = "plutôt des différences entre quartiers."
 # Sigle développé une seule fois dans l'app (carte « Données » de la Méthodologie)
 GASPAR_DEVELOPPE = "Gestion assistée des procédures administratives relatives aux risques naturels et technologiques"
-LIMITE_CAUSALITE ="Corrélation, pas causalité ; ni valeur de maison."
+LIMITE_CAUSALITE = "Corrélation, pas causalité ; aucun écart n'estime la valeur d'une maison."
 LIMITE_CARRES = "Position des carrés de la carte approximative (quelques km)."
 MOIS = ("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
         "novembre", "décembre")
@@ -327,6 +349,10 @@ def _coefficient(resume: dict, nom: str, cle: str) -> dict | None:
 
 def _n_departements(resume: dict) -> int:
     return len(resume["primes_communes"]["par_departement"])
+
+
+def _codes_departements(resume: dict) -> str:
+    return ", ".join(sorted(resume["primes_communes"]["par_departement"]))
 
 
 def _plage_zones(resume: dict) -> tuple[float, float, float] | None:
@@ -402,54 +428,99 @@ def items_robustesse(resume: dict) -> tuple[bool, list[str]]:
     if contre_reste:
         tient &= _conclusion(contre_reste) == cas
         items.append(_ligne_modele("Zone forte contre tout le reste", contre_reste))
-    reforme = modeles.get("reforme_2025")
-    if reforme:
-        items.append(f"Réforme 2025 (RGA dans l'état des risques) : {reforme['statut'].replace(' : ', ', ')}.")
+    seuil = resume.get("seuil_pas_de_decote")
+    if sans_limite and seuil is not None and sans_limite["ic95_effet"][0] <= seuil:
+        items.append(
+            f"La limite de {_seuil_entier(seuil)} est fragile : sans les ventes proches d'une limite de zone, "
+            f"la borne basse passe à {pct(sans_limite['ic95_effet'][0], 1, True)}."
+        )
+    fort_2025 = _coefficient(resume, "reforme_2025", "fort_2025")
+    if fort_2025:
+        bas, haut = fort_2025["ic95_effet"]
+        items.append(
+            f"Ventes de 2025 : l'écart de la zone forte bouge de {pct(fort_2025['effet'], 1, True)} "
+            f"{intervalle_pct(bas, haut)}, sans conclusion possible."
+        )
     placebo = modeles.get("placebo_bascule")
     if placebo:
-        bascule = _coefficient(resume, "placebo_bascule", "bascule")
-        suite = (
-            "son écart positif évoque des différences de quartiers, pas un effet causal"
-            if bascule and bascule["effet"] > 0 else "son écart n'est pas un effet causal"
-        )
-        items.append(f"Placebo (ventes reclassées par la carte 2026) : {placebo['statut']} ; {suite}.")
+        items.append(_ligne_bascule(placebo, _millesime(resume, "rga_2026")))
     return tient, items
+
+
+def _communes_placebo(placebo: dict) -> int | None:
+    """Nombre de communes du test des ventes « fort » seulement en 2026.
+
+    Seule trace : le nombre qui suit « ventes, » dans le statut « … (N ventes, K communes) » du JSON.
+    La clé `n_communes` du modèle compte toutes les communes de l'estimation, pas celles du test : ignorée.
+    None si le statut a un autre format (l'app n'affiche alors aucun nombre de communes).
+    """
+    trouve = re.search(r"ventes?,\s*(\d[\d\s  ]*?)\s*communes?", str(placebo.get("statut", "")))
+    return int(re.sub(r"\D", "", trouve.group(1))) if trouve else None
+
+
+def _ligne_bascule(placebo: dict, carte: str | None) -> str:
+    """Puce du contrôle par la carte plus récente ; `carte` = son millésime, lu dans les sources du JSON."""
+    debut = f"Maisons passées en zone forte seulement avec la carte {carte}" if carte else (
+        "Maisons passées en zone forte seulement avec la carte plus récente")
+    bascule = (placebo.get("coefficients") or {}).get("bascule")
+    if not bascule:
+        return f"{debut} : écart non estimé."
+    n_ventes, n_communes = bascule.get("n_ventes_terme"), _communes_placebo(placebo)
+    effectifs = ""
+    if n_ventes is not None and n_communes is not None:
+        effectifs = f" ({entier(n_ventes)} ventes, {pluriel(n_communes, 'commune')})"
+    elif n_ventes is not None:
+        effectifs = f" ({pluriel(int(n_ventes), 'vente')})"
+    ecart = pct(bascule["effet"], 1, True)
+    if bascule["effet"] > 0:
+        fin = f"{ecart}, aucune décote ; les écarts viennent plutôt des quartiers"
+    else:
+        fin = f"{ecart}, écart non causal"
+    fiabilite = f" (fourchette peu fiable : {pluriel(n_communes, 'commune')})" if n_communes is not None else (
+        " (fourchette peu fiable)")
+    return f"{debut}{effectifs}, vendues avant que l'acheteur puisse le savoir : {fin}{fiabilite}."
+
+
+def _millesime(resume: dict, cle: str) -> str | None:
+    return next((s.get("millesime") for s in resume["sources"]["liste"] if s["cle"] == cle), None)
 
 
 def texte_donnees(resume: dict) -> str:
     debut, fin = resume["periode"]
     nettoyage = resume["nettoyage"]
     catnat = resume["catnat"]
-    def millesime(cle: str) -> str | None:
-        return next((s.get("millesime") for s in resume["sources"]["liste"] if s["cle"] == cle), None)
-
-    rga, rga_2026 = millesime("rga_2020"), millesime("rga_2026")
+    rga, rga_2026 = _millesime(resume, "rga_2020"), _millesime(resume, "rga_2026")
     exposition = f"carte RGA {rga}" if rga else "carte RGA"
-    comparaison = f" (carte {rga_2026} pour comparaison)" if rga_2026 else ""
+    controle = f" ; la carte {rga_2026} sert seulement de contrôle" if rga_2026 else ""
     return (
-        f"Sur {entier(nettoyage['n_mutations'])} mutations DVF ({debut}-{fin}, un seul bien par vente), "
-        f"{entier(nettoyage['n_ventes_retenues'])} ventes de maisons sont retenues. "
-        f"Exposition : {exposition}, connue du marché sur toute la période{comparaison}. "
+        f"Sur {entier(nettoyage['n_mutations'])} transactions immobilières (DVF, {debut}-{fin}), "
+        f"{entier(nettoyage['n_ventes_retenues'])} ventes d'une seule maison sont retenues. "
+        f"Exposition : {exposition}, consultable par les acheteurs pendant toute la période{controle}. "
         f"Sinistres : arrêtés {catnat['libelle'].lower()} {catnat['periode']} de GASPAR ({GASPAR_DEVELOPPE}) ; "
-        "les sécheresses plus récentes ne sont pas encore reconnues."
+        "les sécheresses plus récentes sont absentes de GASPAR à la date d'extraction (délai de reconnaissance probable)."
     )
 
 
 def texte_modele(resume: dict) -> str:
     n = resume["modeles_globaux"]["principal"].get("n_ventes")
-    return METHO_MODELE + (f" Estimation sur {entier(n)} ventes." if n is not None else "")
+    return METHO_MODELE + (
+        f" Estimation sur {entier(n)} ventes (celles seules dans leur commune et leur trimestre sont retirées)."
+        if n is not None else ""
+    )
 
 
 def texte_communes(resume: dict) -> str:
     seuils = resume["primes_communes"]["seuils"]
     decotes, primes = int(resume["n_significatives_decote"]), int(resume["n_significatives_prime"])
-    sens = ", dans les deux sens" if decotes and primes else ""
+    carte = _millesime(resume, "rga_2026")
+    fin = METHO_COMMUNES_FIN.format(carte=carte) if carte else METHO_COMMUNES_FIN_SANS_CARTE
     return (
         f"Parmi les {entier(int(resume['n_communes_estimables']))} communes estimables "
-        f"({seuils['min_ventes_fort']} ventes en zone forte, {seuils['min_ventes_reference']} ailleurs, "
+        f"(au moins {seuils['min_ventes_fort']} ventes en zone forte, {seuils['min_ventes_reference']} ailleurs, "
         f"{seuils['min_ventes_total']} au total), on compte "
-        f"{pluriel(decotes + primes, 'écart significatif', 'écarts significatifs')} pour environ "
-        f"{entier(round(resume['n_attendu_hasard']))} attendus par hasard{sens} : {METHO_COMMUNES_FIN}"
+        f"{pluriel(decotes + primes, 'écart significatif', 'écarts significatifs')} "
+        f"({pluriel(decotes, 'négatif')}, {pluriel(primes, 'positif')}) contre environ "
+        f"{entier(round(resume['n_attendu_hasard']))} attendus par hasard : {fin}"
     )
 
 
@@ -458,8 +529,13 @@ def limites(resume: dict) -> list[str]:
     items = [
         LIMITE_CAUSALITE,
         f"{debut_phrase(_n_departements(resume))} "
-        + ("département déjà très exposé." if _n_departements(resume) in (0, 1) else "départements déjà très exposés."),
-        f"Aucun arrêté {catnat['libelle'].lower()} reconnu après {catnat['annee_debut_max']} (délai de reconnaissance).",
+        + (
+            "département très exposé : résultats non transposables à toute la France."
+            if _n_departements(resume) in (0, 1)
+            else "départements très exposés : résultats non transposables à toute la France."
+        ),
+        f"Aucun arrêté {catnat['libelle'].lower()} reconnu après {catnat['annee_debut_max']} "
+        "(délai de reconnaissance probable).",
     ]
     carte = phrase_carte_2026(resume)
     if carte:
@@ -472,7 +548,8 @@ def cartes_methodologie(resume: dict) -> list[dict]:
     tient, robustesse = items_robustesse(resume)
     question = (
         f"Dans ces {nombre_en_lettres(_n_departements(resume))} "
-        f"{'département' if _n_departements(resume) in (0, 1) else 'départements'}, " + phrase_zones(resume)
+        f"{'département' if _n_departements(resume) in (0, 1) else 'départements'} ({_codes_departements(resume)}), "
+        + phrase_zones(resume)
         if phrase_zones(resume) else "La comparaison porte sur les zones d'argile forte et moyenne."
     )
     cartes = [
@@ -494,21 +571,23 @@ def cartes_methodologie(resume: dict) -> list[dict]:
 def phrase_tests_multiples(resume: dict) -> str:
     """Phrase unique sous la carte : écarts nets observés contre attendus par hasard (tous les chiffres du JSON).
 
-    « primes » désigne ici un écart positif observé (colonne `significatif` = prime), pas une prime de risque.
+    La colonne `significatif` = prime des fichiers est dite « écart positif » à l'écran (jamais « prime »).
     """
     decotes, primes = int(resume["n_significatives_decote"]), int(resume["n_significatives_prime"])
     attendues = round(resume["n_attendu_hasard"])
     attendu = "une dizaine attendue" if attendues == 10 else f"{pluriel(attendues, 'attendue')}"
     return (
-        f"Sur {entier(resume['n_communes_estimables'])} communes, {entier(decotes + primes)} montrent un écart net, "
-        f"contre {attendu} par hasard. Ces écarts vont autant dans un sens que dans l'autre "
-        f"({pluriel(decotes, 'décote')}, {pluriel(primes, 'prime')}) : ils reflètent surtout des différences "
-        "entre quartiers, plutôt qu'un problème de terrains argileux."
+        f"Sur {entier(resume['n_communes_estimables'])} communes, {entier(decotes + primes)} montrent un écart "
+        f"significatif, contre {attendu} par hasard. Ils vont dans les deux sens "
+        f"({pluriel(decotes, 'zone forte moins chère', 'zones fortes moins chères')}, "
+        f"{pluriel(primes, 'plus chère')}) : si l'argile jouait, on verrait surtout des décotes ; "
+        "ce sont plutôt des différences entre quartiers."
     )
 
 
 # ---------------------------------------------------------------- carte
 
+PREFIXE_LEGENDE = "Écart zone forte / reste :"
 LEGENDE_PALE = "pâle : indéterminé"
 LEGENDE_NON_ESTIMABLE = "gris clair : non estimable"
 LEGENDE_SELECTION = "sélection"
@@ -597,18 +676,29 @@ LIGNES_QUADRANTS = ("Pas de décote", "Décote")
 # (ligne, colonne) de chaque case : colonne 0 = sinistralité ≤ médiane, 1 = > médiane
 POSITIONS_QUADRANTS = {"Cohérent": (0, 0), "Angle mort": (0, 1), "Décote à expliquer": (1, 0), "Risque intégré": (1, 1)}
 PHRASES_QUADRANTS = {
-    "Cohérent": "Peu de sinistres, pas de décote.",
-    "Angle mort": "Des sinistres reconnus, pas de décote.",
-    "Décote à expliquer": "Une décote sans sinistralité marquée : sans doute un effet de quartier plutôt que de l'argile.",
-    "Risque intégré": "Des sinistres et une décote.",
+    "Cohérent": "Peu de sinistres et pas de décote.",
+    "Angle mort": "Des sinistres reconnus dans la commune, pas de décote en zone forte.",
+    "Décote à expliquer": "Une décote sans sinistralité marquée : peut-être un effet de quartier plutôt que de l'argile.",
+    "Risque intégré": "Des sinistres reconnus dans la commune, une décote en zone forte.",
 }
-SIGNAL_SINISTRALITE = (
-    "Hypothèse à surveiller : des sinistres sont reconnus, mais aucune décote n'est mesurée "
-    "entre zone forte et reste de la commune. Ce n'est pas une prédiction."
+NOTE_ARRETES = (
+    "Un arrêté sécheresse vise toute la commune : on ne sait pas si les maisons sinistrées étaient "
+    "dans sa zone forte ou ailleurs."
 )
-TITRE_TABLEAU_ANGLES = "Communes au risque non intégré, par sinistralité"
+
+
+def signal_sinistralite(seuil: float) -> str:
+    """Encadré sombre ; `seuil` (seuil « pas de décote ») est lu dans le JSON."""
+    return (
+        "Hypothèse à surveiller : ces communes ont souvent été reconnues en sécheresse, mais leurs maisons "
+        "en zone forte ne se vendent pas nettement moins cher (une décote de plus de "
+        f"{_seuil_entier(seuil)} est exclue). Le marché ne tiendrait peut-être pas compte de ces sinistres."
+    )
+
+
+TITRE_TABLEAU_ANGLES = "Communes avec sinistres sans décote, par sinistralité"
 EN_TETES_ANGLES = ("Commune", "Dép.", "Arrêtés", "Écart [IC 95 %]", "Ventes", "dont zone forte")
-AUCUN_ANGLE_MORT = "Aucune commune au risque non intégré."
+AUCUN_ANGLE_MORT = "Aucune commune avec sinistres sans décote."
 
 
 def libelles_colonnes_sinistralite(mediane: float) -> tuple[tuple[str, str], tuple[str, str]]:
@@ -622,30 +712,27 @@ def libelles_colonnes_sinistralite(mediane: float) -> tuple[tuple[str, str], tup
 
 def phrase_explication_sinistralite(mediane: float, seuil: float) -> str:
     """Explication de la carte ; `seuil` (seuil « pas de décote », lu dans le JSON) sert aux définitions des statuts."""
-    decimales = 0 if round(seuil * 100) == seuil * 100 else 1
     return (
         "Chaque commune estimable est classée par son statut (décote ou pas de décote) et par sa "
         f"sinistralité : {ARRETES}, au-dessus ou non de la médiane du périmètre "
         f"({seuil_arretes(mediane)} arrêtés ou plus). "
-        "Décote : intervalle de confiance entièrement sous 0 ; "
-        f"pas de décote : borne basse au-dessus de {pct(seuil, decimales, True)}."
+        "Décote : la zone forte se vend moins cher, c'est certain (fourchette entièrement sous 0). "
+        f"Pas de décote : si elle se vend moins cher, c'est de {_seuil_entier(seuil)} au plus."
     )
 
 
 def indeterminees(n: int) -> tuple[str, str]:
     """(nombre, suite de la phrase) de l'encadré gris sous le tableau."""
-    fin = " : trop peu de ventes pour trancher entre décote et absence de décote."
-    if n in (0, 1):
-        return entier(n), " commune n'est pas classée" + fin
-    return entier(n), " communes ne sont pas classées" + fin
+    fin = " : trop peu de ventes pour trancher."
+    return entier(n), (" commune non classée" if n in (0, 1) else " communes non classées") + fin
 
 
 def titre_signal_sinistralite(n: int) -> str:
-    return "commune au risque non intégré" if n in (0, 1) else "communes au risque non intégré"
+    return "commune avec sinistres sans décote" if n in (0, 1) else "communes avec sinistres sans décote"
 
 
 def angles_morts(communes: pd.DataFrame) -> pd.DataFrame:
-    """Communes dont le quadrant est « Angle mort » (affiché « Risque non intégré »), arrêtés décroissants puis nom."""
+    """Communes dont le quadrant est « Angle mort » (affiché « Sinistres sans décote »), arrêtés décroissants puis nom."""
     angles = communes[communes["quadrant"] == "Angle mort"]
     return angles.sort_values(["catnat_depuis_2015", "nom"], ascending=[False, True])
 
@@ -688,7 +775,7 @@ def texte_commune(ligne, resume: dict) -> str:
         phrases = [f"{intervalle} : entièrement sous 0, une décote est mesurée."]
     elif statut == "pas_de_decote":
         phrases = [
-            f"{intervalle} : au-dessus de {pct(resume['seuil_pas_de_decote'], 0, True)}, "
+            f"{intervalle} : sa borne basse dépasse {pct(resume['seuil_pas_de_decote'], 0, True)}, "
             "une décote éventuelle serait faible."
         ]
     else:

@@ -50,7 +50,7 @@ def afficher(tout: donnees.Donnees) -> None:
                 st.markdown(
                     charte.html_signal(
                         textes.TITRE_SIGNAL, textes.entier(n_angle_mort),
-                        textes.phrase_signal(n_angle_mort), textes.SIGNAL_NOTE,
+                        textes.phrase_signal(n_angle_mort, seuil), textes.SIGNAL_NOTE,
                     ),
                     unsafe_allow_html=True,
                 )

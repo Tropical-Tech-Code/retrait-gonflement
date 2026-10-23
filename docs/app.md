@@ -7,22 +7,25 @@ DuckDB, aucun calcul statistique. Tout est calculé par le pipeline (voir
 
 ## Vocabulaire imposé (décision du 16/10)
 
-- Les primes communales (colonne `prime`) sont des **« écarts de prix observés entre
+- Les écarts communaux (colonne `prime` des fichiers) sont des **« écarts de prix observés entre
   zone forte et reste de la commune »**. Jamais un « effet de l'argile », ni une « prime
   de risque » : la colonne garde son nom de fichier, pas ses libellés à l'écran (info-bulle,
   fiche, texte automatique, axes, tableau, légende).
 - L'expression **« prime de risque implicite »** n'apparaît nulle part dans l'app
   (décision du 22/10 : l'étude compare deux zones exposées et ne dit pas si le marché fait
-  payer le risque). Les textes parlent du **« contraste fort − moyen »**. Elle reste
-  possible au README ; décision à l'étape 7. Le test d'expressions interdites est strict,
-  sans exception.
+  payer le risque). Les textes parlent du **« contraste fort − moyen »**. Au README
+  (décision du 23/10) : **une seule fois**, comme question de départ non tranchée, par
+  exemple « La question de départ, une prime de risque implicite sur l'argile, ne peut pas
+  être tranchée ici : on compare deux zones exposées, et on ne trouve pas de différence entre
+  elles. » Le test d'expressions interdites de l'app est strict, sans exception.
+- Plus de « réforme », d'« état des risques » ni de « placebo » à l'écran (décision du 23/10 :
+  le décret n° 2024-405 concerne le risque incendie) ; la variante 2025 est un « écart des
+  ventes de 2025 ».
 - Les écarts communaux ne sont ni causaux ni une estimation de la valeur d'une maison.
 
 ## Cahier des charges et parcours (19/10/2026)
 
-Les quatre écrans de la maquette v2 sont dans `docs/maquette/` (source HTML à 1 280 × 800, chiffres d'exemple) : ils illustrent cette section, qui fait foi en cas de conflit.
-
-Cette section fait foi. La maquette v2 (quatre écrans, Projet claude.ai, 19/10/2026) l'illustre ; les maquettes précédentes sont historiques.
+Cette section fait foi en cas de conflit. Les quatre écrans de la maquette v2 (Projet claude.ai, 19/10/2026) sont dans `docs/maquette/` (source HTML à 1 280 × 800, chiffres d'exemple) : ils l'illustrent ; les maquettes précédentes sont historiques.
 
 ### Objectif
 Question réellement testée : le marché fait-il une différence de prix entre zone d'exposition forte et zone moyenne ? Résultat : pas de différence détectable ; si une décote existe, elle ne dépasse probablement pas environ 3 % ; ne pas détecter de décote ne prouve pas qu'il n'y en a pas. Les deux zones exposées se vendent environ 3 % moins cher que les maisons hors zone argileuse (p ≈ 0,06 ; groupe de référence petit et particulier) : l'étude ne dit pas si le marché fait payer le risque argileux.
@@ -45,14 +48,14 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 - Barre de fourchette : l'IC sur un axe, avec 0 et le seuil « pas de décote » (−3 %, lu dans le JSON).
 - Lecture : « Si une décote existe, elle ne dépasse probablement pas environ X %. Ne pas détecter de décote ne prouve pas qu'il n'y en a pas. » (X : règle du bandeau décidée le 17/10).
 - Encadré gris « Ce qui a vraiment été testé » : écart des deux zones exposées par rapport aux maisons hors zone, sa fragilité (p), et la conclusion « l'étude ne dit pas si le marché fait payer le risque argileux ; elle dit qu'il ne distingue pas nettement exposition moyenne et forte ».
-- Encadré sombre « Signal faible » : nombre de communes en angle mort, formulé comme une hypothèse à surveiller, lien vers l'onglet 2.
-- Pied : sources, « Calculs faits hors ligne », « Corrélation, pas causalité ».
-- Hors de cet onglet : variante réforme 2025, placebo et phrase sur la part des ventes dont la carte 2026 change le niveau (Méthodologie), tests multiples (Carte).
+- Encadré sombre « Signal faible » : nombre de communes avec sinistres sans décote (valeur « Angle mort » dans les fichiers), « …une sinistralité supérieure à la médiane du périmètre et aucune décote de plus de {seuil} (intervalle de confiance) », puis « Le marché ne tiendrait peut-être pas compte de ces sinistres. Une hypothèse, pas une prédiction. », lien vers l'onglet 2.
+- Pied commun aux quatre onglets : sources, mois de téléchargement, « calculs faits hors ligne », « corrélation, pas causalité ».
+- Hors de cet onglet : écart des ventes de 2025, écart des ventes classées « fort » seulement par la carte 2026 et phrase sur la part des ventes dont la carte 2026 change le niveau (Méthodologie), tests multiples (Carte).
 
 ### Onglet 2 : Sinistralité × écart
-- Tableau à quatre cases : colonnes « sinistralité ≤ médiane (0 à 2 arrêtés) » et « > médiane (3 arrêtés ou plus) » ; lignes « pas de décote » et « décote ». Cases : Cohérent, Risque non intégré (mis en avant ; valeur « Angle mort » dans les fichiers, libellé affiché seulement à l'écran, décision du 22/10), Décote à expliquer, Risque intégré, chacune avec son effectif et une phrase.
-- Sous le tableau : nombre de communes indéterminées, non classées.
-- À droite : encadré sombre (nombre d'angles morts, hypothèse sans prédiction) et tableau des communes en angle mort (commune, département, arrêtés, écart [IC 95 %], ventes en zone forte), trié par arrêtés décroissants.
+- Tableau à quatre cases : colonnes « sinistralité ≤ médiane (0 à 2 arrêtés) » et « > médiane (3 arrêtés ou plus) » ; lignes « pas de décote » et « décote ». Cases, avec des libellés descriptifs (décision du 23/10 ; les valeurs des fichiers restent celles de la ligne entre parenthèses) : « Ni sinistres ni décote » (Cohérent), « Sinistres sans décote » (Angle mort, mise en avant), « Décote sans sinistres » (Décote à expliquer), « Sinistres et décote » (Risque intégré), chacune avec son effectif et une phrase descriptive, sans mention du marché (« Des sinistres reconnus dans la commune, pas de décote en zone forte. » ; « …une décote en zone forte. » ; « Peu de sinistres et pas de décote. » ; « Une décote sans sinistralité marquée : peut-être un effet de quartier plutôt que de l'argile. »).
+- Sous le tableau : « Un arrêté sécheresse vise toute la commune : on ne sait pas si les maisons sinistrées étaient dans sa zone forte ou ailleurs. », puis nombre de communes indéterminées, non classées.
+- À droite : encadré sombre (nombre de communes avec sinistres sans décote ; « Hypothèse à surveiller : ces communes ont souvent été reconnues en sécheresse, mais leurs maisons en zone forte ne se vendent pas nettement moins cher (une décote de plus de {seuil} est exclue). Le marché ne tiendrait peut-être pas compte de ces sinistres. ») et tableau de ces communes (commune, département, arrêtés, écart [IC 95 %], ventes en zone forte), trié par arrêtés décroissants.
 - Le nuage de points est abandonné : les cases sont définies par le statut, pas par la valeur de l'écart.
 
 ### Onglet 3 : Carte
@@ -61,14 +64,14 @@ Recruteur ou analyste en données alternatives, arrivé depuis le README, sur or
 - Deux zones au choix (`st.segmented_control`) : Sud-Ouest · 31, 47, 82 et Seine-et-Marne · 77. Chaque zone a son cadrage (carrés et étiquettes) et un `min_zoom` égal au zoom initial, transmis mais non imposé par Streamlit : la molette et le pavé tactile sont donc désactivés (`scrollZoom` à faux), les boutons + et − de la carte restent (décision du 21/10) ; ces boutons peuvent encore dézoomer au-delà de la zone. Le déplacement à la souris n'est pas borné. Pas de bouton « recentrer » : rechoisir la zone recentre la carte.
 - Couleurs (palette de la maquette, seule palette de l'app, dans `textes.py`) : 5 classes (bornes −10 / −3 / +3 / +10 %, orange = décote, bleu = écart positif) ; couleur franche = décote ou pas de décote ; pâle (38 % d'opacité) = indéterminé ; gris très clair #E4E6E2 = non estimable (pour que les communes classées ressortent) ; commune sélectionnée : sa couleur de classe, contour noir et liseré blanc.
 - Info-bulle au survol : nom de la commune et statut, en texte simple (pas de HTML brut).
-- Légende sous la carte (classes, pâle : indéterminé, gris clair : non estimable, sélection), puis une seule phrase, chiffres lus dans `resume_global.json` : « Sur {n_estimables} communes, {n} montrent un écart net, contre une dizaine attendue par hasard. Ces écarts vont autant dans un sens que dans l'autre ({n} décotes, {n} primes) : ils reflètent surtout des différences entre quartiers, plutôt qu'un problème de terrains argileux. » (« une dizaine » si l'attendu arrondi vaut 10, sinon en chiffres ; « primes » = écarts positifs, exception à la règle du vocabulaire limitée à cette phrase ; décision du 21/10).
+- Légende sous la carte (classes, pâle : indéterminé, gris clair : non estimable, sélection), puis une seule phrase, chiffres lus dans `resume_global.json` : « Sur {n_estimables} communes, {n} montrent un écart significatif, contre une dizaine attendue par hasard. Ils vont dans les deux sens ({d} zones fortes moins chères, {p} plus chères) : si l'argile jouait, on verrait surtout des décotes ; ce sont plutôt des différences entre quartiers. » (« une dizaine » si l'attendu arrondi vaut 10, sinon en chiffres ; « écart significatif » est défini dans la Méthodologie, sans sigle dans la phrase ; plus de « prime » à l'écran, décision du 23/10). La légende commence par « Écart zone forte / reste : ».
 - Liste de recherche : les communes en décote d'abord (« Nom (dép.) · décote », ordre alphabétique), l'option « ── Autres communes ── » (sans effet : la sélection précédente est conservée), puis toutes les autres, « Nom (dép.) », ordre alphabétique.
 - Fiche à droite : département, nom, « Écart de prix observé entre zone forte et reste de la commune », chiffre coloré selon sa classe et IC, statut, trois cases (ventes de maisons, dont en zone forte, arrêtés sécheresse 2015-2023), note beige (texte automatique terminé par « ni valeur de la maison, ni causalité »). Non estimable : encadré gris avec le motif, « — » pour l'écart. Pas de prix médian.
 - Recherche de commune (selectbox, clé `commune`) : même effet qu'un clic (changement de zone si nécessaire, sélection). Le clic est lu au début de l'exécution suivante, avant la création des widgets.
 
 ### Onglet 4 : Méthodologie et limites
 - Six cartes courtes en grille 3 × 2 (chaque rangée a la hauteur de sa carte la plus haute) : Question testée, Données, Modèle, Robustesse, Écarts par commune, Limites (encadré beige). Tous les chiffres sont lus dans `resume_global.json` (un test change toutes les données et vérifie qu'aucun nombre ne reste écrit en dur, hors « 95 % », « 2025 » et « 2026 »). Limites : corrélation sans causalité, nombre de départements, aucun arrêté après l'année du dernier arrêté (délai), part des ventes dont la carte 2026 change le niveau (exemple : « La carte 2026 change le niveau d'environ 2 % des ventes, dans les deux sens »), position des carrés approximative (quelques km).
-- Pied : renvoi vers docs/method.md sur GitHub (`URL_METHODE`, valeur provisoire tant que le dépôt n'existe pas) et sources avec leur date de téléchargement ; le millésime GASPAR (nom de fichier) s'affiche « extraction du 5 octobre 2026 » (date tirée du nom par `textes.date_extraction_gaspar`). Pas de texte long dans l'app ; le test de vocabulaire s'applique aux textes des cartes.
+- Pied : le pied commun des quatre onglets (sources, mois de téléchargement, calculs hors ligne, corrélation sans causalité) ; le renvoi vers docs/method.md sur GitHub (`URL_METHODE`, valeur provisoire tant que le dépôt n'existe pas) figure dans cet onglet seulement. Pas de dates précises. Pas de texte long dans l'app ; le test de vocabulaire s'applique aux textes des cartes.
 
 ### Charte
 - .streamlit/config.toml, [theme] : backgroundColor #F4F5F2, textColor #1B1F1D, primaryColor #C2410C, secondaryBackgroundColor #FFFFFF (aucun rouge Streamlit).
@@ -208,6 +211,8 @@ charges. Le nuage de points est abandonné.
 |---|---|---|
 | **Sinistralité supérieure à la médiane du périmètre** | Risque intégré | Angle mort |
 | **Sinistralité inférieure ou égale à la médiane du périmètre** | Décote à expliquer | Cohérent |
+
+Valeurs des fichiers ; libellés affichés : Sinistres et décote, Sinistres sans décote, Décote sans sinistres, Ni sinistres ni décote (correspondance `LIBELLES_QUADRANTS` dans `app/textes.py`).
 
 - **Médiane** de `catnat_depuis_2015` parmi les communes estimables, calculée par le
   pipeline et lue dans `resume_global.json`. Libellé imposé : « sinistralité

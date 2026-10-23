@@ -1,7 +1,14 @@
 # Méthode
 
-Question : le marché immobilier applique-t-il une décote aux maisons situées en zone
-d'exposition forte au retrait-gonflement des argiles (RGA) ?
+Question : le marché fait-il une différence de prix entre zone d'exposition forte et zone
+moyenne au retrait-gonflement des argiles (RGA) ?
+
+**Ce qui n'est pas testé.** La question principale compare deux zones déjà exposées, forte et
+moyenne. La comparaison avec une zone sans exposition repose sur un petit groupe (moins de 8 %
+des ventes hors zone argileuse ou en zone faible) et donne un écart fragile (environ −3 %,
+p ≈ 0,06) : elle ne permet pas de dire si le marché fait payer le risque argileux. L'étude
+n'établit aucune causalité (la géologie suit le relief, qui joue aussi sur le prix) et n'estime
+la valeur d'aucune maison.
 
 Tous les seuils et les URL sont dans `config/perimetre.toml`.
 
@@ -13,12 +20,10 @@ Tous les seuils et les URL sont dans `config/perimetre.toml`.
   les obligations de la loi ELAN depuis le 1er octobre 2020. Elle était donc disponible
   pour le marché pendant toute la période étudiée. Commencer en 2021 évite de mélanger,
   dans une même année, des ventes antérieures et postérieures à son entrée en vigueur.
-- **2025, année de réforme** : selon une source secondaire, le décret n° 2024-405 du
-  29 avril 2024 ajoute l'exposition RGA à l'état des risques remis à l'acheteur à
-  partir du 1er janvier 2025 (l'état des risques est remis dès la première visite
-  depuis 2023). *Référence à vérifier sur Légifrance.* L'information n'est donc plus
-  seulement disponible : elle est remise à l'acheteur. Voir la variante « réforme 2025 »
-  (section 5).
+- **Ventes de 2025** : cette variante devait tester une réforme de l'information des
+  acheteurs en 2025 ; le décret invoqué (n° 2024-405) concerne en réalité le risque
+  incendie (vérifié sur Légifrance le 23/10/2026). Elle est conservée comme simple écart
+  des ventes de 2025 (section 5).
 
 ## 2. Ventes DVF (fichiers DVF géolocalisés d'Etalab)
 
@@ -95,30 +100,34 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
   l'app : l'écart entre deux zones exposées (voir les limites). Calculé pour le modèle
   principal et chaque variante qui contient « moyen » et « fort ».
 - **Modèle « fort contre tout le reste »** : une seule indicatrice « fort », référence =
-  niveaux 0, 1 et 2, même spécification. C'est la définition de la prime par commune
-  (section 6) : le résultat global est ainsi comparable aux primes communales.
+  niveaux 0, 1 et 2, même spécification. C'est la définition de l'écart par commune
+  (section 6) : le résultat global est ainsi comparable aux écarts communaux.
 - **Test placebo** : même modèle avec en plus l'indicatrice « bascule » (section 3).
   Une décote sur ces ventes signifierait que le marché perçoit le risque sans la
   carte officielle, ou que la zone est corrélée à autre chose. Résultat dans
-  `resume_global.json` uniquement, marqué « indicatif, faible puissance (861 ventes,
-  8 communes) » : la carte 2026 fait basculer vers « fort » 861 ventes, dans
-  8 communes (3 en 31, 5 en 77, aucune en 47 et 82) ; elle reclasse aussi des ventes vers le
+  `resume_global.json` uniquement, marqué « indicatif, faible puissance (853 ventes,
+  8 communes) » dans le JSON (à l'écran : « IC peu fiable (8 communes) » ; le statut du JSON
+  sera corrigé au prochain recalcul) : la carte 2026 fait basculer vers « fort » 861 ventes,
+  dont 853 dans l'estimation, dans 8 communes (3 en 31, 5 en 77, aucune en 47 et 82) ; elle reclasse aussi des ventes vers le
   bas (3 → 2 : 378 en 31, 187 en 77). Au total, la carte 2026 change le niveau de 1 474
   ventes sur 82 525 (1,79 %, soit environ 2 %) : 894 vers un niveau plus fort, 580 vers un
   niveau moins fort (clé `carte_2026` de `resume_global.json`). **L'IC repose sur 8 communes** : les erreurs
   groupées par commune sont peu fiables avec si peu de groupes. Le signe du coefficient
   est positif, ce qui suggère une hétérogénéité de quartiers au sein des communes ; les
   écarts ne sont pas causaux. Ces deux avertissements figurent dans le JSON.
-- **Variante « réforme 2025 »** : même modèle avec en plus le terme
-  `β_fort_2025 · fort × (vente en 2025)`. β_fort y mesure la décote de 2021 à 2024 et
-  β_fort_2025 l'écart en 2025 : un β_fort_2025 négatif signifierait que la décote se
-  creuse quand l'information est remise à l'acheteur. L'effet fixe commune × trimestre
-  absorbe déjà le niveau général des prix en 2025 ; le terme ne capte que l'évolution
-  de l'écart « fort ». Résultat publié dans `resume_global.json` uniquement, jamais par
-  commune, et présenté comme un **indice** : une seule année après la réforme.
-  Le modèle principal, sans ce terme, reste la référence pour la décote globale.
+- **Variante « ventes de 2025 »** (clé `reforme_2025` du JSON, nom historique) : même modèle
+  avec en plus le terme `β_fort_2025 · fort × (vente en 2025)`. β_fort y mesure l'écart de
+  2021 à 2024 et β_fort_2025 l'écart supplémentaire en 2025 (voir la section 1 pour
+  l'origine de cette variante). L'effet fixe commune × trimestre absorbe déjà le niveau général des prix en 2025 ; le terme
+  ne capte que l'évolution de l'écart « fort ». Résultat publié dans `resume_global.json`
+  uniquement, jamais par commune, présenté comme un **indice** (une seule année, aucune
+  conclusion possible). Le modèle principal, sans ce terme, reste la référence.
 
-## 6. Prime par commune
+## 6. Écart par commune
+
+Vocabulaire : la colonne `prime` des fichiers (et « primes communales » dans les journaux du
+pipeline) désigne l'**écart observé** entre la zone forte et le reste de la commune ; à l'écran
+on dit « écart » ou « décote », jamais « prime de risque ».
 
 - **Comparaison : « fort » contre tout le reste** (niveaux 0, 1 et 2 : hors zone
   argileuse, faible, moyen), pour garder assez de ventes dans la zone de référence de
@@ -128,11 +137,11 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
 - **Spécification** : celle du modèle « fort contre tout le reste » (section 5), en une
   seule régression : un terme « fort » propre à chaque commune estimable, un terme commun
   pour les ventes « fort » des autres communes, mêmes contrôles et mêmes effets fixes
-  commune × trimestre. La prime de la commune = exp(β) − 1 de son terme.
+  commune × trimestre. L'écart de la commune = exp(β) − 1 de son terme.
 - **Erreurs groupées par section cadastrale** (10 premiers caractères de `id_parcelle` :
-  commune, préfixe, section) et non par commune : une prime communale ne repose que sur
+  commune, préfixe, section) et non par commune : un écart communal ne repose que sur
   les ventes d'une commune, un groupement par commune n'aurait qu'un seul groupe. Chaque
-  prime est un coefficient propre à sa commune ; son erreur ne dépend donc que des
+  écart est un coefficient propre à sa commune ; son erreur ne dépend donc que des
   sections de cette commune. IC par la loi de Student à (sections de la commune − 1)
   degrés de liberté.
 - **Repli HC1** : une commune qui compte moins de `min_sections_groupement` sections
@@ -140,12 +149,12 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
   groupement), avec (ventes de la commune − 1) degrés de liberté. Ces erreurs ignorent la
   corrélation entre ventes voisines et sont donc plus optimistes : le nombre de communes
   concernées est consigné dans `resume_global.json` (`erreurs`) et la colonne `erreurs`
-  du fichier des primes indique `sections` ou `hc1`.
-- Prime publiée seulement si la commune compte au moins **15 ventes « fort »**,
+  du fichier des écarts (`primes_communes.parquet`) indique `sections` ou `hc1`.
+- Écart publié seulement si la commune compte au moins **15 ventes « fort »**,
   **15 ventes de référence** (niveaux 0, 1 et 2) et **50 ventes au total**, avec un IC à 95 %.
 - Sinon : commune « non estimable », avec son motif (pas de ventes dans les deux
   zones, ou effectifs insuffisants).
-- **Statut de décote** (communes estimables), à partir de l'IC à 95 % de la prime :
+- **Statut de décote** (communes estimables), à partir de l'IC à 95 % de l'écart :
   - **décote** : IC entièrement sous 0 ;
   - **pas de décote** : borne basse de l'IC au-dessus du seuil `seuil_pas_de_decote`
     (−3 % par défaut, dans la config) : une décote éventuelle serait au plus faible ;
@@ -163,18 +172,21 @@ log(prix/m²) = β_moyen · moyen + β_fort · fort
 | **Sinistralité supérieure à la médiane** | Risque intégré | Angle mort |
 | **Sinistralité inférieure ou égale à la médiane** | Décote à expliquer | Cohérent |
 
-**Définitions à reprendre à l'identique partout (app, simulateur, README) :**
+Ces quatre valeurs sont celles des fichiers de `data/processed/`. L'app affiche des libellés
+descriptifs : « Sinistres et décote » (Risque intégré), « Sinistres sans décote » (Angle mort),
+« Décote sans sinistres » (Décote à expliquer), « Ni sinistres ni décote » (Cohérent). Les arrêtés
+concernent toute la commune, pas seulement sa zone forte : le croisement ne montre donc pas que le
+marché « intègre » ou non le risque.
+
+**Définitions à reprendre à l'identique partout (app, README) :**
 
 | Résultat | Zone comparée | Référence |
 |---|---|---|
 | Décote globale « moyen » | moyen | faible ou hors zone argileuse |
 | Décote globale « fort » | fort | faible ou hors zone argileuse |
 | Décote globale « fort − moyen » (chiffre phare) | fort | moyen |
-| Global « fort contre tout le reste » (comparable aux primes) | fort | hors zone, faible ou moyen |
-| Prime par commune | fort | tout le reste : faible, moyen ou hors zone argileuse |
-
-Le simulateur n'utilise que la prime par commune (référence « tout le reste ») :
-il ne s'applique donc qu'aux communes estimables.
+| Global « fort contre tout le reste » (comparable aux écarts communaux) | fort | hors zone, faible ou moyen |
+| Écart par commune | fort | tout le reste : faible, moyen ou hors zone argileuse |
 
 ## 7. CatNat sécheresse (GASPAR)
 
@@ -211,7 +223,7 @@ millésime du code officiel géographique que DVF et les contours.
   standard, IC à 95 %, effet exp(β) − 1 en fraction, p-valeur), le nombre de ventes et de
   communes utilisées, et le contraste `contraste_fort_moins_moyen` quand il existe ;
 - β_moyen, β_fort et β_bascule, avec IC à 95 % et effectifs ;
-- β_fort_2025 (variante « réforme 2025 »), avec IC à 95 % et nombre de ventes « fort »
+- β_fort_2025 (variante « ventes de 2025 »), avec IC à 95 % et nombre de ventes « fort »
   en 2025, marqué comme indice ;
 - la période et le nombre de ventes après chaque étape de nettoyage ;
 - `n_communes_estimables` ;
@@ -231,20 +243,22 @@ millésime du code officiel géographique que DVF et les contours.
   soit jusqu'à 80 communes si les 1 600 étaient estimables. Une commune isolée
   significative n'est donc pas une preuve ; le nombre observé est comparé au nombre
   attendu par hasard dans `resume_global.json`.
-- **Excès de communes significatives** : sur 193 communes estimables, 31 primes sont
-  significatives (16 en décote, 15 en prime), contre environ 10 attendues par hasard
+- **Excès de communes significatives** : sur 193 communes estimables, 31 écarts sont
+  significatifs (16 décotes, 15 écarts positifs), contre environ 10 attendues par hasard
   (4,8 par sens). L'excès est symétrique : il ne signale pas une décote générale. Le
   diagnostic par type d'erreurs (`diagnostic_erreurs` dans `resume_global.json`) écarte
   le repli HC1 : la part de significatives est proche dans les communes à erreurs
   groupées par section (17,0 %) et en HC1 (14,8 %), et les IC sont plus larges en HC1
   (25,7 contre 21,3 points). Interprétation retenue : une hétérogénéité de quartiers au
   sein des communes (au-delà du niveau commune × trimestre), cohérente avec le placebo.
-  Les primes communales sont donc des **écarts de prix observés entre la zone forte et le
+  Les écarts communaux sont donc des **écarts de prix observés entre la zone forte et le
   reste de la commune**, jamais l'effet de l'argile.
 - **Les décotes se trouvent surtout dans les communes peu sinistrées** : parmi les
   communes classées en quadrant, 14 sont en « décote à expliquer » (décote, sinistralité
   inférieure ou égale à la médiane) contre 2 en « risque intégré » (décote, sinistralité
-  supérieure) ; côté « pas de décote », 18 « cohérent » et 9 « angle mort ». Les écarts de
+  supérieure) ; côté « pas de décote », 18 « cohérent » et 9 « angle mort » (affichés
+  « Décote sans sinistres », « Sinistres et décote », « Ni sinistres ni décote » et
+  « Sinistres sans décote »). Les écarts de
   prix ne suivent donc pas la sinistralité : cela va dans le sens de l'interprétation
   « écarts entre quartiers » plutôt que d'un prix du risque lié à l'historique de
   sécheresse.
@@ -257,7 +271,7 @@ millésime du code officiel géographique que DVF et les contours.
 - **Deux maisons identiques sur une même parcelle** (mêmes surface bâtie et nombre de
   pièces) sont comptées comme une seule maison, la mutation est donc conservée à tort.
   Cas rare, non mesuré.
-- **La décote mesurée est un écart entre deux zones exposées** : la référence de la prime
+- **La décote mesurée est un écart entre deux zones exposées** : la référence de l'écart
   par commune (hors zone argileuse, faible, moyen) est très majoritairement « moyen »
   (hors zone et faible représentent moins de 8 % des ventes). La décote est donc l'écart
   entre « fort » et « moyen », deux zones déjà exposées, et non l'écart entre une zone
@@ -273,9 +287,9 @@ millésime du code officiel géographique que DVF et les contours.
   zone argileuse ; elle n'a pas la même composition qu'en Haute-Garonne (31).
 - Seuils minimaux de ventes : ils limitent les estimations fragiles mais ne les
   suppriment pas.
-- **Réforme 2025** : une seule année après la réforme, et d'autres changements de 2025
+- **Ventes de 2025** : une seule année, et d'autres changements de 2025
   (taux d'intérêt, sécheresses récentes, couverture médiatique) peuvent jouer sur
-  l'écart « fort ». β_fort_2025 est un indice, pas une mesure de l'effet de la réforme.
+  l'écart « fort ». β_fort_2025 est un indice, sans conclusion possible.
   Les ventes de fin 2025 peuvent aussi manquer dans DVF au moment du téléchargement.
 - Seules les ventes simples de maisons sont étudiées ; les résultats ne s'étendent
   pas aux appartements ni aux terrains à bâtir.

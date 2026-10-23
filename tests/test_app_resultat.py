@@ -35,7 +35,8 @@ def test_textes_lus_dans_les_donnees(resultat):
     assert f"+0,9{nb}%" in page and f"[{textes.MOINS}2,9{nb}% ; +4,9{nb}%]" in page and textes.MENTION_IC in page
     assert f"· 280 ventes · 2 départements · 2021-2025" in page  # communes_test : départements 31 et 77
     assert f"elle ne dépasse probablement pas environ 3{nb}%" in page
-    assert f"se vendent 3,4 à 2,5{nb}%" not in page and f"se vendent 2,5 à 3,4{nb}% moins cher" in page
+    assert f"se vendraient 3,4 à 2,5{nb}%" not in page and f"se vendraient 2,5 à 3,4{nb}% moins cher" in page
+    assert "à caractéristiques comparables (même commune, même trimestre)" in page
     assert "p ≈ 0,50" in page
     assert textes.TESTE_CONCLUSION in page
     assert "calculs faits hors ligne" in page and "corrélation, pas causalité" in page
@@ -65,7 +66,7 @@ def test_variante_nette_de_l_encadre(dossier_processed, monkeypatch):
     resume = resume_test()
     resume["modeles_globaux"]["principal"]["coefficients"]["fort"] = coefficient(-0.025, -0.05, 0.0, p=0.004)
     page = html_affiches(lancer(dossier_processed, monkeypatch, resume))
-    assert "Cet écart est net, mais ce petit groupe diffère" in page and "fragile" not in page
+    assert "Cet écart est significatif, mais ce petit groupe peut différer" in page and "fragile" not in page
 
 
 def test_repli_sur_les_ventes_retenues(dossier_processed, monkeypatch):

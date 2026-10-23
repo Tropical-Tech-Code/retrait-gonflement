@@ -61,7 +61,7 @@ def test_aucun_chiffre_en_dur_dans_les_cartes():
     # (les numéros de rang 1 à 6 des cartes sont de la mise en page, pas des données)
     avant = nombres(texte_des_cartes(avec_rangs=False))
     autre = decaler(resume_test())
-    autre["primes_communes"]["par_departement"] = {str(i): {} for i in range(9)}   # le nombre de départements compte les clés
+    autre["primes_communes"]["par_departement"] = {str(90 + i): {} for i in range(9)}   # le nombre de départements compte les clés, leurs codes s'affichent
     apres = nombres(texte_des_cartes(autre, avec_rangs=False))
     assert avant - ECRITS_EN_DUR
     assert (avant & apres) <= ECRITS_EN_DUR, avant & apres
@@ -69,24 +69,33 @@ def test_aucun_chiffre_en_dur_dans_les_cartes():
 
 def test_chiffres_lus_dans_le_resume():
     texte = texte_des_cartes()
-    assert f"Dans ces quatre départements, 48 à 53{NB}% des ventes sont en zone forte" in texte
+    assert f"Dans ces quatre départements (31, 47, 77, 82), 48 à 53{NB}% des ventes sont en zone forte" in texte
     assert f"moins de 8{NB}% des ventes" in texte                    # (0,07 + 0,004) -> 7,4 % -> 8
-    assert f"Sur 1{NB}000 mutations DVF (2021-2025, un seul bien par vente), 300 ventes de maisons sont retenues." in texte
-    assert "Exposition : carte RGA 2020, connue du marché sur toute la période (carte 2026 pour comparaison)." in texte
+    assert f"Sur 1{NB}000 transactions immobilières (DVF, 2021-2025), 300 ventes d'une seule maison sont retenues." in texte
+    assert ("Exposition : carte RGA 2020, consultable par les acheteurs pendant toute la période ; "
+            "la carte 2026 sert seulement de contrôle.") in texte
     assert ("Sinistres : arrêtés sécheresse 2015-2023 de GASPAR (Gestion assistée des procédures administratives "
-            "relatives aux risques naturels et technologiques) ; les sécheresses plus récentes ne sont pas encore "
-            "reconnues.") in texte
-    assert "Estimation sur 280 ventes." in texte
+            "relatives aux risques naturels et technologiques) ; les sécheresses plus récentes sont absentes de "
+            "GASPAR à la date d'extraction (délai de reconnaissance probable).") in texte
+    assert ("Estimation sur 280 ventes (celles seules dans leur commune et leur trimestre sont retirées)."
+            in texte)
+    assert "Régression du prix au m² (en logarithme, pour lire les écarts en %)" in texte
     assert f"Zone forte contre tout le reste : +0,7{NB}% [{textes.MOINS}3,0{NB}% ; +4,5{NB}%]." in texte
     assert f"(+1,4{NB}% [{textes.MOINS}3,5{NB}% ; +6,4{NB}%])" in texte
-    assert "Réforme 2025 (RGA dans l'état des risques) : indice, une seule année après la réforme." in texte
-    assert ("Placebo (ventes reclassées par la carte 2026) : indicatif, faible puissance (853 ventes, 8 communes) ; "
-            "son écart positif évoque des différences de quartiers, pas un effet causal.") in texte
+    assert (f"Ventes de 2025 : l'écart de la zone forte bouge de {textes.MOINS}1,2{NB}% "
+            f"[{textes.MOINS}2,7{NB}% ; +0,3{NB}%], sans conclusion possible.") in texte
+    assert ("Maisons passées en zone forte seulement avec la carte 2026 (853 ventes, 8 communes), vendues avant "
+            f"que l'acheteur puisse le savoir : +3,6{NB}%, aucune décote ; les écarts viennent plutôt des "
+            "quartiers (fourchette peu fiable : 8 communes).") in texte
+    assert "ce que confirme le contrôle par la carte 2026." in texte
+    assert (f"La limite de 3{NB}% est fragile : sans les ventes proches d'une limite de zone, "
+            f"la borne basse passe à {textes.MOINS}3,5{NB}%.") in texte
     assert "erreurs groupées" not in texte        # le détail reste dans docs/method.md
-    assert ("Parmi les 4 communes estimables (15 ventes en zone forte, 15 ailleurs, 50 au total), "
-            "on compte 2 écarts significatifs pour environ 0 attendus") in texte
-    assert "Quatre départements déjà très exposés." in texte
-    assert "Aucun arrêté sécheresse reconnu après 2023 (délai de reconnaissance)." in texte
+    assert ("Parmi les 4 communes estimables (au moins 15 ventes en zone forte, 15 ailleurs, 50 au total), "
+            "on compte 2 écarts significatifs (1 négatif, 1 positif) contre environ 0 attendus par hasard") in texte
+    assert "Quatre départements très exposés : résultats non transposables à toute la France." in texte
+    assert "Aucun arrêté sécheresse reconnu après 2023 (délai de reconnaissance probable)." in texte
+    assert textes.LIMITE_CAUSALITE == "Corrélation, pas causalité ; aucun écart n'estime la valeur d'une maison."
     assert f"La carte 2026 change le niveau d'environ 2{NB}% des ventes, dans les deux sens." in texte
     assert textes.LIMITE_CARRES in texte and textes.LIMITE_CAUSALITE in texte
 
@@ -151,8 +160,9 @@ def test_cles_absentes_sans_plantage():
 def test_carte_donnees_sans_carte_2026_n_ajoute_pas_de_comparaison():
     resume = resume_test()
     resume["sources"]["liste"] = [s for s in resume["sources"]["liste"] if s["cle"] != "rga_2026"]
-    assert "pour comparaison" not in textes.texte_donnees(resume)
-    assert "connue du marché sur toute la période." in textes.texte_donnees(resume)
+    assert "de contrôle" not in textes.texte_donnees(resume)
+    assert "consultable par les acheteurs pendant toute la période." in textes.texte_donnees(resume)
+    assert "contrôle par la carte" not in textes.texte_communes(resume)
 
 
 def test_mois_et_annee_du_pied():
@@ -164,17 +174,46 @@ def test_mois_et_annee_du_pied():
 def test_placebo_sans_ecart_positif_ne_parle_pas_de_quartiers():
     resume = resume_test()
     resume["modeles_globaux"]["placebo_bascule"]["coefficients"]["bascule"] = coefficient(-0.02, -0.05, 0.01)
-    placebo = [i for i in cartes(resume)[3]["items"] if i.startswith("Placebo")][0]
-    assert placebo.endswith("son écart n'est pas un effet causal.") and "quartiers" not in placebo
+    placebo = [i for i in cartes(resume)[3]["items"] if i.startswith("Maisons passées")][0]
+    assert "écart non causal" in placebo and "quartiers" not in placebo
+
+
+def test_placebo_sans_nombre_de_communes_dans_le_statut_ni_n_communes():
+    resume = resume_test()
+    resume["modeles_globaux"]["placebo_bascule"]["statut"] = "autre format"
+    placebo = [i for i in cartes(resume)[3]["items"] if i.startswith("Maisons passées")][0]
+    assert "(853 ventes)" in placebo and "commune" not in placebo
+
+
+def test_placebo_lit_le_nombre_de_communes_apres_ventes_et_ignore_n_communes():
+    # chaîne réelle du JSON ; la clé n_communes (1276) compte les communes du modèle, pas celles du test
+    resume = resume_test()
+    placebo_json = resume["modeles_globaux"]["placebo_bascule"]
+    placebo_json["statut"] = "indicatif, faible puissance (853 ventes, 8 communes)"
+    placebo_json["n_communes"] = 1276
+    placebo = [i for i in cartes(resume)[3]["items"] if i.startswith("Maisons passées")][0]
+    assert "(853 ventes, 8 communes)" in placebo and "1 276" not in placebo and "1276" not in placebo
+
+
+def test_puce_limite_de_3_pour_cent_seulement_si_la_borne_passe_sous_le_seuil():
+    resume = resume_test()
+    resume["modeles_globaux"]["sans_limite"]["contraste_fort_moins_moyen"] = coefficient(0.0137, -0.0250, 0.0640)
+    assert not [i for i in cartes(resume)[3]["items"] if "fragile" in i]
+
+
+def test_variante_2025_sans_mot_reforme():
+    texte = texte_des_cartes().lower()
+    for absent in textes.EXPRESSIONS_ABSENTES:
+        assert absent not in texte
 
 
 def test_nombres_en_debut_de_phrase_ecrits_en_lettres():
     assert [textes.debut_phrase(n) for n in (0, 1, 4, 16)] == ["Zéro", "Un", "Quatre", "Seize"]
     assert textes.debut_phrase(17) == "17"
-    assert textes.limites(resume_test())[1] == "Quatre départements déjà très exposés."
+    assert textes.limites(resume_test())[1] == "Quatre départements très exposés : résultats non transposables à toute la France."
     un = resume_test()
     un["primes_communes"]["par_departement"] = {"31": {}}
-    assert textes.limites(un)[1] == "Un département déjà très exposé."
+    assert textes.limites(un)[1] == "Un département très exposé : résultats non transposables à toute la France."
 
 
 def test_aucune_phrase_ne_commence_par_un_chiffre():

@@ -35,29 +35,36 @@ def test_effectifs_des_cases_lus_dans_les_donnees(dossier_processed, monkeypatch
     for nom, n in resume["n_par_quadrant"].items():
         libelle = textes.libelle_quadrant(nom)
         assert re.search(rf">{libelle}</span><span[^>]*>{textes.entier(n)}</span>", page), nom
-    assert ">Angle mort<" not in page and ">Risque non intégré<" in page
+    for ancien in ("Angle mort", "Risque non intégré", "Risque intégré", "Décote à expliquer", "Cohérent"):
+        assert f">{ancien}<" not in page
+    for nouveau in ("Sinistres sans décote", "Sinistres et décote", "Décote sans sinistres", "Ni sinistres ni décote"):
+        assert f">{nouveau}<" in page
     for phrase in textes.PHRASES_QUADRANTS.values():
         assert phrase in page
-    assert page.count('class="rg-quad-case rg-mis-en-avant"') == 1  # seul « Angle mort » est mis en avant
+    assert page.count('class="rg-quad-case rg-mis-en-avant"') == 1  # seul « Sinistres sans décote » est mis en avant
 
 
 def test_phrases_des_cases_et_de_l_encadre_sombre(sinistralite):
     page = html_affiches(sinistralite)
-    assert "Peu de sinistres, pas de décote." in page
-    assert "Des sinistres reconnus, pas de décote." in page
-    assert "Une décote sans sinistralité marquée : sans doute un effet de quartier plutôt que de l'argile." in page
-    assert "Des sinistres et une décote." in page
-    assert "aucune décote n'est mesurée entre zone forte et reste de la commune. Ce n'est pas une prédiction." in page
+    assert "Peu de sinistres et pas de décote." in page
+    assert "Des sinistres reconnus dans la commune, pas de décote en zone forte." in page
+    assert "Une décote sans sinistralité marquée : peut-être un effet de quartier plutôt que de l'argile." in page
+    assert "Des sinistres reconnus dans la commune, une décote en zone forte." in page
+    assert ("Hypothèse à surveiller : ces communes ont souvent été reconnues en sécheresse, mais leurs maisons "
+            f"en zone forte ne se vendent pas nettement moins cher (une décote de plus de 3{NB}% est exclue). "
+            "Le marché ne tiendrait peut-être pas compte de ces sinistres.") in page
+    note = ("Un arrêté sécheresse vise toute la commune : on ne sait pas si les maisons sinistrées étaient "
+            "dans sa zone forte ou ailleurs.")
+    assert note in page
+    assert page.index('class="rg-quad"') < page.index(note) < page.index('class="rg-indeterminees"')
 
 
 def test_indeterminees_et_signal_lus_dans_le_resume(sinistralite):
     page = html_affiches(sinistralite)
-    assert (  # n_indetermine = 2
-        "<strong>2</strong> communes ne sont pas classées : trop peu de ventes pour trancher "
-        "entre décote et absence de décote."
-    ) in page
-    assert 'class="rg-sombre-nombre">1</span>' in page and "commune au risque non intégré" in page
-    assert "Communes au risque non intégré, par sinistralité" in page
+    assert "<strong>2</strong> communes non classées : trop peu de ventes pour trancher." in page  # n_indetermine = 2
+    assert 'class="rg-note-s"' in page and "Ce n'est pas une prédiction" not in page
+    assert 'class="rg-sombre-nombre">1</span>' in page and "commune avec sinistres sans décote" in page
+    assert "Communes avec sinistres sans décote, par sinistralité" in page
     assert "angle mort" not in page.lower()  # la valeur du fichier ne s'affiche jamais
 
 
@@ -101,18 +108,18 @@ def test_sans_angle_mort(dossier_processed, monkeypatch):
     resume["n_par_quadrant"]["Angle mort"] = 0
     page = html_affiches(ouvrir(dossier_processed, monkeypatch, resume))
     assert textes.AUCUN_ANGLE_MORT in page
-    assert "commune au risque non intégré" in page and 'class="rg-sombre-nombre">0</span>' in page
+    assert "commune avec sinistres sans décote" in page and 'class="rg-sombre-nombre">0</span>' in page
 
 
 def test_definitions_des_statuts_avec_le_seuil_du_resume(dossier_processed, monkeypatch):
     page = html_affiches(ouvrir(dossier_processed, monkeypatch))
-    assert (f"Décote : intervalle de confiance entièrement sous 0 ; "
-            f"pas de décote : borne basse au-dessus de {textes.MOINS}3{NB}%.") in page
+    assert ("Décote : la zone forte se vend moins cher, c'est certain (fourchette entièrement sous 0). "
+            f"Pas de décote : si elle se vend moins cher, c'est de 3{NB}% au plus.") in page
     assert "IC entièrement" not in page
     resume = resume_test()
     resume["seuil_pas_de_decote"] = -0.025
     page = html_affiches(ouvrir(dossier_processed, monkeypatch, resume))
-    assert f"borne basse au-dessus de {textes.MOINS}2,5{NB}%." in page
+    assert f"c'est de 2,5{NB}% au plus." in page
 
 
 def test_pied_commun_de_l_onglet(dossier_processed, monkeypatch):
@@ -127,15 +134,17 @@ def test_vocabulaire_de_l_onglet(sinistralite):
 
 
 def test_correspondance_valeur_libelle_du_quadrant():
-    assert textes.libelle_quadrant("Angle mort") == "Risque non intégré"
-    for autre in ("Risque intégré", "Décote à expliquer", "Cohérent"):
-        assert textes.libelle_quadrant(autre) == autre
-    assert set(textes.LIBELLES_QUADRANTS) <= set(textes.QUADRANTS)
+    assert textes.libelle_quadrant("Angle mort") == "Sinistres sans décote"
+    assert textes.libelle_quadrant("Risque intégré") == "Sinistres et décote"
+    assert textes.libelle_quadrant("Décote à expliquer") == "Décote sans sinistres"
+    assert textes.libelle_quadrant("Cohérent") == "Ni sinistres ni décote"
+    assert set(textes.LIBELLES_QUADRANTS) == set(textes.QUADRANTS)
 
 
 def test_signal_faible_du_resultat_utilise_le_nouveau_libelle(dossier_processed, monkeypatch):
     page = html_affiches(lancer(dossier_processed, monkeypatch))
-    assert "Des risques peut-être non intégrés, à surveiller. Une hypothèse, pas une prédiction." in page
+    assert "Le marché ne tiendrait peut-être pas compte de ces sinistres. Une hypothèse, pas une prédiction." in page
+    assert f"aucune décote de plus de 3{NB}% (intervalle de confiance)." in page
 
 
 def test_css_cases_sans_hauteur_fixe_et_regles_communes_avec_le_resultat():
