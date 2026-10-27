@@ -243,7 +243,9 @@ def test_onglet_affiche_les_cartes_et_le_pied(methodologie):
         assert carte["surtitre"] in page
     assert page.count('<section class="rg-methodo-carte') == 6 and page.count('class="rg-methodo-carte rg-beige"') == 1
     assert "En construction" not in page
-    assert f'href="{textes.URL_METHODE}"' in page and textes.LIEN_METHODE in page
+    pied = page[page.index('<div class="rg-pied">'):]
+    assert pied.count("<br>") == 1 and f'href="{textes.URL_METHODE}"' in pied.split("<br>")[1]
+    assert f">{textes.LIEN_METHODE}</a>" in pied and textes.PIED_AVERTISSEMENT in pied.split("<br>")[1]
     assert textes.pied_commun(resume_test()) in page           # pied commun, sans dates précises
     assert "extraction du" not in page and "15/10/2026" not in page
 
@@ -256,5 +258,5 @@ def test_en_construction_supprime():
 
 def test_texte_du_lien_echappe():
     import charte
-    page = charte.html_pied("<i>", ("a ", "<b>", 'https://x.test/?a="b"'))
+    page = charte.html_pied("<i>", ("<b>", 'https://x.test/?a="b"'))
     assert "<b>" not in page and "<i>" not in page and '"b"' not in page

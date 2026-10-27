@@ -9,5 +9,5 @@ import textes
 
 def afficher(tout: donnees.Donnees) -> None:
     resume = tout.resume
-    with charte.onglet("methodologie", resume, (textes.PIED_METHODE, textes.LIEN_METHODE, textes.URL_METHODE)):
+    with charte.onglet("methodologie", resume, (textes.LIEN_METHODE, textes.URL_METHODE)):
         st.markdown(charte.html_grille_methodologie(textes.cartes_methodologie(resume)), unsafe_allow_html=True)

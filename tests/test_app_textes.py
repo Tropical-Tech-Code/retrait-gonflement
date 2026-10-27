@@ -176,8 +176,13 @@ def test_pied_avertissement_auteur_et_lien_du_depot():
     assert textes.PIED_AVERTISSEMENT in ligne_2 and textes.PIED_AUTEUR in ligne_2
     assert f'href="{textes.URL_DEPOT}"' in ligne_2 and f">{textes.LIEN_DEPOT}</a>" in ligne_2
     assert "©" in textes.PIED_AUTEUR and "<br>" not in pied.split("<br>")[0]
-    avec_methode = charte.html_pied(textes.pied_commun(RESUME), (textes.PIED_METHODE, textes.LIEN_METHODE, textes.URL_METHODE))
-    assert len(avec_methode.split("<br>")) == 3 and f'href="{textes.URL_METHODE}"' in avec_methode.split("<br>")[2]
+    assert pied.count("<br>") == 1 and textes.URL_METHODE not in pied
+    avec_methode = charte.html_pied(textes.pied_commun(RESUME), (textes.LIEN_METHODE, textes.URL_METHODE))
+    assert avec_methode.count("<br>") == 1
+    ligne_2 = avec_methode.split("<br>")[1]
+    lien_methode = f'<a href="{textes.URL_METHODE}" target="_blank" rel="noopener noreferrer">{textes.LIEN_METHODE}</a>'
+    assert ligne_2.endswith(f"{lien_methode}</div>") and ligne_2.index(textes.URL_DEPOT) < ligne_2.index(textes.URL_METHODE)
+    assert f" · {lien_methode}" in ligne_2 and textes.PIED_AVERTISSEMENT in ligne_2
 
 
 def test_pied_commun_lit_le_mois_dans_le_resume_et_prend_le_plus_recent():
@@ -287,7 +292,7 @@ def textes_resultat():
 
 def textes_methodologie(resume):
     """Tous les textes de l'onglet Méthodologie et limites, d'après un résumé."""
-    produits = [textes.PIED_METHODE, textes.LIEN_METHODE, textes.pied_commun(resume)]
+    produits = [textes.LIEN_METHODE,textes.pied_commun(resume)]
     for carte in textes.cartes_methodologie(resume):
         produits += [carte["surtitre"], carte.get("titre") or "", *carte.get("paragraphes", []), *carte.get("items", [])]
     return produits

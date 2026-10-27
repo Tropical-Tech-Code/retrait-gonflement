@@ -235,21 +235,17 @@ def html_signal(titre: str, nombre: str, texte: str, note: str) -> str:
     )
 
 
-def html_pied(texte: str, lien: tuple[str, str, str] | None = None) -> str:
-    """Pied commun : ligne des sources, ligne d'avertissement et d'auteur ; `lien` = (introduction, texte du
-    lien, URL) ajoute une troisième ligne, seulement pour la Méthodologie."""
-    depot = (
-        f'<a href="{html.escape(textes.URL_DEPOT, quote=True)}" target="_blank" '
-        f'rel="noopener noreferrer">{_e(textes.LIEN_DEPOT)}</a>'
-    )
-    suite = f'<br>{_e(textes.PIED_AVERTISSEMENT)} · {_e(textes.PIED_AUTEUR)} · {depot}'
+def _lien_externe(libelle: str, url: str) -> str:
+    return f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{_e(libelle)}</a>'
+
+
+def html_pied(texte: str, lien: tuple[str, str] | None = None) -> str:
+    """Pied commun sur deux lignes : sources, puis avertissement, auteur et lien du dépôt ; `lien` = (texte du
+    lien, URL) s'ajoute en fin de deuxième ligne, seulement pour la Méthodologie."""
+    ligne_2 = [_e(textes.PIED_AVERTISSEMENT), _e(textes.PIED_AUTEUR), _lien_externe(textes.LIEN_DEPOT, textes.URL_DEPOT)]
     if lien:
-        introduction, libelle, url = lien
-        suite += (
-            f'<br>{_e(introduction)}<a href="{html.escape(url, quote=True)}" target="_blank" '
-            f'rel="noopener noreferrer">{_e(libelle)}</a>'
-        )
-    return f'<div class="rg-pied">{_e(texte)}{suite}</div>'
+        ligne_2.append(_lien_externe(*lien))
+    return f'<div class="rg-pied">{_e(texte)}<br>{" · ".join(ligne_2)}</div>'
 
 
 def html_grille_methodologie(cartes: list[dict]) -> str:

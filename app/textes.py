@@ -296,8 +296,7 @@ URL_DEPOT = "https://github.com/Tropical-Tech-Code/retrait-gonflement"
 LIEN_DEPOT = "code source sur GitHub"
 PIED_AVERTISSEMENT = "Outil indicatif et pédagogique : il ne remplace ni une étude géotechnique ni les documents officiels sur les risques."
 PIED_AUTEUR = "© 2026 Tropical-Tech-Code"
-LIEN_METHODE = "docs/method.md sur GitHub"
-PIED_METHODE = "Méthode détaillée : "
+LIEN_METHODE = "méthode détaillée"
 
 METHO_TITRES = {
     "question": ("Question testée", "Zone forte contre zone moyenne"),
