@@ -169,6 +169,17 @@ def test_pied_commun_aux_quatre_onglets():
     )
 
 
+def test_pied_avertissement_auteur_et_lien_du_depot():
+    import charte
+    pied = charte.html_pied(textes.pied_commun(RESUME))
+    ligne_2 = pied.split("<br>")[1]
+    assert textes.PIED_AVERTISSEMENT in ligne_2 and textes.PIED_AUTEUR in ligne_2
+    assert f'href="{textes.URL_DEPOT}"' in ligne_2 and f">{textes.LIEN_DEPOT}</a>" in ligne_2
+    assert "©" in textes.PIED_AUTEUR and "<br>" not in pied.split("<br>")[0]
+    avec_methode = charte.html_pied(textes.pied_commun(RESUME), (textes.PIED_METHODE, textes.LIEN_METHODE, textes.URL_METHODE))
+    assert len(avec_methode.split("<br>")) == 3 and f'href="{textes.URL_METHODE}"' in avec_methode.split("<br>")[2]
+
+
 def test_pied_commun_lit_le_mois_dans_le_resume_et_prend_le_plus_recent():
     resume = {"sources": {"liste": [
         {"cle": "dvf", "date_telechargement": "2026-03-04"},
@@ -270,6 +281,7 @@ def textes_resultat():
     produits += [textes.phrase_signal(n, SEUIL) for n in (0, 1, 9)]
     produits += [textes.SURTITRE_RESULTAT, textes.LIBELLE_CHIFFRE, textes.SIGNAL_NOTE, textes.TITRE_SIGNAL, textes.BOUTON_SIGNAL]
     produits += [textes.ligne_effectifs(RESUME, 4), textes.pied_commun(RESUME)]
+    produits += [textes.PIED_AVERTISSEMENT, textes.PIED_AUTEUR, textes.LIEN_DEPOT]
     return produits
 
 

@@ -236,11 +236,16 @@ def html_signal(titre: str, nombre: str, texte: str, note: str) -> str:
 
 
 def html_pied(texte: str, lien: tuple[str, str, str] | None = None) -> str:
-    """Pied commun ; `lien` = (introduction, texte du lien, URL), seulement pour la Méthodologie."""
-    suite = ""
+    """Pied commun : ligne des sources, ligne d'avertissement et d'auteur ; `lien` = (introduction, texte du
+    lien, URL) ajoute une troisième ligne, seulement pour la Méthodologie."""
+    depot = (
+        f'<a href="{html.escape(textes.URL_DEPOT, quote=True)}" target="_blank" '
+        f'rel="noopener noreferrer">{_e(textes.LIEN_DEPOT)}</a>'
+    )
+    suite = f'<br>{_e(textes.PIED_AVERTISSEMENT)} · {_e(textes.PIED_AUTEUR)} · {depot}'
     if lien:
         introduction, libelle, url = lien
-        suite = (
+        suite += (
             f'<br>{_e(introduction)}<a href="{html.escape(url, quote=True)}" target="_blank" '
             f'rel="noopener noreferrer">{_e(libelle)}</a>'
         )

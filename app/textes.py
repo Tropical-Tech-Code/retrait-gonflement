@@ -291,8 +291,11 @@ def pied_commun(resume: dict) -> str:
 # les années 2025 et 2026 (ventes de 2025, carte 2026) et le niveau des intervalles (95 %). Le vocabulaire
 # est celui de docs/app.md : on parle du « contraste fort − moyen », jamais d'une prime de risque.
 
-# URL provisoire : le dépôt GitHub n'est pas encore créé (Points ouverts du CLAUDE.md)
 URL_METHODE = "https://github.com/Tropical-Tech-Code/retrait-gonflement/blob/main/docs/method.md"
+URL_DEPOT = "https://github.com/Tropical-Tech-Code/retrait-gonflement"
+LIEN_DEPOT = "code source sur GitHub"
+PIED_AVERTISSEMENT = "Outil indicatif et pédagogique : il ne remplace ni une étude géotechnique ni les documents officiels sur les risques."
+PIED_AUTEUR = "© 2026 Tropical-Tech-Code"
 LIEN_METHODE = "docs/method.md sur GitHub"
 PIED_METHODE = "Méthode détaillée : "
 

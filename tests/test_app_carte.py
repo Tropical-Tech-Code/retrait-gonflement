@@ -212,6 +212,12 @@ def test_pied_commun_sous_la_carte(at):
     assert textes.pied_commun(resume_test()) in " ".join(m.value for m in at.markdown)
 
 
+def test_pied_avertissement_sous_la_carte(at):
+    page = " ".join(m.value for m in at.markdown)
+    assert textes.PIED_AVERTISSEMENT in page and textes.PIED_AUTEUR in page
+    assert f'href="{textes.URL_DEPOT}"' in page
+
+
 def test_mise_en_page_espacements_de_la_maquette():
     css = charte.CSS
     # espacements réduits pour tenir à 1 280 × 800 sans défilement ; même écart entre blocs que les autres onglets
