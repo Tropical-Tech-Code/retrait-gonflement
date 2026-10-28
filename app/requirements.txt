@@ -10,7 +10,7 @@ attrs==26.1.0
     # via
     #   jsonschema
     #   referencing
-certifi==2026.7.22
+certifi==2026.10.23
     # via requests
 charset-normalizer==3.5.2
     # via requests
@@ -51,7 +51,7 @@ pandas==3.0.6
     # via
     #   retrait-gonflement
     #   streamlit
-pillow==12.3.0
+pillow==13.0.0
     # via streamlit
 protobuf==7.36.2
     # via streamlit
@@ -81,7 +81,7 @@ six==1.17.0
     # via python-dateutil
 starlette==1.8.0
     # via streamlit
-streamlit==1.66.0
+streamlit==1.66.1
     # via retrait-gonflement
 typing-extensions==4.16.0
     # via
