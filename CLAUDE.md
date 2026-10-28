@@ -148,6 +148,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 27/10/2026 : « © 2026 » est une date en dur admise (année de création du projet, elle ne suit pas les données).
 - 27/10/2026 : licences des données vérifiées sur les pages officielles : Licence Ouverte 2.0 pour les DVF géolocalisées (DGFiP, géolocalisation Etalab), les cartes RGA et GASPAR (Géorisques) et ADMIN EXPRESS (IGN). Code sous licence MIT au nom de Tropical-Tech-Code.
 - 27/10/2026 : le README a une section « Méthode de travail » : projet piloté par moi, code écrit avec l'assistance de Claude Code.
+- 28/10/2026 : dépendances du déploiement : `app/requirements.txt`, produit par `uv export --frozen --no-default-groups --no-hashes --no-emit-project --output-file app/requirements.txt`, placé à côté du fichier d'entrée, donc prioritaire sur le `uv.lock` de la racine (qui contient les groupes pipeline et dev) ; à régénérer avec la même commande après tout changement des dépendances principales (phrase au README) ; `.streamlit/secrets.toml` ignoré par Git ; app vérifiée sans import du paquet `retrait_gonflement` ni des groupes pipeline et dev, chemin de `data/processed/` relatif au fichier `app/donnees.py` (indépendant du dossier courant) ; testée par moi dans un environnement réduit à ce fichier (Python 3.11, quatre onglets, clic et recherche sur la carte).
 
 ## Avancement
 
@@ -192,6 +193,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 23/10/2026 : relecture Opus appliquée (`docs/relecture-opus.md`, 30 lignes) : décret n° 2024-405 vérifié sur Légifrance (risque incendie, pas RGA), variante « réforme 2025 » devenue « ventes de 2025 », libellés des cases, textes des quatre onglets retravaillés (app, `docs/method.md`, `docs/app.md`, tests) ; puce du contrôle par la carte 2026 : nombre de communes lu après « ventes, » dans le statut (la clé `n_communes` compte les communes du modèle) ; textes vérifiés au navigateur par moi, alignement actuel conservé ; `uv run pytest -q` : 375 tests verts ; commitée.
 - 27/10/2026 : étape 7a faite : avertissement d'usage, © 2026 Tropical-Tech-Code et lien vers le dépôt dans le pied commun (`2e862d0`) ; lien « méthode détaillée » en fin de deuxième ligne du pied de la Méthodologie, deux lignes dans les quatre onglets (`da8c46e`) ; `uv run pytest -q` : 377 tests verts.
 - 27/10/2026 : étape 7b faite : README, licence MIT (`LICENSE`) et quatre captures dans `docs/captures/` (`83440da`).
+- 28/10/2026 : étape 8a faite : `app/requirements.txt`, `.streamlit/secrets.toml` dans `.gitignore`, phrase au README, vérifications des imports et du chemin des données ; test réussi par moi dans un environnement réduit à `app/requirements.txt` ; `uv run pytest -q` : 377 tests verts.
 - Pas de bloquant.
 - Reprise :
   Une étape = un onglet complet, vérifié en plaçant la capture à côté de sa maquette de `docs/maquette/`.
@@ -203,7 +205,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   6. onglet Méthodologie, comparé à `docs/maquette/4-methodologie.html` : fait le 22/10, corrections restantes en révision finale (étape 8) ;
   7. révision finale de l'app : faite le 22/10, vérifiée au navigateur (hauteur naturelle, pied commun, dates) ;
   séance textes : faite, textes des quatre onglets retravaillés à partir de ma liste, appliqués en un seul commit ;
-  8. README et déploiement (les captures du README et le premier lien public montrent l'app définitive) : README, licence et captures faits (7a, 7b) ; prochaine étape : préparation du déploiement (`app/requirements.txt` avec les seules dépendances de l'app, `.streamlit/secrets.toml` dans `.gitignore`, vérification que l'app n'importe pas `retrait_gonflement`), puis création du dépôt GitHub privé et premier push par moi, scan de l'historique, passage en public, déploiement sur Streamlit Community Cloud en accès public seulement ;
+  8. README et déploiement (les captures du README et le premier lien public montrent l'app définitive) : README, licence et captures faits (7a, 7b) ; préparation du déploiement faite (8a, 28/10) ; prochaine étape : création du dépôt GitHub privé et premier push par moi, scan de l'historique, passage en public, déploiement sur Streamlit Community Cloud en accès public seulement ;
   9. relecture (Opus) : faite (`10e7439`) ;
   10. souhaitables : après le README et le déploiement.
 - Points ouverts :

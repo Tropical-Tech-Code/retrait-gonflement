@@ -77,7 +77,7 @@ Prérequis : Python 3.11 et [uv](https://docs.astral.sh/uv/). Aucune clé n'est 
 uv sync
 ```
 
-`uv sync` installe les dépendances de l'application, plus les groupes `pipeline` (httpx, duckdb, pyfixest, scipy) et `dev` (pytest). L'application déployée n'utilise que les dépendances principales.
+`uv sync` installe les dépendances de l'application, plus les groupes `pipeline` (httpx, duckdb, pyfixest, scipy) et `dev` (pytest). L'application déployée n'utilise que les dépendances principales : `app/requirements.txt` sert au déploiement et se régénère, après tout changement de ces dépendances, avec `uv export --frozen --no-default-groups --no-hashes --no-emit-project --output-file app/requirements.txt`.
 
 La jointure spatiale a besoin de l'extension `spatial` de DuckDB, à installer une fois :
 
