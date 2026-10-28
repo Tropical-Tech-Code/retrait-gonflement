@@ -149,6 +149,9 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 27/10/2026 : licences des données vérifiées sur les pages officielles : Licence Ouverte 2.0 pour les DVF géolocalisées (DGFiP, géolocalisation Etalab), les cartes RGA et GASPAR (Géorisques) et ADMIN EXPRESS (IGN). Code sous licence MIT au nom de Tropical-Tech-Code.
 - 27/10/2026 : le README a une section « Méthode de travail » : projet piloté par moi, code écrit avec l'assistance de Claude Code.
 - 28/10/2026 : dépendances du déploiement : `app/requirements.txt`, produit par `uv export --frozen --no-default-groups --no-hashes --no-emit-project --output-file app/requirements.txt`, placé à côté du fichier d'entrée, donc prioritaire sur le `uv.lock` de la racine (qui contient les groupes pipeline et dev) ; à régénérer avec la même commande après tout changement des dépendances principales (phrase au README) ; `.streamlit/secrets.toml` ignoré par Git ; app vérifiée sans import du paquet `retrait_gonflement` ni des groupes pipeline et dev, chemin de `data/processed/` relatif au fichier `app/donnees.py` (indépendant du dossier courant) ; testée par moi dans un environnement réduit à ce fichier (Python 3.11, quatre onglets, clic et recherche sur la carte).
+- 28/10/2026 : dépôt GitHub Tropical-Tech-Code/retrait-gonflement créé à la main (vide), premier push par moi le 28/10 (42 commits) ; historique scanné avant le passage en public (aucun secret, aucune donnée brute, aucun chemin absolu ni nom de session, un seul auteur avec l'adresse noreply) ; dépôt passé en public ; Secret Protection et Push protection activés (0 alerte) ; Dependabot alerts activé, mises à jour automatiques de Dependabot désactivées.
+- 28/10/2026 : app déployée sur Streamlit Community Cloud : https://retrait-gonflement.streamlit.app (sous-domaine obtenu, lien du README correct), connexion GitHub en accès aux dépôts publics seulement ; Python 3.11.17 ; dépendances installées depuis `app/requirements.txt` (avertissement « More than one requirements file detected » attendu) ; Community Cloud remplace pyarrow 26.0.0 par pyarrow 24.0.0 (plantage connu, apache/arrow#50471) : quatre onglets vérifiés en ligne en navigation privée, lecture des .parquet correcte.
+- 28/10/2026 : lien de l'app et topics ajoutés dans « About » sur GitHub ; dépôt soumis à Software Heritage (« Save code now ») le 28/10.
 
 ## Avancement
 
@@ -194,6 +197,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 27/10/2026 : étape 7a faite : avertissement d'usage, © 2026 Tropical-Tech-Code et lien vers le dépôt dans le pied commun (`2e862d0`) ; lien « méthode détaillée » en fin de deuxième ligne du pied de la Méthodologie, deux lignes dans les quatre onglets (`da8c46e`) ; `uv run pytest -q` : 377 tests verts.
 - 27/10/2026 : étape 7b faite : README, licence MIT (`LICENSE`) et quatre captures dans `docs/captures/` (`83440da`).
 - 28/10/2026 : étape 8a faite : `app/requirements.txt`, `.streamlit/secrets.toml` dans `.gitignore`, phrase au README, vérifications des imports et du chemin des données ; test réussi par moi dans un environnement réduit à `app/requirements.txt` ; `uv run pytest -q` : 377 tests verts.
+- 28/10/2026 : étapes 8b (scan de l'historique, dépôt, premier push), 8c (passage en public, sécurité) et 8d (déploiement) faites ; projet livré.
 - Pas de bloquant.
 - Reprise :
   Une étape = un onglet complet, vérifié en plaçant la capture à côté de sa maquette de `docs/maquette/`.
@@ -205,14 +209,16 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   6. onglet Méthodologie, comparé à `docs/maquette/4-methodologie.html` : fait le 22/10, corrections restantes en révision finale (étape 8) ;
   7. révision finale de l'app : faite le 22/10, vérifiée au navigateur (hauteur naturelle, pied commun, dates) ;
   séance textes : faite, textes des quatre onglets retravaillés à partir de ma liste, appliqués en un seul commit ;
-  8. README et déploiement (les captures du README et le premier lien public montrent l'app définitive) : README, licence et captures faits (7a, 7b) ; préparation du déploiement faite (8a, 28/10) ; prochaine étape : création du dépôt GitHub privé et premier push par moi, scan de l'historique, passage en public, déploiement sur Streamlit Community Cloud en accès public seulement ;
+  8. README et déploiement (les captures du README et le premier lien public montrent l'app définitive) : README, licence et captures faits (7a, 7b) ; préparation du déploiement faite (8a), scan, dépôt et premier push (8b), passage en public et sécurité (8c), déploiement sur Streamlit Community Cloud (8d) : faits le 28/10 ; projet livré ;
   9. relecture (Opus) : faite (`10e7439`) ;
-  10. souhaitables : après le README et le déploiement.
+  10. souhaitables : projet livré, plus d'étape obligatoire ; souhaitables seulement en cas de vrai défaut constaté en ligne.
 - Points ouverts :
   - (fermé le 23/10 : décret n° 2024-405 vérifié sur Légifrance, il concerne le risque incendie, voir la décision du 23/10) ;
   - au prochain recalcul du pipeline : écrire `n_communes` du placebo et des statuts corrigés (réforme, placebo) dans `resume_global.json` (l'app lit aujourd'hui le nombre de communes dans le statut, par expression régulière) ;
   - (fermé le 23/10 : textes de la relecture Opus vérifiés au navigateur et commités) ;
-  - créer le dépôt GitHub privé ; le premier push est fait par moi, pas par Claude ;
+  - (fermé le 28/10 : dépôt GitHub créé, premier push fait par moi) ;
+  - pyarrow : en ligne 24.0.0, en local 26.0.0 ; envisager `pyarrow<25` dans les dépendances principales pour aligner les deux (nouveau `uv lock`, régénération de `app/requirements.txt`) ;
+  - Software Heritage : vérifier que l'archivage a réussi et, si utile, citer l'identifiant `swh:1:…` dans le README ;
   - (fermé le 27/10 : `URL_METHODE` n'est plus provisoire, seul son commentaire a été corrigé en 7a, `2e862d0`) ;
   - retouches de fin : couleur noire du bandeau, bouton de zone sélectionné, ajustements de textes ;
   - vérifications de la sous-section « À vérifier avant le code » de `docs/app.md` ;
