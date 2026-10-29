@@ -153,6 +153,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 28/10/2026 : app déployée sur Streamlit Community Cloud : https://retrait-gonflement.streamlit.app (sous-domaine obtenu, lien du README correct), connexion GitHub en accès aux dépôts publics seulement ; Python 3.11.17 ; dépendances installées depuis `app/requirements.txt` (avertissement « More than one requirements file detected » attendu) ; Community Cloud remplace pyarrow 26.0.0 par pyarrow 24.0.0 (plantage connu, apache/arrow#50471) : quatre onglets vérifiés en ligne en navigation privée, lecture des .parquet correcte.
 - 28/10/2026 : lien de l'app et topics ajoutés dans « About » sur GitHub ; dépôt soumis à Software Heritage (« Save code now ») le 28/10.
 - 28/10/2026 : alertes Dependabot : streamlit 1.66.1 (la 1.66.0 exige pillow<13) pour pouvoir installer pillow 13.0.0, qui corrige 41 alertes, et certifi 2026.10.23 (1 alerte) ; `pyproject.toml` inchangé (`streamlit>=1.40`), seuls `uv.lock` et `app/requirements.txt` changent.
+- 29/10/2026 : archivage Software Heritage réussi (demande du 28/10, statut succeeded) ; identifiant du snapshot swh:1:snp:980450b148e483a6829819b3b15da26d6f5cbe65 cité au README.
 
 ## Avancement
 
@@ -199,7 +200,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
 - 27/10/2026 : étape 7b faite : README, licence MIT (`LICENSE`) et quatre captures dans `docs/captures/` (`83440da`).
 - 28/10/2026 : étape 8a faite : `app/requirements.txt`, `.streamlit/secrets.toml` dans `.gitignore`, phrase au README, vérifications des imports et du chemin des données ; test réussi par moi dans un environnement réduit à `app/requirements.txt` ; `uv run pytest -q` : 377 tests verts.
 - 28/10/2026 : étapes 8b (scan de l'historique, dépôt, premier push), 8c (passage en public, sécurité) et 8d (déploiement) faites ; projet livré.
-- 28/10/2026 : étape 8f faite : `uv lock --upgrade-package streamlit --upgrade-package pillow --upgrade-package certifi` (streamlit 1.66.0 → 1.66.1, pillow 12.3.0 → 13.0.0, certifi 2026.7.22 → 2026.10.23, rien d'autre), `app/requirements.txt` régénéré, `uv run pytest -q` : 377 tests verts ; test en environnement réduit et push à faire par moi.
+- 28/10/2026 : étape 8f faite : `uv lock --upgrade-package streamlit --upgrade-package pillow --upgrade-package certifi` (streamlit 1.66.0 → 1.66.1, pillow 12.3.0 → 13.0.0, certifi 2026.7.22 → 2026.10.23, rien d'autre), `app/requirements.txt` régénéré, `uv run pytest -q` : 377 tests verts ; testée en environnement réduit et poussée par moi le 28/10 ; 84 alertes Dependabot fermées, 0 ouverte.
 - Pas de bloquant.
 - Reprise :
   Une étape = un onglet complet, vérifié en plaçant la capture à côté de sa maquette de `docs/maquette/`.
@@ -220,7 +221,7 @@ Pas de `__init__.py` directement dans `src/`. Import : `import retrait_gonflemen
   - (fermé le 23/10 : textes de la relecture Opus vérifiés au navigateur et commités) ;
   - (fermé le 28/10 : dépôt GitHub créé, premier push fait par moi) ;
   - pyarrow : en ligne 24.0.0, en local 26.0.0 ; envisager `pyarrow<25` dans les dépendances principales pour aligner les deux (nouveau `uv lock`, régénération de `app/requirements.txt`) ;
-  - Software Heritage : vérifier que l'archivage a réussi et, si utile, citer l'identifiant `swh:1:…` dans le README ;
+  - (fermé le 29/10 : archivage Software Heritage réussi, identifiant cité au README, voir la décision du 29/10) ;
   - (fermé le 27/10 : `URL_METHODE` n'est plus provisoire, seul son commentaire a été corrigé en 7a, `2e862d0`) ;
   - retouches de fin : couleur noire du bandeau, bouton de zone sélectionné, ajustements de textes ;
   - vérifications de la sous-section « À vérifier avant le code » de `docs/app.md` ;

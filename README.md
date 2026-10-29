@@ -153,3 +153,5 @@ Le projet est conçu et piloté par Tropical-Tech-Code : question, méthode stat
 ## Licence
 
 Le code est sous [licence MIT](LICENSE). Les données restent sous la Licence Ouverte 2.0 de leurs producteurs.
+
+Le dépôt est archivé sur Software Heritage : [`swh:1:snp:980450b148e483a6829819b3b15da26d6f5cbe65`](https://archive.softwareheritage.org/swh:1:snp:980450b148e483a6829819b3b15da26d6f5cbe65).
